@@ -17,24 +17,32 @@ const providers: NextAuthOptions["providers"] = [
 
       if (!email) return null;
 
-      let user = await findUserByEmail(email);
+      const existingUser = await findUserByEmail(email);
 
-      if (!user) {
-        user = await createUser({
+      if (!existingUser) {
+        const createdUser = await createUser({
           email,
           name,
           plan: "starter",
           status: "trial",
           trialStart: new Date(),
         });
+
+        if (createdUser.status === "blocked") return null;
+
+        return {
+          id: createdUser.id,
+          email: createdUser.email,
+          name: createdUser.name,
+        };
       }
 
-      if (user.status === "blocked") return null;
+      if (existingUser.status === "blocked") return null;
 
       return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
       };
     },
   }),
