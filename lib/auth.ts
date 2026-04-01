@@ -14,14 +14,28 @@ const providers: NextAuthOptions["providers"] = [
     async authorize(credentials) {
       const email = credentials?.email?.trim().toLowerCase();
       const name = credentials?.name?.trim() || "User";
+
       if (!email) return null;
 
       let user = await findUserByEmail(email);
+
       if (!user) {
-        user = await createUser({ email, name, plan: "starter", status: "trial", trialStart: new Date() });
+        user = await createUser({
+          email,
+          name,
+          plan: "starter",
+          status: "trial",
+          trialStart: new Date(),
+        });
       }
+
       if (user.status === "blocked") return null;
-      return { id: user.id, email: user.email, name: user.name };
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      };
     },
   }),
 ];
@@ -51,38 +65,24 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {
-    async signIn({ user }) {
-      if (!user.email) return false;
-      const existing = await findUserByEmail(user.email);
-      if (!existing) {
-        await createUser({
-          email: user.email,
-          name: user.name || user.email.split("@")[0],
-          plan: "starter",
-          status: "trial",
-          trialStart: new Date(),
-        });
-      } else if (existing.status === "blocked") {
-        return false;
-      }
-      return true;
-    },
     async jwt({ token }) {
       if (token.email) {
         const dbUser = await findUserByEmail(token.email);
         if (dbUser) {
-          token.plan = dbUser.plan;
-          token.status = dbUser.status;
-          token.trialStart = dbUser.trialStart?.toISOString() || null;
+          (token as any).plan = dbUser.plan;
+          (token as any).status = dbUser.status;
+          (token as any).trialStart = dbUser.trialStart
+            ? new Date(dbUser.trialStart).toISOString()
+            : null;
         }
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user?.email) {
-        (session.user as any).plan = token.plan;
-        (session.user as any).status = token.status;
-        (session.user as any).trialStart = token.trialStart;
+      if (session.user) {
+        (session.user as any).plan = (token as any).plan;
+        (session.user as any).status = (token as any).status;
+        (session.user as any).trialStart = (token as any).trialStart;
       }
       return session;
     },
