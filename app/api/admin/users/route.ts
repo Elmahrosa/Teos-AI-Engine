@@ -6,6 +6,7 @@ import { listUsers } from "@/lib/db";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
+
   if (!isAdminEmail(session?.user?.email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
