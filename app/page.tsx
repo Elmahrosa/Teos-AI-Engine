@@ -1,76 +1,130 @@
 import Link from "next/link";
-import { PLANS } from "@/components/plans";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#0a0a0f] text-white">
-      <section className="border-b border-white/10 bg-gradient-to-b from-indigo-950 to-[#0a0a0f]">
-        <div className="mx-auto max-w-6xl px-6 py-20 text-center">
-          <div className="mb-4 inline-flex rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-200">
-            Cleaned MVP
+
+      {/* HERO */}
+      <section className="text-center px-6 py-24 max-w-5xl mx-auto">
+        <h1 className="text-5xl font-bold leading-tight">
+          Turn Ideas Into <span className="text-indigo-400">Real Content</span>
+        </h1>
+
+        <p className="mt-6 text-lg text-zinc-300 max-w-2xl mx-auto">
+          X-Teos Pro is a clean AI system that generates high-quality posts
+          for X, Instagram, and LinkedIn — instantly.
+        </p>
+
+        <div className="mt-10 flex justify-center gap-4">
+          <Link href="/login" className="bg-indigo-600 px-8 py-3 rounded-xl font-semibold hover:bg-indigo-500">
+            Start Free
+          </Link>
+
+          <Link href="/dashboard" className="border border-white/20 px-8 py-3 rounded-xl hover:bg-white/5">
+            View Dashboard
+          </Link>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="max-w-5xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12">How it works</h2>
+
+        <div className="grid md:grid-cols-3 gap-6 text-center">
+          <div className="p-6 border border-white/10 rounded-xl">
+            <h3 className="font-semibold mb-2">1. Enter idea</h3>
+            <p className="text-sm text-zinc-400">Describe what you want to post</p>
           </div>
-          <h1 className="mb-5 text-5xl font-bold">
-            AI Social Growth for <span className="text-indigo-400">Founders</span>
-          </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-zinc-300">
-            Generate and store social posts for X, Instagram, and LinkedIn with a cleaner auth flow and a safer codebase.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/login" className="rounded-xl bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-500">
-              Start free
-            </Link>
-            <Link href="/dashboard" className="rounded-xl border border-white/20 px-8 py-3 font-semibold hover:bg-white/5">
-              Dashboard
-            </Link>
+
+          <div className="p-6 border border-white/10 rounded-xl">
+            <h3 className="font-semibold mb-2">2. Generate</h3>
+            <p className="text-sm text-zinc-400">AI creates a clean post instantly</p>
+          </div>
+
+          <div className="p-6 border border-white/10 rounded-xl">
+            <h3 className="font-semibold mb-2">3. Save & use</h3>
+            <p className="text-sm text-zinc-400">Stored in your dashboard</p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="mb-10 text-center text-3xl font-bold">Pricing</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`rounded-2xl border p-6 ${
-                plan.popular ? "border-indigo-500 bg-indigo-500/5" : "border-white/10 bg-white/5"
-              }`}
-            >
-              {plan.popular && (
-                <div className="mb-4 inline-block rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold">
-                  Most Popular
-                </div>
-              )}
-              <h3 className="text-xl font-semibold">{plan.name}</h3>
-              <p className="mt-2 text-sm text-zinc-400">{plan.description}</p>
-              <div className="mt-4">
-                <span className="text-4xl font-bold">
-                  {plan.monthlyPrice === 0 ? "Free" : `$${plan.monthlyPrice}`}
-                </span>
-                {plan.monthlyPrice > 0 && <span className="text-zinc-400">/mo</span>}
-              </div>
-              <p className="mt-2 text-sm text-zinc-500">{plan.trial}</p>
-              <ul className="mt-6 space-y-3">
-                {plan.features.map((f, i) => (
-                  <li key={i} className={`text-sm ${f.ok ? "text-zinc-200" : "text-zinc-500 line-through"}`}>
-                    {f.ok ? "✓" : "✕"} {f.text}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/login"
-                className={`mt-6 block w-full rounded-xl py-3 text-center font-semibold ${
-                  plan.popular
-                    ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                    : "bg-white/10 text-white hover:bg-white/20"
-                }`}
-              >
-                {plan.cta}
-              </Link>
-            </div>
-          ))}
+      {/* VALUE */}
+      <section className="max-w-5xl mx-auto px-6 py-16 text-center">
+        <h2 className="text-3xl font-bold mb-8">Built for output</h2>
+
+        <p className="text-zinc-300 max-w-2xl mx-auto">
+          Most AI tools overwhelm you.
+          X-Teos Pro focuses on one thing:
+          generating content you can actually use.
+        </p>
+      </section>
+
+      {/* PRICING */}
+      <section className="max-w-6xl mx-auto px-6 py-20">
+        <h2 className="text-3xl text-center font-bold mb-12">Pricing</h2>
+
+        <div className="grid md:grid-cols-3 gap-6">
+
+          {/* STARTER */}
+          <div className="border border-white/10 p-6 rounded-xl">
+            <h3 className="text-xl font-semibold">Starter</h3>
+            <p className="text-3xl mt-4">Free</p>
+            <p className="text-sm text-zinc-400 mt-2">3-day trial</p>
+
+            <ul className="mt-6 space-y-2 text-sm">
+              <li>✔ 10 posts</li>
+              <li>✔ X + Instagram</li>
+              <li>✖ LinkedIn</li>
+            </ul>
+
+            <Link href="/login" className="block mt-6 bg-white/10 text-center py-3 rounded-xl hover:bg-white/20">
+              Start Free
+            </Link>
+          </div>
+
+          {/* PRO */}
+          <div className="border border-indigo-500 p-6 rounded-xl bg-indigo-500/5">
+            <h3 className="text-xl font-semibold">Pro</h3>
+            <p className="text-3xl mt-4">$29/mo</p>
+
+            <ul className="mt-6 space-y-2 text-sm">
+              <li>✔ Unlimited posts</li>
+              <li>✔ X + Instagram</li>
+              <li>✔ Analytics</li>
+            </ul>
+
+            <Link href="/api/subscribe?plan=pro" className="block mt-6 bg-indigo-600 text-center py-3 rounded-xl hover:bg-indigo-500">
+              Upgrade
+            </Link>
+          </div>
+
+          {/* AGENCY */}
+          <div className="border border-white/10 p-6 rounded-xl">
+            <h3 className="text-xl font-semibold">Agency</h3>
+            <p className="text-3xl mt-4">$99/mo</p>
+
+            <ul className="mt-6 space-y-2 text-sm">
+              <li>✔ All platforms</li>
+              <li>✔ LinkedIn</li>
+              <li>✔ Team features</li>
+            </ul>
+
+            <Link href="/api/subscribe?plan=agency" className="block mt-6 bg-white/10 text-center py-3 rounded-xl hover:bg-white/20">
+              Go Agency
+            </Link>
+          </div>
+
         </div>
       </section>
+
+      {/* FOOTER */}
+      <footer className="text-center text-xs text-zinc-500 py-10">
+        © 2026 X-Teos Pro · Elmahrosa  
+        <div className="mt-2">
+          <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a>
+        </div>
+      </footer>
+
     </main>
   );
 }
