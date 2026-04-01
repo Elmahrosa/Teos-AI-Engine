@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserPlan {
+  starter
+  pro
+  agency
+}
+
+enum UserStatus {
+  active
+  trial
+  blocked
+  cancelled
+}
+
+enum BillingStatus {
+  pending
+  paid
+  failed
+  refunded
+  ignored
+}
+
+model User {
+  id          String               @id @default(cuid())
+  email       String               @unique
+  name        String
+  plan        UserPlan             @default(starter)
+  status      UserStatus           @default(trial)
+  trialStart  DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  posts       Post[]
+  billings    BillingEvent[]
+}
+
+model Post {
+  id         String   @id @default(cuid())
+  content    String
+  platform   String
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model BillingEvent {
+  id              String        @id @default(cuid())
+  provider        String
+  externalEventId String?       @unique
+  invoiceId       String?
+  status          BillingStatus
+  plan            UserPlan?
+  payload         Json
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime      @default(now())
+
+  @@index([invoiceId])
+  @@index([userId, createdAt])
+}
