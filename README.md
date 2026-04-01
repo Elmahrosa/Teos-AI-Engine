@@ -1,88 +1,93 @@
-# X-Teos Pro — final rebuild
+# X-Teos Pro
 
-This is the cleaned, complete rebuild of the X-Teos Pro Next.js application.
+AI-powered social growth across X, Instagram, and LinkedIn.
+Built by Elmahrosa International · Alexandria, Egypt.
 
-## What is included
+## Features
+- AI post generation (Claude Haiku — fast + cheap)
+- X + Instagram for all plans
+- LinkedIn on Agency plan only
+- 3-day free trial on Pro & Agency via Tap Payments
+- Starter free forever (no card)
+- Sign in with Google or X OAuth
+- Real trial enforcement (auto-blocks after 3 days)
+- Admin panel at `/api/admin`
 
-- Next.js 14 app router structure
-- NextAuth session flow with credentials + optional Google and X/Twitter providers
-- PostgreSQL + Prisma storage for users, posts, and Tap billing events
-- Post generation route using Anthropic through the AI SDK, with a safe demo fallback
-- Premium dark landing page
-- Real dashboard with post generator and saved post history
-- Session-protected admin page
-- Tap webhook signature verification and billing event logging
-- Terms and Privacy pages
-- `.env.example`, loading state, icon, cleanup, and safer README
+## Pricing
+| Plan | Price | LinkedIn | Trial |
+|------|-------|----------|-------|
+| Starter | Free | — | Free forever |
+| Pro | $29/mo | — | 3 days via Tap |
+| Agency | $99/mo | ✓ | 3 days via Tap |
 
-## What was fixed
+## Setup
 
-- Added the missing `Providers` wrapper so session-driven client UI works
-- Kept real auth providers instead of an empty providers array
-- Replaced localhost metadata base with environment-driven `APP_URL`
-- Preserved safe Postgres schema by keeping `externalEventId String? @unique`
-- Added a working post generator to the dashboard
-- Added terms/privacy pages and removed customer-facing dependence on `AUDIT.md`
-- Removed unsafe `git push --force` instruction
-- Added loading state and icon support
-- Kept Tap webhook verification as real HMAC logic
+### 1. Clone and install
+```bash
+git clone https://github.com/Elmahrosa/x-teos-pro
+cd x-teos-pro
+npm install
+```
 
-## Required environment variables
-
-Copy `.env.example` to `.env.local`:
-
+### 2. Environment variables
 ```bash
 cp .env.example .env.local
+# Fill in all values — see .env.example for details
 ```
 
-Required for local development:
+Required keys:
+- `NEXTAUTH_SECRET` — run `openssl rand -base64 32`
+- `GOOGLE_CLIENT_ID/SECRET` — console.cloud.google.com
+- `TWITTER_CLIENT_ID/SECRET` — developer.twitter.com
+- `ANTHROPIC_API_KEY` — console.anthropic.com
+- `RESEND_API_KEY` — resend.com
+- `TAP_SECRET_KEY` + `TAP_WEBHOOK_SECRET` — business.tap.company
 
-- `DATABASE_URL`
-- `NEXTAUTH_SECRET`
-- `NEXTAUTH_URL`
-- `APP_URL`
-- `ADMIN_EMAILS`
-
-Optional but recommended:
-
-- `ANTHROPIC_API_KEY`
-- `RESEND_API_KEY`
-- `EMAIL_FROM`
-- `TAP_WEBHOOK_SECRET`
-- `TAP_PRO_LINK`
-- `TAP_AGENCY_LINK`
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- `TWITTER_CLIENT_ID`
-- `TWITTER_CLIENT_SECRET`
-
-## Local run
-
+### 3. Run locally
 ```bash
-npm install
-npx prisma db push
 npm run dev
+# Visit http://localhost:3000
 ```
 
-## Deploy
+### 4. Deploy to Vercel
+1. Push to GitHub
+2. Import at vercel.com/new
+3. Add all env vars in Vercel dashboard
+4. Deploy
 
-Deploy on Vercel, and use a managed PostgreSQL database such as Neon, Supabase, or RDS.
+### 5. Configure Tap webhook
+In Tap dashboard, set webhook URL to:
+`https://your-domain.vercel.app/api/webhook/tap`
 
-### Deployment checklist
+### 6. Admin panel
+```
+GET /api/admin
+Authorization: Basic base64(username:password)
+```
+Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in env vars.
 
-1. Set all required environment variables
-2. Run `npx prisma db push`
-3. Set Tap webhook target to `/api/webhook/tap`
-4. Add your admin email to `ADMIN_EMAILS`
-5. Test login, generation, billing webhook, and dashboard access
+## Architecture
+```
+app/
+  page.tsx          — Pricing page with Tap payment links
+  login/page.tsx    — OAuth login (Google + X)
+  dashboard/        — Post generator dashboard
+  api/
+    auth/           — NextAuth OAuth handlers
+    generate/       — Claude AI post generation
+    webhook/tap/    — Tap payment webhook (activates users)
+    admin/          — Admin stats + user management
+components/
+  Providers.tsx     — SessionProvider wrapper
+lib/
+  auth.ts           — NextAuth config (Google + Twitter)
+  claude.ts         — Anthropic SDK (Haiku model)
+  db.ts             — File-based JSON storage
+  email.ts          — Resend welcome emails
+  plans.ts          — Single source of truth for plans
+  tap.ts            — Tap webhook verification
+middleware.ts       — Auth protection for dashboard + API
+```
 
-## Honest limit
-
-This is a solid final MVP / launchable baseline, not a 10/10 enterprise SaaS.
-If you want the next level after this, add:
-
-- Tap API session creation instead of static invoice links
-- usage quotas and rate limiting
-- audit trails for admin actions
-- retry jobs / queues for billing and email
-- tests for auth, billing, and replay protection
+## Contact
+ayman@teosegypt.com · teosegypt.com
