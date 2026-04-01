@@ -34,6 +34,10 @@ export async function createUser(data: {
       status: data.status ?? "trial",
       trialStart: data.trialStart ?? new Date(),
     },
+    // Added include to match findUserByEmail's return shape
+    include: {
+      posts: { orderBy: { createdAt: "desc" } },
+    },
   });
 }
 
