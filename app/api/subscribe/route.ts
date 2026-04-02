@@ -4,42 +4,63 @@ import { authOptions } from "@/lib/auth";
 import { findUserByEmail, updateUserByEmail } from "@/lib/db";
 import { TAP_INVOICES } from "@/lib/tap";
 
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  const body = await request.json();
-  const plan = body?.plan;
+async function handlePlan(plan: string, email: string) {
+  const user = await findUserByEmail(email);
 
-  if (!["starter", "pro", "agency"].includes(plan)) {
-    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
-  }
-
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Login required" }, { status: 401 });
-  }
-
-  const user = await findUserByEmail(session.user.email);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
   if (plan === "starter") {
-    await updateUserByEmail(session.user.email, {
+    await updateUserByEmail(email, {
       plan: "starter",
       status: "trial",
       trialStart: new Date(),
     });
-    return NextResponse.json({ success: true, message: "Starter trial activated" });
+
+    return NextResponse.redirect(new URL("/dashboard", process.env.NEXTAUTH_URL || "http://localhost:3000"));
   }
 
   const tapLink = TAP_INVOICES[plan as "pro" | "agency"];
+
   if (!tapLink) {
     return NextResponse.json({ error: "Tap link not configured" }, { status: 500 });
   }
 
-  return NextResponse.json({
-    success: true,
-    tapLink,
-    message: "Redirect to Tap checkout",
-    plan,
-  });
+  return NextResponse.redirect(tapLink);
+}
+
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    const url = new URL("/login", process.env.NEXTAUTH_URL || "http://localhost:3000");
+    return NextResponse.redirect(url);
+  }
+
+  const { searchParams } = new URL(request.url);
+  const plan = searchParams.get("plan");
+
+  if (!plan || !["starter", "pro", "agency"].includes(plan)) {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+
+  return handlePlan(plan, session.user.email);
+}
+
+export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Login required" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const plan = body?.plan;
+
+  if (!plan || !["starter", "pro", "agency"].includes(plan)) {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+
+  return handlePlan(plan, session.user.email);
 }
