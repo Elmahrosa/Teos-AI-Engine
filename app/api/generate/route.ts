@@ -7,18 +7,30 @@ import { canUseLinkedIn, isTrialExpired } from "@/lib/access";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
+
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const user = await findUserByEmail(session.user.email);
+
   if (!user || user.status === "blocked") {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
   if (isTrialExpired(user)) {
     await updateUserByEmail(session.user.email, { status: "blocked" });
-    return NextResponse.json({ error: "Trial ended. Upgrade required." }, { status: 403 });
+    return NextResponse.json(
+      { error: "Trial ended. Upgrade required." },
+      { status: 403 }
+    );
+  }
+
+  if (user.plan === "starter" && user.posts.length >= 10) {
+    return NextResponse.json(
+      { error: "Starter limit reached. Upgrade to continue." },
+      { status: 403 }
+    );
   }
 
   try {
@@ -31,15 +43,28 @@ export async function POST(req: Request) {
     }
 
     if (platform === "linkedin" && !canUseLinkedIn(user)) {
-      return NextResponse.json({ error: "LinkedIn requires Agency plan" }, { status: 403 });
+      return NextResponse.json(
+        { error: "LinkedIn requires Agency plan" },
+        { status: 403 }
+      );
     }
 
     const result = await generatePost(prompt, platform);
-    await appendPost(session.user.email, { content: result.post, platform });
+    await appendPost(session.user.email, {
+      content: result.post,
+      platform,
+    });
 
-    return NextResponse.json({ success: true, post: result.post, hashtags: result.hashtags });
+    return NextResponse.json({
+      success: true,
+      post: result.post,
+      hashtags: result.hashtags,
+    });
   } catch (error) {
     console.error("[generate] error", error);
-    return NextResponse.json({ error: "Failed to generate post" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate post" },
+      { status: 500 }
+    );
   }
 }
