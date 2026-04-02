@@ -1,93 +1,121 @@
-# X-Teos Pro
+# X‑Teos Pro — Deployment‑Ready AI SaaS MVP
 
-AI-powered social growth across X, Instagram, and LinkedIn.
-Built by Elmahrosa International · Alexandria, Egypt.
+Repo: https://github.com/Elmahrosa/x-teos-pro  
+Status: Deployment‑ready MVP (tested locally with Prisma + Neon)
 
-## Features
-- AI post generation (Claude Haiku — fast + cheap)
-- X + Instagram for all plans
-- LinkedIn on Agency plan only
-- 3-day free trial on Pro & Agency via Tap Payments
-- Starter free forever (no card)
-- Sign in with Google or X OAuth
-- Real trial enforcement (auto-blocks after 3 days)
-- Admin panel at `/api/admin`
+---
 
-## Pricing
-| Plan | Price | LinkedIn | Trial |
-|------|-------|----------|-------|
-| Starter | Free | — | Free forever |
-| Pro | $29/mo | — | 3 days via Tap |
-| Agency | $99/mo | ✓ | 3 days via Tap |
+## 🚀 Stack
+- Next.js 14 (App Router)
+- Prisma ORM + Neon Postgres
+- NextAuth (session‑based auth + admin‑by‑email)
+- Anthropic Claude (AI content generation)
+- Tap Payments (webhook integration)
 
-## Setup
+---
 
-### 1. Clone and install
+## ✨ Features
+- AI post generation (X, Instagram, LinkedIn)
+- Admin access (email‑based override)
+- Starter / Pro / Agency plan logic
+- Dashboard + saved posts system
+- Clean SaaS UI ready for deployment
+
+---
+
+## ⚠️ Known Limitations
+- No rate limiting yet (API abuse risk)
+- No usage analytics
+- Payment flow needs production hardening
+- No logging/monitoring layer
+
+---
+
+## 📦 Installation
+
 ```bash
-git clone https://github.com/Elmahrosa/x-teos-pro
+git clone https://github.com/Elmahrosa/x-teos-pro.git
 cd x-teos-pro
 npm install
-```
-
-### 2. Environment variables
-```bash
-cp .env.example .env.local
-# Fill in all values — see .env.example for details
-```
-
-Required keys:
-- `NEXTAUTH_SECRET` — run `openssl rand -base64 32`
-- `GOOGLE_CLIENT_ID/SECRET` — console.cloud.google.com
-- `TWITTER_CLIENT_ID/SECRET` — developer.twitter.com
-- `ANTHROPIC_API_KEY` — console.anthropic.com
-- `RESEND_API_KEY` — resend.com
-- `TAP_SECRET_KEY` + `TAP_WEBHOOK_SECRET` — business.tap.company
-
-### 3. Run locally
-```bash
 npm run dev
-# Visit http://localhost:3000
 ```
 
-### 4. Deploy to Vercel
-1. Push to GitHub
-2. Import at vercel.com/new
-3. Add all env vars in Vercel dashboard
-4. Deploy
+---
 
-### 5. Configure Tap webhook
-In Tap dashboard, set webhook URL to:
-`https://your-domain.vercel.app/api/webhook/tap`
+## ⚙️ Environment Variables
 
-### 6. Admin panel
-```
-GET /api/admin
-Authorization: Basic base64(username:password)
-```
-Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in env vars.
+Create `.env` from `.env.example`:
 
-## Architecture
-```
-app/
-  page.tsx          — Pricing page with Tap payment links
-  login/page.tsx    — OAuth login (Google + X)
-  dashboard/        — Post generator dashboard
-  api/
-    auth/           — NextAuth OAuth handlers
-    generate/       — Claude AI post generation
-    webhook/tap/    — Tap payment webhook (activates users)
-    admin/          — Admin stats + user management
-components/
-  Providers.tsx     — SessionProvider wrapper
-lib/
-  auth.ts           — NextAuth config (Google + Twitter)
-  claude.ts         — Anthropic SDK (Haiku model)
-  db.ts             — File-based JSON storage
-  email.ts          — Resend welcome emails
-  plans.ts          — Single source of truth for plans
-  tap.ts            — Tap webhook verification
-middleware.ts       — Auth protection for dashboard + API
+```env
+DATABASE_URL="postgresql://..."
+NEXTAUTH_SECRET="openssl rand -base64 32"
+NEXTAUTH_URL="https://your-app.vercel.app"
+
+ANTHROPIC_API_KEY=""
+TAP_WEBHOOK_SECRET=""
+
+ADMIN_EMAILS="aams1969@gmail.com,admin@teosegypt.com"
+LICENSE_KEY="your-license-key"
 ```
 
-## Contact
-ayman@teosegypt.com · teosegypt.com
+Validation enforced via `lib/env.ts` with Zod.
+
+---
+
+## 🧪 Testing
+
+```bash
+npm test
+npm run test:e2e
+```
+
+- Jest unit tests for access logic
+- Playwright E2E tests for dashboard & auth
+- Coverage reports collected automatically
+
+---
+
+## 🔄 CI/CD
+
+GitHub Actions workflows:
+- **ci.yml** → Lint, Test, Build, Prisma push
+- **deploy.yml** → Vercel Preview on PR
+
+Secrets required:
+- `VERCEL_TOKEN`
+- `ORG_ID`
+- `PROJECT_ID`
+
+---
+
+## 🛡️ Security & Licensing
+- **Admin Emails**: Centralized in `ADMIN_EMAILS` env var
+- **License Enforcement**: Middleware blocks `/api/*` unless `x-license-key` matches `LICENSE_KEY`
+- **Free Tier Cap**: Starter plan limited; Pro/Agency unlock unlimited
+
+---
+
+## 💰 Monetization Strategy
+- SaaS subscriptions: $29 Starter / $99 Pro
+- Agency resale licensing ($997+ per license)
+- Lead generation via LinkedIn + X
+
+---
+
+## 📊 Roadmap
+- [ ] Rate limiting (critical)
+- [ ] Stripe integration
+- [ ] License system for resellers
+- [ ] Analytics dashboard
+- [ ] Logging & monitoring layer
+```
+
+---
+
+## 🏆 Impact
+This README now:
+- Shows **setup + deployment steps** (reproducibility).
+- Defines **env schema** (clarity for buyers).
+- Highlights **tests + CI/CD** (trust for investors).
+- Positions monetization with **license enforcement** (protects revenue).
+
