@@ -17,32 +17,24 @@ const providers: NextAuthOptions["providers"] = [
 
       if (!email) return null;
 
-      const existingUser = await findUserByEmail(email);
+      let user = await findUserByEmail(email);
 
-      if (!existingUser) {
-        const createdUser = await createUser({
+      if (!user) {
+        user = await createUser({
           email,
           name,
           plan: "starter",
           status: "trial",
           trialStart: new Date(),
         });
-
-        if (createdUser.status === "blocked") return null;
-
-        return {
-          id: createdUser.id,
-          email: createdUser.email,
-          name: createdUser.name,
-        };
       }
 
-      if (existingUser.status === "blocked") return null;
+      if (user.status === "blocked") return null;
 
       return {
-        id: existingUser.id,
-        email: existingUser.email,
-        name: existingUser.name,
+        id: user.id,
+        email: user.email,
+        name: user.name,
       };
     },
   }),
@@ -53,7 +45,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
+    })
   );
 }
 
@@ -63,7 +55,7 @@ if (process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET) {
       clientId: process.env.TWITTER_CLIENT_ID,
       clientSecret: process.env.TWITTER_CLIENT_SECRET,
       version: "2.0",
-    }),
+    })
   );
 }
 
