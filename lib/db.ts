@@ -3,19 +3,22 @@ import { BillingStatus, Prisma, UserPlan, UserStatus } from "@prisma/client";
 import { prisma } from "./prisma";
 
 export type { UserPlan, UserStatus, BillingStatus };
-export type UserRecord = Awaited<ReturnType<typeof findUserByEmail>>;
 
 export async function listUsers() {
   return prisma.user.findMany({
     orderBy: { createdAt: "desc" },
-    include: { posts: { orderBy: { createdAt: "desc" }, take: 20 } },
+    include: {
+      posts: { orderBy: { createdAt: "desc" }, take: 20 },
+    },
   });
 }
 
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
     where: { email: email.toLowerCase() },
-    include: { posts: { orderBy: { createdAt: "desc" } } },
+    include: {
+      posts: { orderBy: { createdAt: "desc" } },
+    },
   });
 }
 
@@ -34,7 +37,6 @@ export async function createUser(data: {
       status: data.status ?? "trial",
       trialStart: data.trialStart ?? new Date(),
     },
-    // Added include to match findUserByEmail's return shape
     include: {
       posts: { orderBy: { createdAt: "desc" } },
     },
@@ -48,17 +50,27 @@ export async function updateUserByEmail(
     plan?: UserPlan;
     status?: UserStatus;
     trialStart?: Date | null;
-  },
+  }
 ) {
   return prisma.user.update({
     where: { email: email.toLowerCase() },
     data: updates,
+    include: {
+      posts: { orderBy: { createdAt: "desc" } },
+    },
   });
 }
 
-export async function appendPost(email: string, data: { content: string; platform: string }) {
-  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+export async function appendPost(
+  email: string,
+  data: { content: string; platform: string }
+) {
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+
   if (!user) return null;
+
   return prisma.post.create({
     data: {
       userId: user.id,
@@ -78,11 +90,16 @@ export async function logBillingEvent(data: {
   userEmail?: string | null;
 }) {
   const user = data.userEmail
-    ? await prisma.user.findUnique({ where: { email: data.userEmail.toLowerCase() } })
+    ? await prisma.user.findUnique({
+        where: { email: data.userEmail.toLowerCase() },
+      })
     : null;
 
+  const eventKey =
+    data.externalEventId || `tap:${data.invoiceId || randomUUID()}`;
+
   return prisma.billingEvent.upsert({
-    where: { externalEventId: data.externalEventId || `tap:${data.invoiceId || randomUUID()}` },
+    where: { externalEventId: eventKey },
     update: {
       invoiceId: data.invoiceId ?? undefined,
       status: data.status,
@@ -92,7 +109,7 @@ export async function logBillingEvent(data: {
     },
     create: {
       provider: data.provider ?? "tap",
-      externalEventId: data.externalEventId || `tap:${data.invoiceId || randomUUID()}`,
+      externalEventId: eventKey,
       invoiceId: data.invoiceId ?? null,
       status: data.status,
       plan: data.plan ?? null,
