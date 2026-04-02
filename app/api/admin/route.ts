@@ -1,27 +1,18 @@
 import { NextResponse } from "next/server";
-import { getAllUsers, updateUser } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/access";
+import { listUsers, updateUserByEmail } from "@/lib/db";
 
-function checkAuth(req: Request): boolean {
-  const auth = req.headers.get("authorization") || "";
-  const [scheme, encoded] = auth.split(" ");
-  if (scheme !== "Basic" || !encoded) return false;
-  const decoded = Buffer.from(encoded, "base64").toString("utf8");
-  const [username, password] = decoded.split(":");
-  return (
-    username === process.env.ADMIN_USERNAME &&
-    password === process.env.ADMIN_PASSWORD
-  );
-}
+export async function GET() {
+  const session = await getServerSession(authOptions);
 
-export async function GET(req: Request) {
-  if (!checkAuth(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, {
-      status: 401,
-      headers: { "WWW-Authenticate": 'Basic realm="Admin"' },
-    });
+  if (!isAdminEmail(session?.user?.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const users = getAllUsers();
+  const users = await listUsers();
+
   const stats = {
     total: users.length,
     starter: users.filter((u) => u.plan === "starter").length,
@@ -36,18 +27,22 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  if (!checkAuth(req)) {
+  const session = await getServerSession(authOptions);
+
+  if (!isAdminEmail(session?.user?.email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { email, plan, status } = await req.json();
-  if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
-  const updated = updateUser(email, {
-    ...(plan && { plan }),
-    ...(status && { status }),
+  if (!email) {
+    return NextResponse.json({ error: "Email required" }, { status: 400 });
+  }
+
+  const updated = await updateUserByEmail(email, {
+    ...(plan ? { plan } : {}),
+    ...(status ? { status } : {}),
   });
 
-  if (!updated) return NextResponse.json({ error: "User not found" }, { status: 404 });
   return NextResponse.json({ success: true, user: updated });
 }
