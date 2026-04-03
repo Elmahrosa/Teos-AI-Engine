@@ -19,10 +19,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
-  // ✅ use trialEndsAt instead of trialStart
+  // ✅ trial check using schema fields
   if (
     isTrialExpired({
-      trialStart: user.trialEndsAt,
+      trialStart: user.trialStart,
       status: user.status,
       email: user.email,
     })
