@@ -18,9 +18,9 @@ export async function GET() {
     starter: users.filter((u) => u.plan === "starter").length,
     pro: users.filter((u) => u.plan === "pro").length,
     agency: users.filter((u) => u.plan === "agency").length,
-    active: users.filter((u) => u.status === "active").length,
-    trial: users.filter((u) => u.status === "trial").length,
-    blocked: users.filter((u) => u.status === "blocked").length,
+    active: users.filter((u) => u.plan !== "starter").length,
+    trial: users.filter((u) => u.plan === "starter").length,
+    blocked: 0,
   };
 
   return NextResponse.json({ stats, users });
