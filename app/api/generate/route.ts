@@ -53,13 +53,6 @@ export async function POST(req: Request) {
     );
   }
 
-  if (user.plan === "starter" && user.posts.length >= STARTER_POST_LIMIT) {
-    return NextResponse.json(
-      { error: "Starter limit reached. Upgrade to continue." },
-      { status: 403 }
-    );
-  }
-
   try {
     const body = await req.json();
     const parsed = generatePostSchema.safeParse(body);
