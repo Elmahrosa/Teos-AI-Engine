@@ -16,8 +16,16 @@ export async function listUsers() {
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
     where: { email: email.toLowerCase() },
-    include: {
-      posts: { orderBy: { createdAt: "desc" } },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      plan: true,
+      status: true,
+      trialStart: true,   // ✅ ensure trialStart is always available
+      posts: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }
@@ -37,8 +45,16 @@ export async function createUser(data: {
       status: data.status ?? "trial",
       trialStart: data.trialStart ?? new Date(),
     },
-    include: {
-      posts: { orderBy: { createdAt: "desc" } },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      plan: true,
+      status: true,
+      trialStart: true,
+      posts: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }
@@ -55,8 +71,16 @@ export async function updateUserByEmail(
   return prisma.user.update({
     where: { email: email.toLowerCase() },
     data: updates,
-    include: {
-      posts: { orderBy: { createdAt: "desc" } },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      plan: true,
+      status: true,
+      trialStart: true,
+      posts: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }
