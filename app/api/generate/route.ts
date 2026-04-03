@@ -45,13 +45,17 @@ export async function POST(req: Request) {
     );
   }
 
-  if (
-    isTrialExpired({
-trialStart: user.trialEndsAt ? new Date(user.trialEndsAt.getTime() - (3 * 24 * 60 * 60 * 1000)) : null,      status: user.status,
-      email: user.email,
-    })
-  ) {
-    await updateUserByEmail(session.user.email, { status: "blocked" });
+if (
+  user.trialEndsAt &&
+  new Date() > new Date(user.trialEndsAt)
+) {
+  await updateUserByEmail(session.user.email, { status: "blocked" });
+
+  return NextResponse.json(
+    { error: "Trial ended. Upgrade required." },
+    { status: 403 }
+  );
+}    await updateUserByEmail(session.user.email, { status: "blocked" });
     return NextResponse.json(
       { error: "Trial ended. Upgrade required." },
       { status: 403 }
