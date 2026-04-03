@@ -75,7 +75,7 @@ export async function appendPost(
   });
 }
 
-// List all users for admin dashboard
+// List all users for admin dashboard with relation included
 export async function listUsers() {
   return prisma.user.findMany({
     orderBy: { createdAt: "desc" },
