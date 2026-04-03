@@ -10,8 +10,8 @@ export async function findUserByEmail(email: string) {
       email: true,
       name: true,
       plan: true,
-      status: true,       // ✅ exists in schema
-      trialStart: true,   // ✅ exists in schema
+      status: true,
+      trialStart: true,
       posts: {
         orderBy: { createdAt: "desc" },
       },
@@ -39,12 +39,15 @@ export async function createUser(data: {
   });
 }
 
-export async function updateUserByEmail(email: string, data: Partial<{
-  name: string;
-  plan: string;
-  status: string;
-  trialStart: Date;
-}>) {
+export async function updateUserByEmail(
+  email: string,
+  data: Partial<{
+    name: string;
+    plan: string;
+    status: string;
+    trialStart: Date;
+  }>
+) {
   return prisma.user.update({
     where: { email: email.toLowerCase() },
     data,
@@ -59,7 +62,10 @@ export async function updateUserByEmail(email: string, data: Partial<{
   });
 }
 
-export async function appendPost(email: string, post: { content: string; platform: string }) {
+export async function appendPost(
+  email: string,
+  post: { content: string; platform: string }
+) {
   return prisma.post.create({
     data: {
       content: post.content,
@@ -68,6 +74,7 @@ export async function appendPost(email: string, post: { content: string; platfor
     },
   });
 }
+
 // List all users for admin dashboard
 export async function listUsers() {
   return prisma.user.findMany({
@@ -81,6 +88,9 @@ export async function listUsers() {
       trialStart: true,
       createdAt: true,
       updatedAt: true,
+      posts: {
+        select: { id: true }, // ✅ allows user.posts.length
+      },
     },
   });
 }
