@@ -5,8 +5,20 @@ import { appendPost, findUserByEmail, updateUserByEmail } from "@/lib/db";
 import { generatePost } from "@/lib/claude";
 import { canUseLinkedIn } from "@/lib/access";
 import { isTrialExpired } from "@/lib/trial";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { generatePostSchema } from "@/lib/validation";
+import {
+  GENERATE_RATE_LIMIT,
+  GENERATE_RATE_WINDOW_MS,
+  STARTER_POST_LIMIT,
+} from "@/lib/constants";
+import { isAllowedOrigin } from "@/lib/origin";
 
 export async function POST(req: Request) {
+  if (!isAllowedOrigin(req)) {
+    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
+
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -19,7 +31,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
-  // ✅ trial check using schema fields
+  const rateKey = user.id ?? session.user.email.toLowerCase();
+  if (
+    !checkRateLimit(
+      rateKey,
+      GENERATE_RATE_LIMIT,
+      GENERATE_RATE_WINDOW_MS
+    )
+  ) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Try again later." },
+      { status: 429 }
+    );
+  }
+
   if (
     isTrialExpired({
       trialStart: user.trialStart,
@@ -34,7 +59,7 @@ export async function POST(req: Request) {
     );
   }
 
-  if (user.plan === "starter" && user.posts.length >= 10) {
+  if (user.plan === "starter" && user.posts.length >= STARTER_POST_LIMIT) {
     return NextResponse.json(
       { error: "Starter limit reached. Upgrade to continue." },
       { status: 403 }
@@ -43,12 +68,13 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-    const platform = body.platform as "x" | "instagram" | "linkedin";
+    const parsed = generatePostSchema.safeParse(body);
 
-    if (!prompt || !["x", "instagram", "linkedin"].includes(platform)) {
+    if (!parsed.success) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
+
+    const { prompt, platform } = parsed.data;
 
     if (platform === "linkedin" && !canUseLinkedIn(user)) {
       return NextResponse.json(
@@ -71,8 +97,16 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("[generate] error", error);
+
     return NextResponse.json(
-      { error: "Failed to generate post" },
+      {
+        error:
+          process.env.NODE_ENV === "production"
+            ? "Failed to generate post"
+            : error instanceof Error
+              ? error.message
+              : "Failed to generate post",
+      },
       { status: 500 }
     );
   }
