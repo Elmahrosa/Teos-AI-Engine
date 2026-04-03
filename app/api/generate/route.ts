@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { appendPost, findUserByEmail, updateUserByEmail } from "@/lib/db";
+import { appendPost, findUserByEmail } from "@/lib/db";
 import { generatePost } from "@/lib/claude";
-import { canUseLinkedIn, isTrialExpired } from "@/lib/access";
+import { canUseLinkedIn } from "@/lib/access";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -14,21 +14,8 @@ export async function POST(req: Request) {
 
   const user = await findUserByEmail(session.user.email);
 
-  if (!user || user.status === "blocked") {
+  if (!user) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
-  }
-
-  // ✅ Pass only the required fields to isTrialExpired
-  if (isTrialExpired({
-    trialStart: user.trialStart,
-    status: user.status,
-    email: user.email,
-  })) {
-    await updateUserByEmail(session.user.email, { status: "blocked" });
-    return NextResponse.json(
-      { error: "Trial ended. Upgrade required." },
-      { status: 403 }
-    );
   }
 
   if (user.plan === "starter" && user.posts.length >= 10) {
@@ -55,6 +42,7 @@ export async function POST(req: Request) {
     }
 
     const result = await generatePost(prompt, platform);
+
     await appendPost(session.user.email, {
       content: result.post,
       platform,
