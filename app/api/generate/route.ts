@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { appendPost, findUserByEmail, updateUserByEmail } from "@/lib/db";
 import { generatePost } from "@/lib/claude";
 import { canUseLinkedIn } from "@/lib/access";
-import { isTrialExpired } from "@/lib/trial"; // make sure you have this util
+import { isTrialExpired } from "@/lib/trial";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -19,10 +19,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
-  // ✅ keep your trial check
+  // ✅ use trialEndsAt instead of trialStart
   if (
     isTrialExpired({
-      trialStart: user.trialStart,
+      trialStart: user.trialEndsAt,
       status: user.status,
       email: user.email,
     })
