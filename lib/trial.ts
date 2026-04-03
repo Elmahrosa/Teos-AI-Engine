@@ -1,18 +1,27 @@
 import { UserStatus } from "@prisma/client";
-import { TRIAL_DAYS } from "./constants";
 import { isAdminEmail } from "./access";
 
-export function isTrialExpired(params: {
-  trialStart: Date | null;
-  status: UserStatus;
-  email: string;
+/**
+ * Validates if a user's trial period has concluded based on 
+ * trialEndsAt timestamp and account status.
+ */
+export function isTrialExpired(data: { 
+  trialEndsAt: Date | null; 
+  status: string; // or UserStatus if preferred
+  email: string 
 }): boolean {
-  if (isAdminEmail(params.email)) return false;
-  if (params.status !== "trial") return false;
-  if (!params.trialStart) return true;
+  // 1. Admins are never expired
+  if (isAdminEmail(data.email)) return false;
 
-  const expiry = new Date(params.trialStart);
-  expiry.setDate(expiry.getDate() + TRIAL_DAYS);
+  // 2. Explicitly blocked users are considered "expired" (access denied)
+  if (data.status === "blocked") return true;
 
-  return new Date() > expiry;
+  // 3. If they aren't in a trial state (e.g., they are 'pro'), they aren't expired
+  if (data.status !== "trial") return false;
+
+  // 4. If no end date exists but they are marked as 'trial', treat as expired for safety
+  if (!data.trialEndsAt) return true;
+
+  // 5. Final check: Is the current server time past the trial end date?
+  return new Date() > new Date(data.trialEndsAt);
 }
