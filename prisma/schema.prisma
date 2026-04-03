@@ -1,69 +1,73 @@
-generator client {
-  provider = "prisma-client-js"
+import { PrismaClient, UserPlan, UserStatus, BillingStatus } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export async function findUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      plan: true,
+      status: true,      // ✅ Critical for API route checks
+      trialStart: true,  // ✅ Critical for API route checks
+      posts: {
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+export async function createUser(data: {
+  email: string;
+  name: string;
+  plan?: UserPlan;
+  status?: UserStatus;
+  trialStart?: Date;
+}) {
+  return prisma.user.create({
+    data,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      plan: true,
+      status: true,
+      trialStart: true,
+    },
+  });
 }
 
-enum UserPlan {
-  starter
-  pro
-  agency
+export async function listUsers() {
+  return prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      plan: true,
+      status: true,
+      trialStart: true,
+      createdAt: true,
+      updatedAt: true,
+      posts: {
+        select: { id: true },
+      },
+    },
+  });
 }
 
-enum UserStatus {
-  active
-  trial
-  blocked
-  cancelled
-}
-
-enum BillingStatus {
-  pending
-  paid
-  failed
-  refunded
-  ignored
-}
-
-model User {
-  id          String               @id @default(cuid())
-  email       String               @unique
-  name        String
-  plan        UserPlan             @default(starter)
-  status      UserStatus           @default(trial)
-  trialStart  DateTime?
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  posts       Post[]
-  billings    BillingEvent[]
-}
-
-model Post {
-  id         String   @id @default(cuid())
-  content    String
-  platform   String
-  createdAt  DateTime @default(now())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-}
-
-model BillingEvent {
-  id              String        @id @default(cuid())
-  provider        String
-  externalEventId String?       @unique
-  invoiceId       String?
-  status          BillingStatus
-  plan            UserPlan?
-  payload         Json
-  userId          String?
-  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt       DateTime      @default(now())
-
-  @@index([invoiceId])
-  @@index([userId, createdAt])
+export async function logBillingEvent(data: {
+  provider: string;
+  externalEventId?: string;
+  invoiceId?: string;
+  status: BillingStatus;
+  plan?: UserPlan;
+  payload: any;
+  userId?: string;
+}) {
+  return prisma.billingEvent.create({
+    data,
+  });
 }
