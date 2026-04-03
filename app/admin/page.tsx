@@ -11,9 +11,10 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
+  // Fetch users from our updated db utility
   const users = await listUsers();
+
   const totalMRR = users.reduce((sum, user) => {
-    
     if (user.plan === "agency") return sum + 99;
     if (user.plan === "pro") return sum + 29;
     return sum;
@@ -63,18 +64,22 @@ export default async function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {(users as any[]).map((user) => (
               <tr key={user.id} className="border-t border-white/5">
                 <td className="px-4 py-4">
                   <div className="font-medium">{user.name}</div>
                   <div className="text-sm text-zinc-400">{user.email}</div>
                 </td>
                 <td className="px-4 py-4 capitalize">{user.plan}</td>
-                <td className="px-4 py-4 capitalize">{user.plan === "starter" ? "trial" : "active"}</td>
+                <td className="px-4 py-4 capitalize">
+                  {user.plan === "starter" ? "trial" : "active"}
+                </td>
                 <td className="px-4 py-4 text-sm text-zinc-400">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-4 text-sm text-zinc-400">{user.posts.length}</td>
+                <td className="px-4 py-4 text-sm text-zinc-400">
+                  {user.posts?.length ?? 0}
+                </td>
               </tr>
             ))}
           </tbody>
