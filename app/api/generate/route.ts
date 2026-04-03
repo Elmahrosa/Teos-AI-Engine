@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { appendPost, findUserByEmail, updateUserByEmail } from "@/lib/db";
+import { appendPost, findUserByEmail } from "@/lib/db";
 import { generatePost } from "@/lib/claude";
 import { canUseLinkedIn } from "@/lib/access";
-import { isTrialExpired } from "@/lib/trial";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { generatePostSchema } from "@/lib/validation";
 import {
@@ -32,6 +31,7 @@ export async function POST(req: Request) {
   }
 
   const rateKey = user.id ?? session.user.email.toLowerCase();
+
   if (
     !checkRateLimit(
       rateKey,
@@ -45,15 +45,8 @@ export async function POST(req: Request) {
     );
   }
 
-  // FIXED: Logic now matches the Prisma Schema 'trialEndsAt' property
-  if (
-    isTrialExpired({
-      trialEndsAt: user.trialEndsAt, 
-      status: user.status,
-      email: user.email,
-    })
-  ) {
-    await updateUserByEmail(session.user.email, { status: "blocked" });
+  // Final trial check using the current schema field only
+  if (user.trialEndsAt && new Date() > new Date(user.trialEndsAt)) {
     return NextResponse.json(
       { error: "Trial ended. Upgrade required." },
       { status: 403 }
