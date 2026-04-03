@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { findUserByEmail, updateUserByEmail } from "@/lib/db";
+import {
+  logBillingEvent,
+  findBillingEventByExternalEventId,
+  findUserByEmail,
+  updateUserByEmail,
+} from "@/lib/db";
 import {
   verifyTapWebhook,
   normalizeTapEmail,
@@ -9,7 +14,6 @@ import {
   normalizeTapPlan,
 } from "@/lib/tap";
 import { sendWelcomeEmail } from "@/lib/email";
-import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
@@ -29,40 +33,30 @@ export async function POST(request: Request) {
     const paid = normalizeTapPaid(payload);
 
     if (eventId) {
-      const existing = await prisma.billingEvent.findFirst({
-        where: { externalEventId: eventId },
-        select: { id: true },
-      });
-
+      const existing = await findBillingEventByExternalEventId(eventId);
       if (existing) {
         return NextResponse.json({ received: true, duplicate: true });
       }
     }
 
-    await prisma.billingEvent.create({
-      data: {
-        provider: "tap",
-        externalEventId: eventId,
-        invoiceId,
-        status: paid ? "paid" : "ignored",
-        plan,
-        payload,
-      },
+    const user = email ? await findUserByEmail(email) : null;
+
+    await logBillingEvent({
+      provider: "tap",
+      externalEventId: eventId,
+      invoiceId,
+      status: paid ? "paid" : "ignored",
+      plan,
+      payload,
+      userId: user?.id,
     });
 
     if (!email) {
-      return NextResponse.json({
-        received: true,
-        ignored: "No customer email",
-      });
+      return NextResponse.json({ received: true, ignored: "No customer email" });
     }
 
-    const user = await findUserByEmail(email);
     if (!user) {
-      return NextResponse.json({
-        received: true,
-        ignored: "Unknown user",
-      });
+      return NextResponse.json({ received: true, ignored: "Unknown user" });
     }
 
     if (paid) {
@@ -78,17 +72,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("[tap-webhook] error", error);
-
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "production"
-            ? "Webhook failed"
-            : error instanceof Error
-              ? error.message
-              : "Webhook failed",
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
   }
 }
