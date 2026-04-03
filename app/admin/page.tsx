@@ -13,7 +13,7 @@ export default async function AdminPage() {
 
   const users = await listUsers();
   const totalMRR = users.reduce((sum, user) => {
-    if (user.status !== "active") return sum;
+    
     if (user.plan === "agency") return sum + 99;
     if (user.plan === "pro") return sum + 29;
     return sum;
