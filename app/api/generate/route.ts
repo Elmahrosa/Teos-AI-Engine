@@ -47,8 +47,7 @@ export async function POST(req: Request) {
 
   if (
     isTrialExpired({
-      trialStart: user.trialStart,
-      status: user.status,
+trialStart: user.trialEndsAt ? new Date(user.trialEndsAt.getTime() - (3 * 24 * 60 * 60 * 1000)) : null,      status: user.status,
       email: user.email,
     })
   ) {
