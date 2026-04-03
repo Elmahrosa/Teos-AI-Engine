@@ -1,17 +1,32 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
 export const TAP_INVOICES = {
-  pro: process.env.TAP_PRO_LINK || "",
-  agency: process.env.TAP_AGENCY_LINK || "",
+  pro:
+    process.env.TAP_PRO_INVOICE_LINK ||
+    process.env.TAP_PRO_LINK ||
+    "",
+  agency:
+    process.env.TAP_AGENCY_INVOICE_LINK ||
+    process.env.TAP_AGENCY_LINK ||
+    "",
 };
 
-export function verifyTapWebhook(signature: string | null, rawBody: string, secret: string): boolean {
+export function verifyTapWebhook(
+  signature: string | null,
+  rawBody: string,
+  secret: string
+): boolean {
   if (!signature || !secret) return false;
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+
+  const expected = createHmac("sha256", secret)
+    .update(rawBody)
+    .digest("hex");
+
   const actual = signature.replace(/^sha256=/, "");
 
   const expectedBuffer = Buffer.from(expected, "utf8");
   const actualBuffer = Buffer.from(actual, "utf8");
+
   if (expectedBuffer.length !== actualBuffer.length) return false;
   return timingSafeEqual(expectedBuffer, actualBuffer);
 }
@@ -43,5 +58,10 @@ export function normalizeTapEventId(payload: any): string | null {
 }
 
 export function normalizeTapInvoiceId(payload: any): string | null {
-  return payload?.invoice?.id || payload?.reference?.invoice || payload?.reference?.payment || null;
+  return (
+    payload?.invoice?.id ||
+    payload?.reference?.invoice ||
+    payload?.reference?.payment ||
+    null
+  );
 }
