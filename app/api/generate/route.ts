@@ -14,11 +14,11 @@ export async function POST(req: Request) {
 
   const user = await findUserByEmail(session.user.email);
 
-  if (!user || user.status === "blocked") {
+  if (!user) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
-  if (isTrialExpired(user)) {
+  if (isTrialExpired({ trialStart: user.trialStart, status: user.status, email: user.email })) {
     await updateUserByEmail(session.user.email, { status: "blocked" });
     return NextResponse.json(
       { error: "Trial ended. Upgrade required." },
