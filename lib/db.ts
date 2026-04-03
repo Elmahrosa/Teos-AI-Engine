@@ -14,11 +14,11 @@ export async function findUserByEmail(email: string) {
       email: true,
       name: true,
       plan: true,
-      status: true,
-      trialStart: true,
+      status: true,      // Required for isTrialExpired
+      trialEndsAt: true, // Required for isTrialExpired
       createdAt: true,
       updatedAt: true,
-      posts: {
+      posts: {           // Required for starter limit check
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -36,7 +36,7 @@ export async function createUser(data: {
   name: string;
   plan?: UserPlan;
   status?: UserStatus;
-  trialStart?: Date;
+  trialEndsAt?: Date;
 }) {
   return prisma.user.create({
     data: {
@@ -44,7 +44,7 @@ export async function createUser(data: {
       name: data.name,
       ...(data.plan ? { plan: data.plan } : {}),
       ...(data.status ? { status: data.status } : {}),
-      ...(data.trialStart ? { trialStart: data.trialStart } : {}),
+      ...(data.trialEndsAt ? { trialEndsAt: data.trialEndsAt } : {}),
     },
     select: {
       id: true,
@@ -52,7 +52,7 @@ export async function createUser(data: {
       name: true,
       plan: true,
       status: true,
-      trialStart: true,
+      trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -65,7 +65,7 @@ export async function updateUserByEmail(
     name: string;
     plan: UserPlan;
     status: UserStatus;
-    trialStart: Date | null;
+    trialEndsAt: Date | null;
   }>
 ) {
   return prisma.user.update({
@@ -77,7 +77,7 @@ export async function updateUserByEmail(
       name: true,
       plan: true,
       status: true,
-      trialStart: true,
+      trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -118,7 +118,7 @@ export async function listUsers() {
       name: true,
       plan: true,
       status: true,
-      trialStart: true,
+      trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
       posts: {
