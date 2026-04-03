@@ -68,3 +68,34 @@ export async function appendPost(email: string, post: { content: string; platfor
     },
   });
 }
+// List all users for admin dashboard
+export async function listUsers() {
+  return prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      plan: true,
+      status: true,
+      trialStart: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+
+// Log billing events from Tap webhook
+export async function logBillingEvent(data: {
+  provider: string;
+  externalEventId?: string;
+  invoiceId?: string;
+  status: string;
+  plan?: string;
+  payload: any;
+  userId?: string;
+}) {
+  return prisma.billingEvent.create({
+    data,
+  });
+}
