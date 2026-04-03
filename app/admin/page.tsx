@@ -19,8 +19,8 @@ export default async function AdminPage() {
     return sum;
   }, 0);
 
-  const activeUsers = users.filter((user) => user.status === "active").length;
-  const trialUsers = users.filter((user) => user.status === "trial").length;
+  const activeUsers = users.filter((user) => user.plan !== "starter").length;
+  const trialUsers = users.filter((user) => user.plan === "starter").length;
 
   return (
     <main className="min-h-screen bg-[#09090f] p-6 text-white">
@@ -70,7 +70,7 @@ export default async function AdminPage() {
                   <div className="text-sm text-zinc-400">{user.email}</div>
                 </td>
                 <td className="px-4 py-4 capitalize">{user.plan}</td>
-                <td className="px-4 py-4 capitalize">{user.status}</td>
+                <td className="px-4 py-4 capitalize">{user.plan === "starter" ? "trial" : "active"}</td>
                 <td className="px-4 py-4 text-sm text-zinc-400">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
