@@ -18,7 +18,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
-  if (isTrialExpired(user)) {
+  // ✅ Pass only the required fields to isTrialExpired
+  if (isTrialExpired({
+    trialStart: user.trialStart,
+    status: user.status,
+    email: user.email,
+  })) {
     await updateUserByEmail(session.user.email, { status: "blocked" });
     return NextResponse.json(
       { error: "Trial ended. Upgrade required." },
