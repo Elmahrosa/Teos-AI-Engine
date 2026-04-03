@@ -1,6 +1,10 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import {
+  UserPlan,
+  UserStatus,
+  BillingStatus,
+  Prisma,
+} from "@prisma/client";
+import { prisma } from "./prisma";
 
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
@@ -12,8 +16,16 @@ export async function findUserByEmail(email: string) {
       plan: true,
       status: true,
       trialStart: true,
+      createdAt: true,
+      updatedAt: true,
       posts: {
         orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          content: true,
+          platform: true,
+          createdAt: true,
+        },
       },
     },
   });
@@ -22,12 +34,18 @@ export async function findUserByEmail(email: string) {
 export async function createUser(data: {
   email: string;
   name: string;
-  plan?: string;
-  status?: string;
+  plan?: UserPlan;
+  status?: UserStatus;
   trialStart?: Date;
 }) {
   return prisma.user.create({
-    data,
+    data: {
+      email: data.email.toLowerCase(),
+      name: data.name,
+      ...(data.plan ? { plan: data.plan } : {}),
+      ...(data.status ? { status: data.status } : {}),
+      ...(data.trialStart ? { trialStart: data.trialStart } : {}),
+    },
     select: {
       id: true,
       email: true,
@@ -35,6 +53,8 @@ export async function createUser(data: {
       plan: true,
       status: true,
       trialStart: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 }
@@ -43,9 +63,9 @@ export async function updateUserByEmail(
   email: string,
   data: Partial<{
     name: string;
-    plan: string;
-    status: string;
-    trialStart: Date;
+    plan: UserPlan;
+    status: UserStatus;
+    trialStart: Date | null;
   }>
 ) {
   return prisma.user.update({
@@ -58,24 +78,37 @@ export async function updateUserByEmail(
       plan: true,
       status: true,
       trialStart: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 }
 
 export async function appendPost(
   email: string,
-  post: { content: string; platform: string }
+  post: {
+    content: string;
+    platform: string;
+  }
 ) {
   return prisma.post.create({
     data: {
       content: post.content,
       platform: post.platform,
-      user: { connect: { email: email.toLowerCase() } },
+      user: {
+        connect: { email: email.toLowerCase() },
+      },
+    },
+    select: {
+      id: true,
+      content: true,
+      platform: true,
+      createdAt: true,
+      userId: true,
     },
   });
 }
 
-// List all users for admin dashboard with relation included
 export async function listUsers() {
   return prisma.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -89,23 +122,39 @@ export async function listUsers() {
       createdAt: true,
       updatedAt: true,
       posts: {
-        select: { id: true }, // ✅ allows user.posts.length
+        select: { id: true },
       },
     },
   });
 }
 
-// Log billing events from Tap webhook
 export async function logBillingEvent(data: {
   provider: string;
-  externalEventId?: string;
-  invoiceId?: string;
-  status: string;
-  plan?: string;
-  payload: any;
+  externalEventId?: string | null;
+  invoiceId?: string | null;
+  status: BillingStatus;
+  plan?: UserPlan;
+  payload: Prisma.InputJsonValue;
   userId?: string;
 }) {
   return prisma.billingEvent.create({
-    data,
+    data: {
+      provider: data.provider,
+      externalEventId: data.externalEventId ?? null,
+      invoiceId: data.invoiceId ?? null,
+      status: data.status,
+      ...(data.plan ? { plan: data.plan } : {}),
+      payload: data.payload,
+      ...(data.userId ? { userId: data.userId } : {}),
+    },
+  });
+}
+
+export async function findBillingEventByExternalEventId(
+  externalEventId: string
+) {
+  return prisma.billingEvent.findFirst({
+    where: { externalEventId },
+    select: { id: true, externalEventId: true },
   });
 }
