@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/auth';
 import { getRemainingPosts } from '@/lib/limits';
 import Link from 'next/link';
 import LogoutButton from '@/components/LogoutButton';
+import PaypalSubmit from '@/components/PaypalSubmit';
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -75,12 +76,12 @@ export default async function DashboardPage() {
             </ul>
             {user.plan === 'starter' && (
               <Link href="/#pricing" className="mt-4 block rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold hover:bg-indigo-500">
-                Upgrade to Pro — $29 USDC
+                Upgrade to Pro — $29 (PayPal / USDC / Pi)
               </Link>
             )}
             {user.plan === 'pro' && (
               <Link href="/#pricing" className="mt-4 block rounded-lg border border-purple-500/30 py-2 text-center text-sm hover:bg-white/5 text-purple-300">
-                Upgrade to Agency — $99 USDC
+                Upgrade to Agency — $99 (PayPal / USDC / Pi)
               </Link>
             )}
           </div>
@@ -118,16 +119,36 @@ export default async function DashboardPage() {
           </div>
 
           {/* Submit payment proof / upgrade flow */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <h2 className="text-base font-semibold text-white">Submit payment proof</h2>
-            <p className="mt-1 text-sm text-zinc-400">Already paid? Submit your transaction hash to upgrade your plan.</p>
-            <Link
-              href="/success"
-              className="mt-3 block rounded-lg border border-indigo-500/30 py-2 text-center text-sm text-indigo-300 hover:bg-indigo-500/10"
-            >
-              Submit TX hash →
-            </Link>
-          </div>
+          {user.plan === 'starter' && (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+              <div>
+                <h2 className="text-base font-semibold text-white">Submit payment proof</h2>
+                <p className="mt-1 text-sm text-zinc-400">Already paid? Submit your proof to activate your upgrade.</p>
+              </div>
+              <PaypalSubmit plan="pro" />
+              <Link
+                href="/success"
+                className="block rounded-lg border border-indigo-500/30 py-2 text-center text-sm text-indigo-300 hover:bg-indigo-500/10"
+              >
+                Submit USDC / Pi TX hash →
+              </Link>
+            </div>
+          )}
+          {user.plan === 'pro' && (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+              <div>
+                <h2 className="text-base font-semibold text-white">Upgrade to Agency</h2>
+                <p className="mt-1 text-sm text-zinc-400">Unlock LinkedIn + unlimited posts.</p>
+              </div>
+              <PaypalSubmit plan="agency" />
+              <Link
+                href="/success"
+                className="block rounded-lg border border-purple-500/30 py-2 text-center text-sm text-purple-300 hover:bg-purple-500/10"
+              >
+                Submit USDC / Pi TX hash →
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </main>

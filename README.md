@@ -1,165 +1,126 @@
-# 🚀 Teos AI Engine
+# Teos AI Engine
 
-> AI is the new search engine.  
-> Mentions influence AI answers. Context decides visibility.
+AI-powered social media content generation for X, Facebook, Instagram, and LinkedIn.
+Built by Elmahrosa International · Alexandria, Egypt 🇪🇬
 
-**Teos AI Engine** is an AI-powered SaaS platform that generates high-impact social media content and visuals across **X, Facebook, Instagram, and LinkedIn**.
+## Stack
 
-Built for creators, founders, and agencies to turn ideas into **discoverable, high-performing content**.
+- **Next.js 14** App Router
+- **Prisma + Neon Postgres** (production) / SQLite (local dev only)
+- **OpenAI API** with built-in fallback templates
+- **Tailwind CSS**
+- **HMAC session cookies** — no NextAuth dependency
 
----
+## Plans
 
-## ✨ Features
+| Plan | Price | Posts | LinkedIn |
+|------|-------|-------|----------|
+| Starter | Free forever | 10 | ✗ |
+| Pro | $29 (PayPal / USDC / 14.5 Pi) | Unlimited | ✗ |
+| Agency | $99 (PayPal / USDC / 49.5 Pi) | Unlimited | ✓ |
 
-- ✍️ AI Post Generation (multi-platform)
-- 🎨 AI Image Generation (per post)
-- 🔥 Visibility Scoring & Optimization
-- 🧠 Platform-Specific Content Strategies
-- 🏷️ Smart Hashtag Generation
-- 💾 Save & Manage Posts
-- 🔐 Plan System (Starter / Pro / Agency)
-- 💰 Crypto Payments (USDC + Pi Network)
+Pi users get 50% off · First 300 users only.
 
----
+## Payment Methods
 
-## 🧠 How It Works
+- **PayPal** — Default. User pays via PayPal.me link, submits TX ID from dashboard.
+- **USDC on Solana** — Send to your Solana wallet address.
+- **Pi Network** — 50% off for first 300 users.
 
-1. Enter your topic  
-2. Choose platform (X, Instagram, Facebook, LinkedIn)  
-3. Generate AI content + image  
-4. Get hashtags + optimized output  
-5. Save and reuse  
-
----
-
-## 💰 Pricing (Launch)
-
-| Plan    | Features                              |
-|--------|----------------------------------------|
-| Starter | 10 posts, 3 platforms                  |
-| Pro     | Unlimited posts, AI images             |
-| Agency  | All features + LinkedIn + priority     |
-
-🔥 **Pi users get 50% discount (first 300 users)**
+All methods use manual confirmation: user submits proof → founder approves at /admin.
 
 ---
 
-## 💳 Payments
-
-- **USDC (Solana)**
-- **Pi Network**
-- Manual confirmation (launch mode)
-
----
-
-## 🧪 Tech Stack
-
-- Next.js 14 (App Router)
-- TypeScript
-- Prisma ORM
-- PostgreSQL (Neon)
-- OpenAI API
-- Tailwind CSS
-- Vercel
-
----
-
-## ⚙️ Setup (Local)
+## Local development (SQLite)
 
 ```bash
+# 1. Clone
 git clone https://github.com/Elmahrosa/Teos-AI-Engine
 cd Teos-AI-Engine
 
+# 2. Install
 npm install
-npx prisma generate
-npx prisma migrate dev --name init
+
+# 3. Env
+cp .env.example .env
+# Edit .env:
+#   - Comment out DATABASE_URL Neon lines
+#   - Uncomment the SQLite lines
+#   - Switch prisma/schema.prisma provider to "sqlite" and remove directUrl
+#   - Set NEXTAUTH_SECRET  (openssl rand -base64 32)
+#   - Set ADMIN_EMAIL
+
+# 4. DB setup
+npx prisma db push
+npm run db:seed
+
+# 5. Run
 npm run dev
-````
-
----
-
-## 🔐 Environment Variables
-
-Create `.env`:
-
-```env
-DATABASE_URL=
-DATABASE_URL_DIRECT=
-
-NEXTAUTH_SECRET=
-ADMIN_EMAIL=
-
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4.1-nano
-
-NEXT_PUBLIC_APP_URL=
-NEXT_PUBLIC_USDC_SOL_ADDRESS=
-NEXT_PUBLIC_PI_ADDRESS=
 ```
 
+Open http://localhost:3000
+
 ---
 
-## 🚀 Deploy (Production)
+## Production deployment (Vercel + Neon)
 
+### Step 1 — Neon database
+1. neon.tech → New Project → name: teos-ai-engine, region: Europe West
+2. Copy pooled connection string → DATABASE_URL
+3. Copy direct connection string → DATABASE_URL_DIRECT
+
+### Step 2 — Deploy
+```bash
+npm i -g vercel && vercel login
+vercel deploy --prod
+```
+
+### Step 3 — Vercel environment variables
+
+| Variable | Value |
+|----------|-------|
+| DATABASE_URL | Neon pooled connection string |
+| DATABASE_URL_DIRECT | Neon direct connection string |
+| NEXTAUTH_SECRET | openssl rand -base64 32 |
+| SESSION_SECRET | openssl rand -base64 32 |
+| NEXT_PUBLIC_APP_URL | your Vercel URL |
+| ADMIN_EMAIL | aams1969@gmail.com |
+| OPENAI_API_KEY | your OpenAI key (optional) |
+| OPENAI_MODEL | gpt-4.1-nano |
+| NEXT_PUBLIC_USDC_SOL_ADDRESS | your Solana wallet |
+| NEXT_PUBLIC_PI_ADDRESS | your Pi address |
+| NEXT_PUBLIC_PI_PROMO_ENABLED | true |
+| NEXT_PUBLIC_PI_PROMO_DISCOUNT | 50 |
+| NEXT_PUBLIC_PI_PROMO_LIMIT | 300 |
+| NEXT_PUBLIC_PAYPAL_ME | https://paypal.me/YourUsername |
+
+### Step 4 — Migrate + seed
 ```bash
 npx prisma migrate deploy
-npm run build
-vercel --prod
+npm run db:seed
+```
+
+### Step 5 — Redeploy
+```bash
+vercel deploy --prod
 ```
 
 ---
 
-## 🧾 Payment Flow (Launch Mode)
+## Routes
 
-1. User sends payment (USDC / Pi)
-2. User submits proof
-3. Admin confirms in `/admin`
-4. Plan is activated
-
----
-
-## 🧠 Product Vision
-
-Teos AI Engine is not just a content generator.
-
-👉 It is an **AI Visibility Engine**
-built for the era where AI systems decide what gets seen.
+| Route | Description |
+|-------|-------------|
+| / | Landing page + pricing |
+| /login | Email login |
+| /dashboard | Post generator + PayPal TX submit |
+| /admin | Founder dashboard |
+| /success | USDC/Pi TX hash submission |
+| /api/health | Health check |
+| /api/paypal-payment | PayPal TX ID endpoint |
 
 ---
 
-## 🌍 Built By
+## License
 
-**Elmahrosa International 🇪🇬**
-
----
-
-## ⚠️ Disclaimer
-
-* Early access (launch mode)
-* Payments are manually confirmed
-* Some features will be automated in future releases
-
----
-
-## 📈 Roadmap (Next)
-
-* Auto payment verification
-* Analytics engine
-* Content scoring system
-* Scheduling & automation
-* Multi-account support
-
----
-
-## ⭐ Support
-
-If you like this project, star the repo ⭐
-or share it with your network.
-
----
-
-## 🚀 Live
-
-👉 [Add your deployed link here]
-
-```
+MIT · © 2026 Elmahrosa International
