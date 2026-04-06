@@ -65,41 +65,36 @@ export async function appendPost(data: {
   });
 }
 
-// BILLING EVENTS (Tap webhook idempotency)
+// BILLING EVENTS
 export async function findBillingEventByExternalEventId(externalEventId: string) {
   return prisma.billingEvent.findUnique({
     where: { externalEventId },
   });
 }
 
-export async function logBillingEvent(data: {
-  externalEventId: string;
-  type: string;
-  email?: string;
-  payload?: Prisma.JsonValue;
-}) {
-  return prisma.billingEvent.create({
-    data: {
-      externalEventId: data.externalEventId,
-      type: data.type,
-      email: data.email,
-      payload: data.payload,
-    },
-  });
-}
-
-export async function createBillingEvent(data: {
-  externalEventId: string;
-  type: string;
-  email?: string;
-  payload?: Prisma.JsonValue;
-}) {
-  return prisma.billingEvent.create({
-    data: {
-      externalEventId: data.externalEventId,
-      type: data.type,
-      email: data.email,
-      payload: data.payload,
-    },
-  });
+export async function logBillingEvent(
+  provider: string,
+  externalEventId: string,
+  invoiceId?: string,
+  status: string = "pending",
+  plan?: string,
+  userId?: string,
+  payload: Record<string, any> = {}
+) {
+  try {
+    await prisma.billingEvent.create({
+      data: {
+        provider,
+        externalEventId,
+        invoiceId,
+        status,
+        plan,
+        userId,
+        payload,
+      },
+    });
+    console.log(`✅ Logged ${provider} event ${externalEventId}`);
+  } catch (error) {
+    console.error("❌ Billing event log failed:", error);
+  }
 }
