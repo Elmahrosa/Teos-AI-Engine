@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -20,6 +19,7 @@ model User {
   trialEndsAt   DateTime?
   tapCustomerId String?
   
+  // Relations
   accounts      Account[]
   sessions      Session[]
   posts         Post[]
@@ -102,4 +102,9 @@ model WebhookEvent {
   eventId     String   @unique
   processedAt DateTime @default(now())
   payload     Json
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // ✅ required
 }

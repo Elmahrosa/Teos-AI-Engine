@@ -1,5 +1,11 @@
-export { default } from "next-auth/middleware";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  // Your middleware logic here
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/api/generate/:path*", "/api/subscribe/:path*"],
+  matcher: '/((?!api|_next/static|_next/image|favicon.ico).*)',
 };

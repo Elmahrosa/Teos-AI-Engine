@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     const user = email ? await findUserByEmail(email) : null;
 
-    await logBillingEvent({
+    await logBillingEvent(
       provider: "tap",
       externalEventId: eventId,
       invoiceId,
