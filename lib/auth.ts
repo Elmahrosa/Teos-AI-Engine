@@ -12,18 +12,6 @@ declare module "next-auth" {
     trialEndsAt?: string | null;
   }
 
-  interface Session {
-    user?: {
-      id: string;
-      email: string;
-      name?: string | null;
-      image?: string | null;
-      plan?: string;
-      trialEndsAt?: string | null;
-    };
-  }
-}
-
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
