@@ -3,7 +3,7 @@
 **Premium SaaS for multi‑channel social media automation**  
 Audit‑grade packaging, reproducible workflows, and compliance‑ready design.
 
----
+--- 
 
 ## 📦 Features
 - **Multi‑channel integration**: Automates posting across X, Facebook, Instagram  
