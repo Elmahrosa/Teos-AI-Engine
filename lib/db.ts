@@ -1,10 +1,9 @@
-import {
-  UserPlan,
-  UserStatus,
-  BillingStatus,
-  Prisma,
-} from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
+
+export type UserPlan = "starter" | "pro" | "agency";
+export type UserStatus = "trial" | "active" | "blocked";
+export type BillingStatus = "paid" | "ignored" | "failed";
 
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
@@ -14,11 +13,10 @@ export async function findUserByEmail(email: string) {
       email: true,
       name: true,
       plan: true,
-      status: true,      // Required for isTrialExpired
-      trialEndsAt: true, // Required for isTrialExpired
+      trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
-      posts: {           // Required for starter limit check
+      posts: {
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -35,7 +33,6 @@ export async function createUser(data: {
   email: string;
   name: string;
   plan?: UserPlan;
-  status?: UserStatus;
   trialEndsAt?: Date;
 }) {
   return prisma.user.create({
@@ -43,7 +40,6 @@ export async function createUser(data: {
       email: data.email.toLowerCase(),
       name: data.name,
       ...(data.plan ? { plan: data.plan } : {}),
-      ...(data.status ? { status: data.status } : {}),
       ...(data.trialEndsAt ? { trialEndsAt: data.trialEndsAt } : {}),
     },
     select: {
@@ -51,7 +47,6 @@ export async function createUser(data: {
       email: true,
       name: true,
       plan: true,
-      status: true,
       trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
@@ -76,7 +71,6 @@ export async function updateUserByEmail(
       email: true,
       name: true,
       plan: true,
-      status: true,
       trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
@@ -86,18 +80,13 @@ export async function updateUserByEmail(
 
 export async function appendPost(
   email: string,
-  post: {
-    content: string;
-    platform: string;
-  }
+  post: { content: string; platform: string }
 ) {
   return prisma.post.create({
     data: {
       content: post.content,
       platform: post.platform,
-      user: {
-        connect: { email: email.toLowerCase() },
-      },
+      user: { connect: { email: email.toLowerCase() } },
     },
     select: {
       id: true,
@@ -117,13 +106,10 @@ export async function listUsers() {
       email: true,
       name: true,
       plan: true,
-      status: true,
       trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
-      posts: {
-        select: { id: true },
-      },
+      posts: { select: { id: true } },
     },
   });
 }
@@ -150,9 +136,7 @@ export async function logBillingEvent(data: {
   });
 }
 
-export async function findBillingEventByExternalEventId(
-  externalEventId: string
-) {
+export async function findBillingEventByExternalEventId(externalEventId: string) {
   return prisma.billingEvent.findFirst({
     where: { externalEventId },
     select: { id: true, externalEventId: true },

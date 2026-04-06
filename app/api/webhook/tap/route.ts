@@ -1,18 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  logBillingEvent,
-  findBillingEventByExternalEventId,
-  findUserByEmail,
-  updateUserByEmail,
-} from "@/lib/db";
-import {
-  verifyTapWebhook,
-  normalizeTapEmail,
-  normalizeTapEventId,
-  normalizeTapInvoiceId,
-  normalizeTapPaid,
-  normalizeTapPlan,
-} from "@/lib/tap";
+import { logBillingEvent, findBillingEventByExternalEventId, findUserByEmail, updateUserByEmail } from "@/lib/db";
+import { verifyTapWebhook, normalizeTapEmail, normalizeTapEventId, normalizeTapInvoiceId, normalizeTapPaid, normalizeTapPlan } from "@/lib/tap";
 import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
@@ -34,9 +22,7 @@ export async function POST(request: Request) {
 
     if (eventId) {
       const existing = await findBillingEventByExternalEventId(eventId);
-      if (existing) {
-        return NextResponse.json({ received: true, duplicate: true });
-      }
+      if (existing) return NextResponse.json({ received: true, duplicate: true });
     }
 
     const user = email ? await findUserByEmail(email) : null;
@@ -51,21 +37,15 @@ export async function POST(request: Request) {
       userId: user?.id,
     });
 
-    if (!email) {
-      return NextResponse.json({ received: true, ignored: "No customer email" });
-    }
-
-    if (!user) {
-      return NextResponse.json({ received: true, ignored: "Unknown user" });
-    }
+    if (!email) return NextResponse.json({ received: true, ignored: "No customer email" });
+    if (!user) return NextResponse.json({ received: true, ignored: "Unknown user" });
 
     if (paid) {
       await updateUserByEmail(email, {
         plan,
         status: "active",
-        trialStart: null,
+        trialEndsAt: null,
       });
-
       await sendWelcomeEmail(email, user.name, plan);
     }
 

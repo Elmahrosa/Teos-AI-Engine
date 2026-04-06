@@ -14,28 +14,17 @@ const providers: NextAuthOptions["providers"] = [
     async authorize(credentials) {
       const email = credentials?.email?.trim().toLowerCase();
       const name = credentials?.name?.trim() || "User";
-
       if (!email) return null;
-
       let user = await findUserByEmail(email);
-
       if (!user) {
         user = await createUser({
           email,
           name,
           plan: "starter",
-          status: "trial",
-          trialStart: new Date(),
+          trialEndsAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         });
       }
-
-      if (user.status === "blocked") return null;
-
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      };
+      return { id: user.id, email: user.email, name: user.name };
     },
   }),
 ];
@@ -70,9 +59,8 @@ export const authOptions: NextAuthOptions = {
         const dbUser = await findUserByEmail(token.email);
         if (dbUser) {
           (token as any).plan = dbUser.plan;
-          (token as any).status = dbUser.status;
-          (token as any).trialStart = dbUser.trialStart
-            ? new Date(dbUser.trialStart).toISOString()
+          (token as any).trialEndsAt = dbUser.trialEndsAt
+            ? new Date(dbUser.trialEndsAt).toISOString()
             : null;
         }
       }
@@ -81,8 +69,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).plan = (token as any).plan;
-        (session.user as any).status = (token as any).status;
-        (session.user as any).trialStart = (token as any).trialStart;
+        (session.user as any).trialEndsAt = (token as any).trialEndsAt;
       }
       return session;
     },

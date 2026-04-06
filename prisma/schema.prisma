@@ -1,73 +1,103 @@
-import { PrismaClient, UserPlan, UserStatus, BillingStatus } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
-export async function findUserByEmail(email: string) {
-  return prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      plan: true,
-      status: true,      // ✅ Critical for API route checks
-      trialStart: true,  // ✅ Critical for API route checks
-      posts: {
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+generator client {
+  provider = "prisma-client-js"
 }
 
-export async function createUser(data: {
-  email: string;
-  name: string;
-  plan?: UserPlan;
-  status?: UserStatus;
-  trialStart?: Date;
-}) {
-  return prisma.user.create({
-    data,
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      plan: true,
-      status: true,
-      trialStart: true,
-    },
-  });
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-export async function listUsers() {
-  return prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      plan: true,
-      status: true,
-      trialStart: true,
-      createdAt: true,
-      updatedAt: true,
-      posts: {
-        select: { id: true },
-      },
-    },
-  });
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
 }
 
-export async function logBillingEvent(data: {
-  provider: string;
-  externalEventId?: string;
-  invoiceId?: string;
-  status: BillingStatus;
-  plan?: UserPlan;
-  payload: any;
-  userId?: string;
-}) {
-  return prisma.billingEvent.create({
-    data,
-  });
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  plan          String         @default("starter")
+  status        String         @default("trial")
+  trialEndsAt   DateTime?
+  tapCustomerId String?
+  accounts      Account[]
+  sessions      Session[]
+  posts         Post[]
+  usages        UsageLog[]
+  billingEvents BillingEvent[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  userId    String
+  platform  String
+  prompt    String   @db.Text
+  content   String   @db.Text
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model UsageLog {
+  id     String @id @default(cuid())
+  userId String
+  date   String
+  count  Int    @default(0)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, date])
+}
+
+model BillingEvent {
+  id              String   @id @default(cuid())
+  provider        String
+  externalEventId String?  @unique
+  invoiceId       String?
+  status          String
+  plan            String?
+  payload         Json
+  userId          String?
+  createdAt       DateTime @default(now())
+  user            User?    @relation(fields: [userId], references: [id])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  eventId     String   @unique
+  processedAt DateTime @default(now())
+  payload     Json
 }
