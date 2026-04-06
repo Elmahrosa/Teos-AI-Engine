@@ -6,7 +6,6 @@ export type UserStatus = "trial" | "active" | "blocked";
 export type BillingStatus = "paid" | "ignored" | "failed";
 
 // USERS
-
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
     where: { email: email.toLowerCase() },
@@ -28,7 +27,6 @@ export async function updateUserByEmail(
 }
 
 // POSTS
-
 export async function appendPost(data: {
   userId: string;
   content: string;
@@ -46,10 +44,7 @@ export async function appendPost(data: {
 }
 
 // BILLING EVENTS (Tap webhook idempotency)
-
-export async function findBillingEventByExternalEventId(
-  externalEventId: string
-) {
+export async function findBillingEventByExternalEventId(externalEventId: string) {
   return prisma.billingEvent.findUnique({
     where: { externalEventId },
   });
