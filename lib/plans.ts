@@ -1,26 +1,28 @@
 // lib/plans.ts - Plan & Platform Configuration
 
+export type Platform = "x" | "facebook" | "instagram" | "linkedin";
+
 export const PLANS = {
   starter: {
     label: "Starter",
-    platforms: ["x"] as const,
+    platforms: ["x"] as Platform[],
     postsPerDay: 5,
   },
   pro: {
     label: "Pro",
-    platforms: ["x", "facebook", "instagram", "linkedin"] as const,
+    platforms: ["x", "facebook", "instagram", "linkedin"] as Platform[],
     postsPerDay: 50,
   },
   agency: {
     label: "Agency",
-    platforms: ["x", "facebook", "instagram", "linkedin"] as const,
-    postsPerDay: -1, // unlimited
+    platforms: ["x", "facebook", "instagram", "linkedin"] as Platform[],
+    postsPerDay: -1,
   },
 } as const;
 
 export type Plan = keyof typeof PLANS;
 
-export const PLATFORM_LABELS: Record<string, string> = {
+export const PLATFORM_LABELS: Record<Platform, string> = {
   x: "X (Twitter)",
   facebook: "Facebook",
   instagram: "Instagram",

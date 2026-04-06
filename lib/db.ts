@@ -28,6 +28,7 @@ export async function updateUserByEmail(
 
 export async function createUser(data: {
   email: string;
+  name: string;
   plan?: UserPlan;
   status?: UserStatus;
   trialEndsAt?: Date | null;
