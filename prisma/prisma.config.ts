@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
-// For Prisma 5+, use the connection string directly via datasourceUrl
-// The adapter property is for custom drivers (e.g., libsql, pg)
+// Prisma reads DATABASE_URL from .env automatically via schema.prisma
+// No need to pass it in the constructor
 export const prisma = new PrismaClient({
-  datasourceUrl: process.env.DATABASE_URL,
+  log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
 });
