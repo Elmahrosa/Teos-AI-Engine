@@ -168,15 +168,7 @@ export default function DashboardPage() {
             {planConfig.label} plan
           </span>
 
-          {/* Admin link — only visible to admins */}
-          {isAdmin && (
-            <a
-              href="/admin"
-              className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
-            >
-              Admin ↗
-            </a>
-          )}
+          {/* Admin link — hidden for launch */}
 
           <div className="flex items-center gap-2">
             {session?.user?.image && (
@@ -579,7 +571,6 @@ function PlanButton({
   variant?: "primary" | "ghost";
 }) {
   function handleUpgrade() {
-    // Redirect to Tap Payments checkout — customise URL per your Tap setup
     const tapUrl = new URL("https://checkout.tap.company/");
     tapUrl.searchParams.set("plan", plan);
     window.open(tapUrl.toString(), "_blank");
