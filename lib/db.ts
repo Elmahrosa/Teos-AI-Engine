@@ -26,6 +26,28 @@ export async function updateUserByEmail(
   });
 }
 
+export async function createUser(data: {
+  email: string;
+  plan?: UserPlan;
+  status?: UserStatus;
+  trialEndsAt?: Date | null;
+}) {
+  return prisma.user.create({
+    data: {
+      email: data.email.toLowerCase(),
+      plan: data.plan ?? "starter",
+      status: data.status ?? "trial",
+      trialEndsAt: data.trialEndsAt ?? null,
+    },
+  });
+}
+
+export async function listUsers() {
+  return prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 // POSTS
 export async function appendPost(data: {
   userId: string;
