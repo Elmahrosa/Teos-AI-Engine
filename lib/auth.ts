@@ -4,22 +4,48 @@ import GoogleProvider from "next-auth/providers/google";
 import TwitterProvider from "next-auth/providers/twitter";
 import { createUser, findUserByEmail } from "./db";
 
-// Extend NextAuth types
+// ============================================================================
+// TYPE AUGMENTATIONS (ambient declarations - types ONLY, no implementations)
+// ============================================================================
+
 declare module "next-auth" {
   interface User {
     id: string;
+    email?: string;
+    name?: string | null;
+    image?: string | null;
     plan?: string;
     trialEndsAt?: string | null;
+    isAdmin?: boolean;
   }
+  
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name?: string | null;
+      image?: string | null;
+      plan?: string;
+      trialEndsAt?: string | null;
+      isAdmin?: boolean;
+    } & DefaultSession["user"];
+  }
+}
 
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
+    email?: string;
     plan?: string;
     trialEndsAt?: string | null;
+    isAdmin?: boolean;
     dbSynced?: boolean;
   }
 }
+
+// ============================================================================
+// IMPLEMENTATION CODE (outside ambient contexts - this is where functions live)
+// ============================================================================
 
 // Ensure user exists in DB
 async function ensureUserExists(email: string, name?: string | null) {
@@ -49,7 +75,14 @@ const providers: NextAuthOptions["providers"] = [
       if (!email) return null;
 
       const user = await ensureUserExists(email, name);
-      return { id: user.id, email: user.email, name: user.name };
+      return { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name,
+        plan: user.plan,
+        trialEndsAt: user.trialEndsAt,
+        isAdmin: user.isAdmin,
+      };
     },
   }),
 ];
@@ -95,6 +128,7 @@ export const authOptions: NextAuthOptions = {
           token.trialEndsAt = dbUser.trialEndsAt
             ? new Date(dbUser.trialEndsAt).toISOString()
             : null;
+          token.isAdmin = dbUser.isAdmin;
           token.dbSynced = true;
         }
       }
@@ -105,6 +139,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         session.user.plan = token.plan;
         session.user.trialEndsAt = token.trialEndsAt;
+        session.user.isAdmin = token.isAdmin;
       }
       return session;
     },
