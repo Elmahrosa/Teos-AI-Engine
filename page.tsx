@@ -58,7 +58,7 @@ export default function DashboardPage() {
 
   const plan = getPlan(session?.user?.plan ?? "starter");
   const planConfig = PLANS[plan];
-  const isAdmin = session?.user?.isAdmin ?? false;
+  
   const trialEnd = session?.user?.trialEndsAt
     ? new Date(session.user.trialEndsAt)
     : null;
