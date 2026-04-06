@@ -5,58 +5,17 @@ export type UserPlan = "starter" | "pro" | "agency";
 export type UserStatus = "trial" | "active" | "blocked";
 export type BillingStatus = "paid" | "ignored" | "failed";
 
+// USERS
+
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
     where: { email: email.toLowerCase() },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      plan: true,
-      status: true,
-      trialEndsAt: true,
-      createdAt: true,
-      updatedAt: true,
-      posts: {
-        orderBy: { createdAt: "desc" },
-        select: { id: true, content: true, platform: true, createdAt: true },
-      },
-    },
-  });
-}
-
-export async function createUser(data: {
-  email: string;
-  name: string;
-  plan?: UserPlan;
-  status?: UserStatus;
-  trialEndsAt?: Date;
-}) {
-  return prisma.user.create({
-    data: {
-      email: data.email.toLowerCase(),
-      name: data.name,
-      ...(data.plan ? { plan: data.plan } : {}),
-      ...(data.status ? { status: data.status } : {}),
-      ...(data.trialEndsAt ? { trialEndsAt: data.trialEndsAt } : {}),
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      plan: true,
-      status: true,
-      trialEndsAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
   });
 }
 
 export async function updateUserByEmail(
   email: string,
   data: Partial<{
-    name: string;
     plan: UserPlan;
     status: UserStatus;
     trialEndsAt: Date | null;
@@ -65,80 +24,49 @@ export async function updateUserByEmail(
   return prisma.user.update({
     where: { email: email.toLowerCase() },
     data,
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      plan: true,
-      status: true,
-      trialEndsAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
   });
 }
 
-export async function appendPost(
-  email: string,
-  post: {
-    content: string;
-    platform: string;
-    prompt?: string;
-  }
-) {
+// POSTS
+
+export async function appendPost(data: {
+  userId: string;
+  content: string;
+  platform: string;
+  prompt: string;
+}) {
   return prisma.post.create({
     data: {
-      content: post.content,
-      platform: post.platform,
-      prompt: post.prompt ?? "",           // ← Fixed: prompt is required in schema
-      user: {
-        connect: { email: email.toLowerCase() },
-      },
-    },
-    select: {
-      id: true,
-      content: true,
-      platform: true,
-      createdAt: true,
-      userId: true,
+      userId: data.userId,
+      content: data.content,
+      platform: data.platform,
+      prompt: data.prompt,
     },
   });
 }
 
-export async function listUsers() {
-  return prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      plan: true,
-      status: true,
-      trialEndsAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+// BILLING EVENTS (Tap webhook idempotency)
+
+export async function findBillingEventByExternalEventId(
+  externalEventId: string
+) {
+  return prisma.billingEvent.findUnique({
+    where: { externalEventId },
   });
 }
 
 export async function logBillingEvent(data: {
-  provider: string;
-  externalEventId?: string | null;
-  invoiceId?: string | null;
-  status: BillingStatus;
-  plan?: UserPlan;
-  payload: Prisma.InputJsonValue;
-  userId?: string;
+  externalEventId: string;
+  type: string;
+  email?: string;
+  payload?: Prisma.JsonValue;
 }) {
   return prisma.billingEvent.create({
     data: {
-      provider: data.provider,
-      externalEventId: data.externalEventId ?? null,
-      invoiceId: data.invoiceId ?? null,
-      status: data.status,
-      plan: data.plan ?? null,
+      externalEventId: data.externalEventId,
+      type: data.type,
+      email: data.email,
       payload: data.payload,
-      ...(data.userId ? { userId: data.userId } : {}),
     },
   });
 }
@@ -164,3 +92,6 @@ export async function createBillingEvent(data: {
     },
   });
 }
+=======
+}
+893a73f (fix: clean db.ts)
