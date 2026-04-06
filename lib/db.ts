@@ -70,12 +70,6 @@ export async function logBillingEvent(data: {
     },
   });
 }
-// Billing events (Tap webhook idempotency)
-export async function findBillingEventByExternalEventId(externalEventId: string) {
-  return prisma.billingEvent.findUnique({
-    where: { externalEventId },
-  });
-}
 
 export async function createBillingEvent(data: {
   externalEventId: string;
@@ -92,6 +86,3 @@ export async function createBillingEvent(data: {
     },
   });
 }
-=======
-}
-893a73f (fix: clean db.ts)
