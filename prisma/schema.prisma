@@ -6,6 +6,41 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  plan          String         @default("starter")
+  status        String         @default("trial")
+  trialEndsAt   DateTime?
+  tapCustomerId String?
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  posts         Post[]
+  usages        UsageLog[]
+  billingEvents BillingEvent[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  userId    String
+  platform  String?
+  prompt    String?  @db.Text
+  content   String?  @db.Text
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt(sort: Desc)])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -19,7 +54,8 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 }
 
@@ -36,38 +72,6 @@ model VerificationToken {
   token      String   @unique
   expires    DateTime
   @@unique([identifier, token])
-}
-
-model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String?        @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  plan          String         @default("starter")
-  status        String         @default("trial")
-  trialEndsAt   DateTime?
-  tapCustomerId String?
-  accounts      Account[]
-  sessions      Session[]
-  posts         Post[]
-  usages        UsageLog[]
-  billingEvents BillingEvent[]
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  userId    String
-  platform  String
-  prompt    String   @db.Text
-  content   String   @db.Text
-  status    String   @default("draft")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId, createdAt(sort: Desc)])
 }
 
 model UsageLog {
