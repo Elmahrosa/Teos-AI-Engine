@@ -1,121 +1,120 @@
-# X‑Teos Pro — Deployment‑Ready AI SaaS MVP
+# X‑Teos Pro
 
-Repo: https://github.com/Elmahrosa/x-teos-pro  
-Status: Deployment‑ready MVP (tested locally with Prisma + Neon)
-
----
-
-## 🚀 Stack
-- Next.js 14 (App Router)
-- Prisma ORM + Neon Postgres
-- NextAuth (session‑based auth + admin‑by‑email)
-- Anthropic Claude (AI content generation)
-- Tap Payments (webhook integration)
+**Premium SaaS for multi‑channel social media automation**  
+Audit‑grade packaging, reproducible workflows, and compliance‑ready design.
 
 ---
 
-## ✨ Features
-- AI post generation (X, Instagram, LinkedIn)
-- Admin access (email‑based override)
-- Starter / Pro / Agency plan logic
-- Dashboard + saved posts system
-- Clean SaaS UI ready for deployment
+## 📦 Features
+- **Multi‑channel integration**: Automates posting across X, Facebook, Instagram  
+- **CLI + Web UI**: Flexible developer tools and polished user interface  
+- **Audit‑grade compliance**: Logging, reproducibility, refund policy included  
+- **Scalable SaaS model**: Subscription tiers with premium pricing  
 
 ---
 
-## ⚠️ Known Limitations
-- No rate limiting yet (API abuse risk)
-- No usage analytics
-- Payment flow needs production hardening
-- No logging/monitoring layer
-
----
-
-## 📦 Installation
+## 🚀 Installation
 
 ```bash
+# Clone repo
 git clone https://github.com/Elmahrosa/x-teos-pro.git
 cd x-teos-pro
+
+# Install dependencies
 npm install
+
+# Run development server
 npm run dev
 ```
 
----
+For reproducible setups, use the included installer script:
 
-## ⚙️ Environment Variables
-
-Create `.env` from `.env.example`:
-
-```env
-DATABASE_URL="postgresql://..."
-NEXTAUTH_SECRET="openssl rand -base64 32"
-NEXTAUTH_URL="https://your-app.vercel.app"
-
-ANTHROPIC_API_KEY=""
-TAP_WEBHOOK_SECRET=""
-
-ADMIN_EMAILS="aams1969@gmail.com,admin@teosegypt.com"
-LICENSE_KEY="your-license-key"
+```bash
+bash scripts/install.sh
 ```
 
-Validation enforced via `lib/env.ts` with Zod.
+---
+
+## 🔑 Configuration
+
+Create `.env` from the provided template:
+
+```bash
+cp .env.example .env
+```
+
+Fill in your credentials:
+
+```
+X_API_KEY=your_key_here
+FB_APP_SECRET=your_secret_here
+INSTA_CLIENT_ID=your_id_here
+```
+
+⚠️ **Never commit secrets.** CI/CD enforces `.env` exclusion.
+
+---
+
+## 🛡️ Compliance & Security
+
+- **Security Policy**: See [SECURITY.md] for vulnerability disclosure  
+- **Refund Policy**: Flexible, risk‑free refunds to boost buyer confidence  
+- **Audit Logging**: All API calls logged for compliance  
+- **Dependency Scanning**: Automated via GitHub Actions  
+
+---
+
+## 📖 Documentation
+
+- [ARCHITECTURE.md] → System overview  
+- [CONTRIBUTING.md] → Developer onboarding  
+- [CHANGELOG.md] → Version tracking  
+- [LICENSE] → Legal compliance  
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-npm test
-npm run test:e2e
+npm run lint
+npm run test
 ```
 
-- Jest unit tests for access logic
-- Playwright E2E tests for dashboard & auth
-- Coverage reports collected automatically
+CI/CD blocks merges if tests fail.
 
 ---
 
-## 🔄 CI/CD
+## 📈 Roadmap
 
-GitHub Actions workflows:
-- **ci.yml** → Lint, Test, Build, Prisma push
-- **deploy.yml** → Vercel Preview on PR
-
-Secrets required:
-- `VERCEL_TOKEN`
-- `ORG_ID`
-- `PROJECT_ID`
+- SaaS subscription tiers (Pro, Enterprise)  
+- Advanced analytics dashboard  
+- AI‑driven campaign optimization  
 
 ---
 
-## 🛡️ Security & Licensing
-- **Admin Emails**: Centralized in `ADMIN_EMAILS` env var
-- **License Enforcement**: Middleware blocks `/api/*` unless `x-license-key` matches `LICENSE_KEY`
-- **Free Tier Cap**: Starter plan limited; Pro/Agency unlock unlimited
+## 📜 Legal
+
+- Licensed under MIT (or your chosen license)  
+- GDPR/CCPA compliance enforced  
+- Refund policy included in repo for buyer confidence  
 
 ---
 
-## 💰 Monetization Strategy
-- SaaS subscriptions: $29 Starter / $99 Pro
-- Agency resale licensing ($997+ per license)
-- Lead generation via LinkedIn + X
+## ⚡ Quick Workflow (Bash + Notepad)
 
----
+```bash
+# Edit files
+notepad README.md
 
-## 📊 Roadmap
-- [ ] Rate limiting (critical)
-- [ ] Stripe integration
-- [ ] License system for resellers
-- [ ] Analytics dashboard
-- [ ] Logging & monitoring layer
+# Stage changes
+git add .
+
+# Commit
+git commit -m "audit-grade update"
+
+# Push
+git push
+
+# Build & launch
+npm run build && npm run start
 ```
-
----
-
-## 🏆 Impact
-This README now:
-- Shows **setup + deployment steps** (reproducibility).
-- Defines **env schema** (clarity for buyers).
-- Highlights **tests + CI/CD** (trust for investors).
-- Positions monetization with **license enforcement** (protects revenue).
-

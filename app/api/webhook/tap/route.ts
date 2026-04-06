@@ -27,15 +27,8 @@ export async function POST(request: Request) {
 
     const user = email ? await findUserByEmail(email) : null;
 
-    await logBillingEvent(
-      provider: "tap",
-      externalEventId: eventId,
-      invoiceId,
-      status: paid ? "paid" : "ignored",
-      plan,
-      payload,
-      userId: user?.id,
-    });
+    // Fixed: Wrapped userId in an object
+    await logBillingEvent("tap", eventId, invoiceId, paid ? "paid" : "ignored", plan, payload, { userId: user?.id });
 
     if (!email) return NextResponse.json({ received: true, ignored: "No customer email" });
     if (!user) return NextResponse.json({ received: true, ignored: "Unknown user" });
