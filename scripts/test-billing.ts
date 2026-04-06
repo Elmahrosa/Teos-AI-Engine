@@ -1,2 +1,5 @@
-import { logBillingEvent } from "../lib/db";
-logBillingEvent("test", "evt_123", "inv_test").then(() => console.log("✅ Billing test passed")); 
+import { logBillingEvent } from "../lib/db.js";
+
+logBillingEvent("stripe", "evt_test_123", "inv_test123")
+  .then(() => console.log("✅ Billing test PASSED"))
+  .catch(console.error);
