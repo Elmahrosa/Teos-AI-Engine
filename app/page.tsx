@@ -1,134 +1,51 @@
-import Link from "next/link";
+import Image from 'next/image';
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0a0a0f] text-white">
-      <section className="mx-auto max-w-5xl px-6 py-24 text-center">
-        <div className="mb-4 inline-flex rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-200">
-          AI social content engine
+    <div className="min-h-screen bg-black text-white">
+      <header className="border-b border-gray-800 py-6 sticky top-0 bg-black z-50">
+        <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Image src="/x-teoslogo.png" alt="X-Teos Pro" width={64} height={64} className="rounded-2xl" />
+            <h1 className="text-4xl font-bold">X-TEOS PRO</h1>
+          </div>
+          <div className="text-emerald-400 font-bold">FIRST 100 LIFETIME ONLY</div>
         </div>
+      </header>
 
-        <h1 className="text-5xl font-bold leading-tight">
-          Turn Ideas Into <span className="text-indigo-400">Real Content</span>
-        </h1>
-
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-300">
-          X-Teos Pro generates ready-to-post content for X, Instagram, and LinkedIn
-          in seconds.
+      <main className="pt-20 pb-24 text-center px-6">
+        <h2 className="text-6xl font-bold mb-6">AI That Posts For You</h2>
+        <p className="text-2xl text-gray-400 mb-12 max-w-2xl mx-auto">
+          X • Instagram • Facebook • LinkedIn — Unlimited
         </p>
 
-        <div className="mt-10 flex justify-center gap-4">
-          <Link
-            href="/login"
-            className="rounded-xl bg-indigo-600 px-8 py-3 font-semibold hover:bg-indigo-500"
-          >
-            Start Free
-          </Link>
+        <div className="max-w-md mx-auto bg-zinc-900 border border-yellow-500 rounded-3xl p-12">
+          <div className="text-7xl font-bold text-yellow-400 mb-2">$99.99</div>
+          <p className="text-2xl mb-8">Lifetime Access</p>
+          <p className="text-red-400 font-bold mb-8">ONLY FIRST 100 USERS — THEN CLOSED</p>
 
-          <Link
-            href="/dashboard"
-            className="rounded-xl border border-white/20 px-8 py-3 hover:bg-white/5"
-          >
-            View Dashboard
-          </Link>
+          <a href="https://www.checkout.dodopayments.com/buy/pdt_0NdBI7mHk3Rayq9O6ixh7" 
+             target="_blank"
+             className="block w-full bg-white text-black py-6 rounded-2xl text-xl font-bold mb-4 hover:bg-gray-200">
+            Pay $99.99 with Dodo (Card / USDC)
+          </a>
+
+          <a href="https://www.paypal.com/paypalme/elma7rosa/99.99" 
+             target="_blank"
+             className="block w-full border border-white/40 py-6 rounded-2xl text-xl font-bold hover:bg-white/10">
+            Or Pay with PayPal
+          </a>
+
+          <p className="text-sm text-gray-500 mt-8">
+            After payment, DM <strong>@KING_TEOS</strong> your email.<br/>
+            I will manually upgrade you to Lifetime.
+          </p>
         </div>
 
-        <p className="mt-3 text-xs text-zinc-500">
-          No credit card required for starter trial
+        <p className="mt-12 text-gray-500">
+          After 100 users — Lifetime closed. Monthly tiers start at $29/mo.
         </p>
-      </section>
-
-      <section className="mx-auto max-w-5xl px-6 py-16">
-        <h2 className="mb-12 text-center text-3xl font-bold">How it works</h2>
-
-        <div className="grid gap-6 text-center md:grid-cols-3">
-          <div className="rounded-xl border border-white/10 p-6">
-            <h3 className="mb-2 font-semibold">1. Enter idea</h3>
-            <p className="text-sm text-zinc-400">Describe what you want to post</p>
-          </div>
-
-          <div className="rounded-xl border border-white/10 p-6">
-            <h3 className="mb-2 font-semibold">2. Generate</h3>
-            <p className="text-sm text-zinc-400">
-              AI creates a clean post instantly
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-white/10 p-6">
-            <h3 className="mb-2 font-semibold">3. Save & use</h3>
-            <p className="text-sm text-zinc-400">
-              Everything stays in your dashboard
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className="mb-12 text-center text-3xl font-bold">Pricing</h2>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-xl border border-white/10 p-6">
-            <h3 className="text-xl font-semibold">Starter</h3>
-            <p className="mt-4 text-3xl">Free</p>
-            <p className="mt-2 text-sm text-zinc-400">3-day trial · 10 posts</p>
-
-            <ul className="mt-6 space-y-2 text-sm">
-              <li>✔ X + Instagram</li>
-              <li>✔ 10 posts total</li>
-              <li>✖ LinkedIn</li>
-            </ul>
-
-            <Link
-              href="/login"
-              className="mt-6 block rounded-xl bg-white/10 py-3 text-center hover:bg-white/20"
-            >
-              Start Free
-            </Link>
-          </div>
-
-          <div className="rounded-xl border border-indigo-500 bg-indigo-500/5 p-6">
-            <h3 className="text-xl font-semibold">Pro</h3>
-            <p className="mt-4 text-3xl">$29/mo</p>
-            <p className="mt-2 text-sm text-zinc-400">Unlimited content flow</p>
-
-            <ul className="mt-6 space-y-2 text-sm">
-              <li>✔ Unlimited posts</li>
-              <li>✔ X + Instagram</li>
-              <li>✔ Better output volume</li>
-            </ul>
-
-            <Link
-              href="/api/subscribe?plan=pro"
-              className="mt-6 block rounded-xl bg-indigo-600 py-3 text-center font-semibold hover:bg-indigo-500"
-            >
-              Upgrade
-            </Link>
-          </div>
-
-          <div className="rounded-xl border border-white/10 p-6">
-            <h3 className="text-xl font-semibold">Agency</h3>
-            <p className="mt-4 text-3xl">$99/mo</p>
-            <p className="mt-2 text-sm text-zinc-400">For teams and LinkedIn access</p>
-
-            <ul className="mt-6 space-y-2 text-sm">
-              <li>✔ All platforms</li>
-              <li>✔ LinkedIn</li>
-              <li>✔ Agency-ready usage</li>
-            </ul>
-
-            <Link
-              href="/api/subscribe?plan=agency"
-              className="mt-6 block rounded-xl bg-white/10 py-3 text-center hover:bg-white/20"
-            >
-              Go Agency
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <footer className="py-10 text-center text-xs text-zinc-500">
-        © 2026 X-Teos Pro · Elmahrosa
-      </footer>
-    </main>
+      </main>
+    </div>
   );
 }
