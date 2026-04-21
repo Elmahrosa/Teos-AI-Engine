@@ -53,7 +53,7 @@ Features:
 | Starter  | Free | 5 posts total |
 | Pro      | $19/mo | 50 posts/day |
 | Agency   | $49/mo | 200 posts/day + LinkedIn |
-| Lifetime | $99 (limited) | 100/day forever |
+| Lifetime | $149 (limited) | 100/day forever |
 
 🔥 **First 100 users get Lifetime access**
 
