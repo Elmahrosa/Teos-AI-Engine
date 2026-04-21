@@ -1,126 +1,133 @@
-# Teos AI Engine
+# 🏛️ UPDATED README (FINAL — COPY/PASTE)
 
-AI-powered social media content generation for X, Facebook, Instagram, and LinkedIn.
-Built by Elmahrosa International · Alexandria, Egypt 🇪🇬
+Use this as your **new production README**:
 
-## Stack
-
-- **Next.js 14** App Router
-- **Prisma + Neon Postgres** (production) / SQLite (local dev only)
-- **OpenAI API** with built-in fallback templates
-- **Tailwind CSS**
-- **HMAC session cookies** — no NextAuth dependency
-
-## Plans
-
-| Plan | Price | Posts | LinkedIn |
-|------|-------|-------|----------|
-| Starter | Free forever | 10 | ✗ |
-| Pro | $29 (PayPal / USDC / 14.5 Pi) | Unlimited | ✗ |
-| Agency | $99 (PayPal / USDC / 49.5 Pi) | Unlimited | ✓ |
-
-Pi users get 50% off · First 300 users only.
-
-## Payment Methods
-
-- **PayPal** — Default. User pays via PayPal.me link, submits TX ID from dashboard.
-- **USDC on Solana** — Send to your Solana wallet address.
-- **Pi Network** — 50% off for first 300 users.
-
-All methods use manual confirmation: user submits proof → founder approves at /admin.
+````md
+# 🏺 Teos AI Engine
+**AI Content Engine for Builders, Creators, and Agencies**  
+Powered by Elmahrosa International
 
 ---
 
-## Local development (SQLite)
+## 🚀 Overview
+
+Teos AI Engine is a production-ready AI SaaS platform that generates high-impact social media content across:
+
+- X (Twitter)
+- Facebook
+- Instagram
+- LinkedIn (Agency tier)
+
+Built for founders, creators, and agencies who want to **automate content creation and growth**.
+
+---
+
+## ⚡ Core Features
+
+- ✍️ AI-generated posts (prompt → ready content)
+- 📊 Daily & lifetime usage tracking
+- 🔒 Secure authentication (NextAuth)
+- 🧠 Plan-based feature gating
+- 💾 Persistent database (Prisma + PostgreSQL)
+- 🛠 Admin dashboard (manual activation + billing control)
+- 💳 Payment-ready (Dodo / PayPal / Crypto / Pi)
+
+---
+
+## 🧠 SaaS Logic (NEW)
+
+This version includes a **fully integrated usage engine**:
+
+- Starter → 5 posts lifetime
+- Pro → 50 posts/day
+- Agency → 200 posts/day
+- Lifetime → 100/day (limited offer)
+
+Features:
+- Daily reset system
+- Per-user tracking
+- Automatic limit enforcement
+- Post persistence
+
+---
+
+## 💰 Pricing (Launch Model)
+
+| Plan      | Price | Features |
+|----------|------|--------|
+| Starter  | Free | 5 posts total |
+| Pro      | $19/mo | 50 posts/day |
+| Agency   | $49/mo | 200 posts/day + LinkedIn |
+| Lifetime | $99 (limited) | 100/day forever |
+
+🔥 **First 100 users get Lifetime access**
+
+---
+
+## 💳 Payments
+
+Supports:
+
+- Dodo Payments (primary checkout)
+- PayPal (manual approval)
+- USDC (Solana)
+- Pi Network (discount model)
+
+Admin dashboard controls:
+- Activation
+- Plan upgrades
+- Billing validation
+
+---
+
+## 🧪 Development
 
 ```bash
-# 1. Clone
-git clone https://github.com/Elmahrosa/Teos-AI-Engine
-cd Teos-AI-Engine
-
-# 2. Install
 npm install
-
-# 3. Env
-cp .env.example .env
-# Edit .env:
-#   - Comment out DATABASE_URL Neon lines
-#   - Uncomment the SQLite lines
-#   - Switch prisma/schema.prisma provider to "sqlite" and remove directUrl
-#   - Set NEXTAUTH_SECRET  (openssl rand -base64 32)
-#   - Set ADMIN_EMAIL
-
-# 4. DB setup
-npx prisma db push
-npm run db:seed
-
-# 5. Run
-npm run dev
-```
-
-Open http://localhost:3000
+npx prisma generate
+npx prisma migrate dev
+npm run dev -- --webpack
+````
 
 ---
 
-## Production deployment (Vercel + Neon)
+## 🏗️ Architecture
 
-### Step 1 — Neon database
-1. neon.tech → New Project → name: teos-ai-engine, region: Europe West
-2. Copy pooled connection string → DATABASE_URL
-3. Copy direct connection string → DATABASE_URL_DIRECT
-
-### Step 2 — Deploy
-```bash
-npm i -g vercel && vercel login
-vercel deploy --prod
-```
-
-### Step 3 — Vercel environment variables
-
-| Variable | Value |
-|----------|-------|
-| DATABASE_URL | Neon pooled connection string |
-| DATABASE_URL_DIRECT | Neon direct connection string |
-| NEXTAUTH_SECRET | openssl rand -base64 32 |
-| SESSION_SECRET | openssl rand -base64 32 |
-| NEXT_PUBLIC_APP_URL | your Vercel URL |
-| ADMIN_EMAIL | aams1969@gmail.com |
-| OPENAI_API_KEY | your OpenAI key (optional) |
-| OPENAI_MODEL | gpt-4.1-nano |
-| NEXT_PUBLIC_USDC_SOL_ADDRESS | your Solana wallet |
-| NEXT_PUBLIC_PI_ADDRESS | your Pi address |
-| NEXT_PUBLIC_PI_PROMO_ENABLED | true |
-| NEXT_PUBLIC_PI_PROMO_DISCOUNT | 50 |
-| NEXT_PUBLIC_PI_PROMO_LIMIT | 300 |
-| NEXT_PUBLIC_PAYPAL_ME | https://paypal.me/YourUsername |
-
-### Step 4 — Migrate + seed
-```bash
-npx prisma migrate deploy
-npm run db:seed
-```
-
-### Step 5 — Redeploy
-```bash
-vercel deploy --prod
-```
+* Next.js 16 (App Router)
+* Prisma ORM
+* PostgreSQL (Neon recommended)
+* NextAuth authentication
+* Claude/OpenAI (AI layer)
 
 ---
 
-## Routes
+## 🧠 Project Status
 
-| Route | Description |
-|-------|-------------|
-| / | Landing page + pricing |
-| /login | Email login |
-| /dashboard | Post generator + PayPal TX submit |
-| /admin | Founder dashboard |
-| /success | USDC/Pi TX hash submission |
-| /api/health | Health check |
-| /api/paypal-payment | PayPal TX ID endpoint |
+✅ Core SaaS engine implemented
+✅ Usage + billing system integrated
+✅ Ready for production testing
+🚀 Launch-ready after final payment + UI polish
 
 ---
 
-## License
+## ⚠️ Notes
 
-MIT · © 2026 Elmahrosa International
+* This repo is private during stabilization
+* Public release will follow after launch validation
+* Old version (x-teos-pro) has been deprecated
+
+---
+
+## 🏛️ Elmahrosa International
+
+Founder: Ayman Seif
+Vision: Build sovereign AI-powered systems for global scale
+
+---
+
+## 📜 License
+
+Proprietary – Elmahrosa International
+Not for redistribution without permission
+
+````
