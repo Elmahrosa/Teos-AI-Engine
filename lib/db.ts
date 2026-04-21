@@ -12,10 +12,48 @@ export async function ensureUserExists(email: string, name?: string) {
         name: name || email.split("@")[0],
         plan: "free",
         status: "trial",
+        totalPostsUsed: 0,
+        dailyPostsUsed: 0,
       },
     });
   }
   return user;
+}
+
+export async function canUserPost(userId: string, plan: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return { allowed: false, reason: "User not found" };
+
+  // Starter: 5 posts total lifetime
+  if (user.plan === "free" && user.totalPostsUsed >= 5) {
+    return { allowed: false, reason: "Starter limit reached. Upgrade to continue." };
+  }
+
+  // Daily limits
+  const today = new Date().toISOString().split('T')[0];
+  if (user.lastResetDate.toISOString().split('T')[0] !== today) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { dailyPostsUsed: 0, lastResetDate: new Date() }
+    });
+  }
+
+  const limit = user.plan === "agency" ? 200 : user.plan === "pro" || user.plan === "lifetime" ? 50 : 5;
+  if (user.dailyPostsUsed >= limit) {
+    return { allowed: false, reason: `Daily limit reached (${limit} posts).` };
+  }
+
+  return { allowed: true, limit };
+}
+
+export async function recordPost(userId: string) {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { 
+      totalPostsUsed: { increment: 1 },
+      dailyPostsUsed: { increment: 1 }
+    }
+  });
 }
 
 export async function findUserByEmail(email: string) {
@@ -23,9 +61,9 @@ export async function findUserByEmail(email: string) {
 }
 
 export async function updateUserByEmail(email: string, data: any) {
-  return prisma.user.update({ 
-    where: { email: email.toLowerCase() }, 
-    data 
+  return prisma.user.update({
+    where: { email: email.toLowerCase() },
+    data
   });
 }
 
@@ -33,25 +71,8 @@ export async function listUsers() {
   return prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
 }
 
-// FIXED: appendPost now accepts object (matching the call)
 export async function appendPost(data: { userId: string; content: string; platform: string; prompt?: string }) {
-  return prisma.post.create({
-    data: {
-      userId: data.userId,
-      content: data.content,
-      platform: data.platform,
-      prompt: data.prompt || "",
-    }
-  });
+  const post = await prisma.post.create({ data });
+  await recordPost(data.userId);
+  return post;
 }
-
-export async function findBillingEventByExternalEventId(id: string) {
-  return null;
-}
-
-export const TAP_INVOICES = [];
-export const subscribeSchema = {};
-export const isAllowedOrigin = () => true;
-
-export default prisma;
-export { prisma };
