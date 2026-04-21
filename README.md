@@ -1,8 +1,3 @@
-# 🏛️ UPDATED README (FINAL — COPY/PASTE)
-
-Use this as your **new production README**:
-
-````md
 # 🏺 Teos AI Engine
 **AI Content Engine for Builders, Creators, and Agencies**  
 Powered by Elmahrosa International
