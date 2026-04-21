@@ -3,3 +3,5 @@ node_modules/
 prisma/dev.db
 
 .next/
+.vercel
+.env*.local
