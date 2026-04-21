@@ -7,30 +7,22 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  name          String?
-  plan          String   @default("free")
-  status        String   @default("trial")
-  trialEndsAt   DateTime?
-  isAdmin       Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String?
+  plan            String   @default("free")
+  status          String   @default("trial")
+  trialEndsAt     DateTime?
+  isAdmin         Boolean  @default(false)
+  totalPostsUsed  Int      @default(0)
+  dailyPostsUsed  Int      @default(0)
+  lastResetDate   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  posts         Post[]
-}
-
-model Post {
-  id          String   @id @default(cuid())
-  content     String
-  platform    String
-  prompt      String?
-  userId      String
-  createdAt   DateTime @default(now())
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts        Account[]
+  sessions        Session[]
+  posts           Post[]
 }
 
 model Account {
@@ -47,9 +39,7 @@ model Account {
   id_token           String? @db.Text
   session_state      String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {
@@ -58,4 +48,15 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  content     String
+  platform    String
+  prompt      String?
+  userId      String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
