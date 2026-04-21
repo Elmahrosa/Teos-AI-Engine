@@ -7,54 +7,48 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
+  id            String   @id @default(cuid())
+  email         String   @unique
   name          String?
-  email         String?        @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  plan          String         @default("starter")
-  status        String         @default("trial")
+  plan          String   @default("free")
+  status        String   @default("trial")
   trialEndsAt   DateTime?
-  tapCustomerId String?
-  
+  isAdmin       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   accounts      Account[]
   sessions      Session[]
   posts         Post[]
-  usages        UsageLog[]
-  billingEvents BillingEvent[]
 }
 
 model Post {
-  id        String   @id @default(cuid())
-  userId    String
-  platform  String?
-  prompt    String?  @db.Text
-  content   String?  @db.Text
-  status    String   @default("draft")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId, createdAt(sort: Desc)])
+  id          String   @id @default(cuid())
+  content     String
+  platform    String
+  prompt      String?
+  userId      String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -64,41 +58,4 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  @@unique([identifier, token])
-}
-
-model UsageLog {
-  id     String @id @default(cuid())
-  userId String
-  date   String
-  count  Int    @default(0)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([userId, date])
-}
-
-model BillingEvent {
-  id              String   @id @default(cuid())
-  provider        String
-  externalEventId String?  @unique
-  invoiceId       String?
-  status          String
-  plan            String?
-  payload         Json
-  userId          String?
-  createdAt       DateTime @default(now())
-  user            User?    @relation(fields: [userId], references: [id])
-}
-
-model WebhookEvent {
-  id          String   @id @default(cuid())
-  provider    String
-  eventId     String   @unique
-  processedAt DateTime @default(now())
-  payload     Json
 }
