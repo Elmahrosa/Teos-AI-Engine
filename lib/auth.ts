@@ -14,32 +14,22 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email) return null;
-
         const email = credentials.email.toString().trim().toLowerCase();
         const name = credentials.name?.toString().trim();
-
-        let user = await prisma.user.findUnique({
-          where: { email },
-        });
-
+        let user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
           user = await prisma.user.create({
-            data: {
-              email,
-              name: name || email.split("@")[0],
-              plan: "free",
-            },
+            data: { email, name: name || email.split("@")[0], plan: "free" },
           });
         }
-
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           plan: user.plan,
           trialEndsAt: user.trialEndsAt ? user.trialEndsAt.toISOString() : null,
-          isAdmin: user.isAdmin ?? false,
-        };
+          isAdmin: false,
+        } as any;
       },
     }),
   ],
@@ -47,25 +37,23 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.plan = user.plan;
-        token.trialEndsAt = user.trialEndsAt;
-        token.isAdmin = user.isAdmin;
+        token.plan = (user as any).plan;
+        token.trialEndsAt = (user as any).trialEndsAt;
+        token.isAdmin = (user as any).isAdmin;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id as string;
-        (session.user as any).plan = token.plan as string;
-        (session.user as any).trialEndsAt = token.trialEndsAt as string | null;
-        (session.user as any).isAdmin = token.isAdmin as boolean;
+        (session.user as any).id = token.id;
+        (session.user as any).plan = token.plan;
+        (session.user as any).trialEndsAt = token.trialEndsAt;
+        (session.user as any).isAdmin = token.isAdmin;
       }
       return session;
     },
   },
-  pages: {
-    signIn: "/login",
-  },
+  pages: { signIn: "/login" },
 };
 
 export default authOptions;
