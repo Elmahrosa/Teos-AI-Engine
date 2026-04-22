@@ -10,7 +10,8 @@ export default function Home() {
             Sovereign Content Strategy for Elmahrosa International.
           </p>
         </div>
-        <PostGenerator />
+
+        <PostGenerator used={0} plan="starter" isAdmin={false} />
       </div>
     </main>
   );
