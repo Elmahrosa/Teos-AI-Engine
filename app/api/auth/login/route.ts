@@ -1,34 +1,51 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { createSession } from "@/lib/session";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
-    const { email, name } = await req.json();
+    const { email } = await req.json();
 
-    if (!email) {
-      return NextResponse.json({ error: "Email required" }, { status: 400 });
+    if (!email || typeof email !== "string") {
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     let user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
+      const totalUsers = await prisma.user.count();
+      const lifetime = totalUsers < 100;
+
       user = await prisma.user.create({
         data: {
-          email,
-          name: name || "User",
+          email: normalizedEmail,
+          plan: lifetime ? "agency" : "starter",
+          lifetime,
         },
       });
     }
 
-    createSession(user.email);
+    cookies().set("user_email", normalizedEmail, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+    });
 
-    return NextResponse.json({ success: true });
-
-  } catch (err) {
-    console.error("[LOGIN ERROR]", err);
+    return NextResponse.json({
+      success: true,
+      user: {
+        email: user.email,
+        plan: user.plan,
+        lifetime: user.lifetime,
+      },
+    });
+  } catch (error) {
+    console.error("[/api/auth/login]", error);
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }
 }
