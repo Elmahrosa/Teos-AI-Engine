@@ -3,7 +3,6 @@ import { requireUser } from '@/lib/auth';
 import { getRemainingPosts } from '@/lib/limits';
 import Link from 'next/link';
 import LogoutButton from '@/components/LogoutButton';
-import PaypalSubmit from '@/components/PaypalSubmit';
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -14,24 +13,28 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl px-6 py-10 text-white">
+      
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="mt-1 text-sm text-zinc-400">
             {user.email} ·{' '}
-            <span className={`font-medium ${user.plan === 'agency' ? 'text-purple-300' : user.plan === 'pro' ? 'text-indigo-300' : 'text-zinc-300'}`}>
+            <span className={`font-medium ${
+              user.plan === 'agency'
+                ? 'text-yellow-300'
+                : user.plan === 'pro'
+                ? 'text-indigo-300'
+                : 'text-zinc-300'
+            }`}>
               {user.plan} plan
             </span>
-            {user.status === 'active' && (
-              <span className="ml-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">active</span>
-            )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <LogoutButton />
-        </div>
+        <LogoutButton />
       </div>
 
+      {/* Starter Banner */}
       {isStarter && (
         <div className="mt-6 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
@@ -39,116 +42,108 @@ export default async function DashboardPage() {
               <p className="text-sm font-medium text-white">
                 Starter plan · {postCount}/10 posts used
                 {remaining !== null && remaining > 0 && (
-                  <span className="ml-2 text-zinc-400">({remaining} remaining)</span>
+                  <span className="ml-2 text-zinc-400">
+                    ({remaining} remaining)
+                  </span>
                 )}
               </p>
               <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-indigo-500 transition-all"
+                  className="h-full rounded-full bg-indigo-500"
                   style={{ width: `${Math.min((postCount / 10) * 100, 100)}%` }}
                 />
               </div>
             </div>
-            <Link href="/#pricing" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500">
+
+            <Link
+              href="/#pricing"
+              className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500"
+            >
               Upgrade to Pro →
             </Link>
           </div>
+
           {atLimit && (
             <p className="mt-3 text-sm text-amber-300">
-              You have reached the 10-post Starter limit. Upgrade to Pro for unlimited posts.
+              You reached the 10-post limit. Upgrade to continue.
             </p>
           )}
         </div>
       )}
 
+      {/* Main Layout */}
       <div className="mt-8 grid gap-6 md:grid-cols-[1.2fr,0.8fr]">
+
         <PostGenerator used={postCount} plan={user.plan} />
 
         <div className="space-y-6">
+
+          {/* Plan Details */}
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
             <h2 className="text-lg font-semibold">Plan details</h2>
+
             <ul className="mt-4 space-y-2 text-sm text-zinc-300">
-              {user.plan === 'starter' && <li className="text-zinc-400">10 posts maximum (free forever)</li>}
-              {user.plan !== 'starter' && <li className="text-emerald-300">✓ Unlimited posts</li>}
-              {user.plan === 'agency' && <li className="text-emerald-300">✓ LinkedIn posts included</li>}
-              {user.plan !== 'agency' && <li className="text-zinc-400">LinkedIn: Agency plan only</li>}
-              <li className="text-zinc-400">Manual payment confirmation during launch</li>
+              {user.plan === 'starter' && (
+                <li>10 posts maximum</li>
+              )}
+
+              {user.plan !== 'starter' && (
+                <li className="text-emerald-300">✓ Unlimited posts</li>
+              )}
+
+              {user.plan === 'agency' && (
+                <li className="text-emerald-300">✓ LinkedIn enabled</li>
+              )}
+
+              {user.plan !== 'agency' && (
+                <li className="text-zinc-400">LinkedIn: Agency only</li>
+              )}
+
+              <li className="text-zinc-400">
+                Payment handled via Dodo during launch
+              </li>
             </ul>
+
             {user.plan === 'starter' && (
-              <Link href="/#pricing" className="mt-4 block rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold hover:bg-indigo-500">
-                Upgrade to Pro — $29 (PayPal / USDC / Pi)
+              <Link
+                href="/#pricing"
+                className="mt-4 block rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold hover:bg-indigo-500"
+              >
+                Upgrade to Pro — $19/month
               </Link>
             )}
+
             {user.plan === 'pro' && (
-              <Link href="/#pricing" className="mt-4 block rounded-lg border border-purple-500/30 py-2 text-center text-sm hover:bg-white/5 text-purple-300">
-                Upgrade to Agency — $99 (PayPal / USDC / Pi)
+              <Link
+                href="/#pricing"
+                className="mt-4 block rounded-lg border border-yellow-500/30 py-2 text-center text-sm text-yellow-300 hover:bg-white/5"
+              >
+                Upgrade to Agency — $49/month
               </Link>
             )}
           </div>
 
+          {/* Saved Posts */}
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
             <h2 className="text-lg font-semibold">Saved posts</h2>
+
             {postCount === 0 ? (
-              <p className="mt-3 text-sm text-zinc-400">No saved posts yet. Generate and save your first post above.</p>
+              <p className="mt-3 text-sm text-zinc-400">
+                No saved posts yet.
+              </p>
             ) : (
-              <div className="mt-4 max-h-96 space-y-3 overflow-y-auto pr-1">
-                {user.posts.map((post) => {
-                  const hashtags = (() => {
-                    try { return JSON.parse(post.hashtags || '[]') as string[]; }
-                    catch { return []; }
-                  })();
-                  return (
-                    <div key={post.id} className="rounded-xl border border-white/10 bg-[#111118] p-4">
-                      <div className="mb-1.5 flex items-center gap-2">
-                        <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-xs text-indigo-300 uppercase tracking-wide">
-                          {post.platform}
-                        </span>
-                        <span className="text-xs text-zinc-500">
-                          {new Date(post.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="line-clamp-3 whitespace-pre-wrap text-sm text-white">{post.content}</p>
-                      {hashtags.length > 0 && (
-                        <p className="mt-2 text-xs text-zinc-500">{hashtags.join(' ')}</p>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="mt-4 space-y-3">
+                {user.posts.map((post) => (
+                  <div key={post.id} className="rounded-xl border border-white/10 bg-[#111118] p-4">
+                    <p className="text-sm text-white whitespace-pre-wrap">
+                      {post.content}
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Submit payment proof / upgrade flow */}
-          {user.plan === 'starter' && (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-              <div>
-                <h2 className="text-base font-semibold text-white">Submit payment proof</h2>
-                <p className="mt-1 text-sm text-zinc-400">Already paid? Submit your proof to activate your upgrade.</p>
-              </div>
-              <PaypalSubmit plan="pro" />
-              <Link
-                href="/success"
-                className="block rounded-lg border border-indigo-500/30 py-2 text-center text-sm text-indigo-300 hover:bg-indigo-500/10"
-              >
-                Submit USDC / Pi TX hash →
-              </Link>
-            </div>
-          )}
-          {user.plan === 'pro' && (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-              <div>
-                <h2 className="text-base font-semibold text-white">Upgrade to Agency</h2>
-                <p className="mt-1 text-sm text-zinc-400">Unlock LinkedIn + unlimited posts.</p>
-              </div>
-              <PaypalSubmit plan="agency" />
-              <Link
-                href="/success"
-                className="block rounded-lg border border-purple-500/30 py-2 text-center text-sm text-purple-300 hover:bg-purple-500/10"
-              >
-                Submit USDC / Pi TX hash →
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </main>
