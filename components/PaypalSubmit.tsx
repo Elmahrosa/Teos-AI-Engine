@@ -2,6 +2,10 @@
 
 import PaymentBlock from "@/components/PaymentBlock";
 
-export default function PaypalSubmit() {
+type Props = {
+  plan?: string;
+};
+
+export default function PaypalSubmit({ plan }: Props) {
   return <PaymentBlock />;
 }
