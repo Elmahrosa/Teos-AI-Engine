@@ -19,6 +19,7 @@ export const PLANS = {
 export const PAYMENT_CONFIG = {
   usdcSol: "",
   pi: "MALYJFJ5SVD45FBWN2GT4IW67SEZ3IBOFSBSPUFCWV427NBNLG3PWAAAAAAAAAMHQDECQ",
+  paypal: "",
   dodo: {
     pro: PLANS.pro.link,
     agency: PLANS.agency.link,
