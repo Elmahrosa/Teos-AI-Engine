@@ -15,3 +15,13 @@ export const PLANS = {
     link: "https://www.checkout.dodopayments.com/buy/pdt_0NdDAQRTGLoJ7r9zFKiLB",
   },
 };
+
+export const PAYMENT_CONFIG = {
+  usdcSol: "",
+  pi: "MALYJFJ5SVD45FBWN2GT4IW67SEZ3IBOFSBSPUFCWV427NBNLG3PWAAAAAAAAAMHQDECQ",
+  dodo: {
+    pro: PLANS.pro.link,
+    agency: PLANS.agency.link,
+    lifetime: PLANS.lifetime.link,
+  },
+};
