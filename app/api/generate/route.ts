@@ -21,14 +21,12 @@ export async function POST(req: Request) {
     const parsed = schema.parse(body);
 
     const email = await getSessionEmail();
-    console.log("[/api/generate] session email:", email);
     if (!email) return NextResponse.json({ error: "Please log in first" }, { status: 401 });
 
     const user = await prisma.user.findUnique({
       where: { email },
       include: { posts: { select: { id: true } } },
     });
-    console.log("[/api/generate] user found:", !!user, "plan:", user?.plan);
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     if (parsed.platform === "linkedin" && !canUseLinkedIn(user.plan)) {
@@ -41,93 +39,43 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      console.error("[/api/generate] Missing ANTHROPIC_API_KEY");
-      return NextResponse.json({ error: "Server missing AI configuration" }, { status: 500 });
-    }
+    if (!apiKey) return NextResponse.json({ error: "Server missing AI configuration" }, { status: 500 });
 
     const anthropic = new Anthropic({ apiKey });
 
-    const systemPrompt = `You are Teos AI Engine, an elite social media content strategist.
-Return ONLY valid JSON — no markdown, no backticks, no explanation.
-Exact shape:
-{"post":"full ready-to-publish post text","hookVariations":["hook 1","hook 2","hook 3"],"cta":"one clear call to action"}
-Rules: post must be complete, human, premium, scroll-stopping. Format for the platform.`;
-
-    const userPrompt = `Platform: ${parsed.platform}
-Topic: ${parsed.prompt}
-Goal: ${parsed.goal}
-Tone: ${parsed.tone}
-Audience: founders, creators, and growth-focused users`;
-
     const response = await anthropic.messages.create({
-      model: "claude-3-haiku-20240307",
+      model: "claude-3-5-haiku-20241022",
       max_tokens: 900,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userPrompt }],
+      system: "You are Teos AI Engine, an elite social media content strategist. Return ONLY valid JSON with this exact shape: {\"post\":\"ready-to-publish post text\",\"hookVariations\":[\"h1\",\"h2\",\"h3\"],\"cta\":\"call to action\"}. No markdown, no backticks.",
+      messages: [{ role: "user", content: `Platform: ${parsed.platform}\nTopic: ${parsed.prompt}\nGoal: ${parsed.goal}\nTone: ${parsed.tone}` }],
     });
 
-    const raw = response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("")
-      .trim();
+    const raw = response.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
 
-    if (!raw) {
-      console.error("[/api/generate] Empty response from Anthropic");
-      return NextResponse.json({ error: "Empty AI response" }, { status: 500 });
-    }
-
-    let postText = "";
+    let postText = raw;
     try {
-      const cleaned = raw.replace(/```json|```/g, "").trim();
-      const parsed2 = JSON.parse(cleaned);
-      postText = parsed2.post || cleaned;
-    } catch {
-      console.warn("[/api/generate] JSON parse failed, using raw text");
-      postText = raw;
-    }
+      const data = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      postText = data.post || raw;
+    } catch { postText = raw; }
 
     const hashtags = generateHashtags(parsed.prompt, parsed.platform);
     const imageResult = await generateImage(parsed.platform, parsed.prompt);
     const visibilityScore = getVisibilityScore(postText, hashtags, parsed.goal);
-    const bestTime = getBestTime(parsed.platform);
-    const suggestedCTA = getSuggestedCTA(parsed.goal);
-    const checklist = getChecklist(parsed.platform, parsed.goal);
 
     try {
       await prisma.post.create({
-        data: {
-          userId: user.id,
-          prompt: parsed.prompt,
-          platform: parsed.platform,
-          content: postText,
-          hashtags: JSON.stringify(hashtags),
-          imageUrl: imageResult.url,
-        },
+        data: { userId: user.id, prompt: parsed.prompt, platform: parsed.platform, content: postText, hashtags: JSON.stringify(hashtags), imageUrl: imageResult.url },
       });
-      console.log("[/api/generate] post saved for:", user.email);
-    } catch (saveErr) {
-      console.error("[/api/generate] Auto-save failed (non-fatal):", saveErr);
-    }
+    } catch (e) { console.error("[generate] save failed:", e); }
 
     return NextResponse.json({
-      success: true,
-      plan: user.plan,
-      used: usedCount + 1,
-      post: postText,
-      hashtags,
-      imageUrl: imageResult.url,
-      insights: { visibilityScore, bestTime, suggestedCTA, checklist },
+      success: true, plan: user.plan, used: usedCount + 1,
+      post: postText, hashtags, imageUrl: imageResult.url,
+      insights: { visibilityScore, bestTime: getBestTime(parsed.platform), suggestedCTA: getSuggestedCTA(parsed.goal), checklist: getChecklist(parsed.platform, parsed.goal) },
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid request", details: error.flatten() }, { status: 400 });
-    }
-    console.error("[/api/generate] fatal error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Generation failed. Please try again." },
-      { status: 500 }
-    );
+    if (error instanceof z.ZodError) return NextResponse.json({ error: "Invalid request", details: error.flatten() }, { status: 400 });
+    console.error("[/api/generate]", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Generation failed." }, { status: 500 });
   }
 }
