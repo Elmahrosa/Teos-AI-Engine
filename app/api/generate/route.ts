@@ -61,7 +61,7 @@ Tone: ${parsed.tone}
 Audience: founders, creators, and growth-focused users`;
 
     const response = await anthropic.messages.create({
-      model: "claude-3-5-haiku-20241022",
+      model: "claude-3-haiku-20240307",
       max_tokens: 900,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
