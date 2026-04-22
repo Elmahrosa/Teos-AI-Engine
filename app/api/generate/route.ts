@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { canGenerate, canUseLinkedIn } from "@/lib/limits";
 import { getSessionEmail } from "@/lib/session";
 import { prisma } from "@/lib/db";
+import { isAdminEmail } from "@/lib/auth"; // Ensures Founder Bypass logic
 import { generateHashtags } from "@/lib/ai/generateHashtags";
 import { generateImage } from "@/lib/ai/generateImage";
 import {
@@ -43,15 +44,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (parsed.platform === "linkedin" && !canUseLinkedIn(user.plan)) {
+    // ── FOUNDER BYPASS LOGIC ─────────────────────────────────────
+    const isAdmin = isAdminEmail(email);
+
+    // Block LinkedIn ONLY if not an admin AND not on Agency plan
+    if (parsed.platform === "linkedin" && !isAdmin && !canUseLinkedIn(user.plan)) {
       return NextResponse.json(
         { error: "LinkedIn requires Agency plan" },
         { status: 403 }
       );
     }
 
+    // Block generation ONLY if not an admin AND limit is reached
     const usedCount = user.posts.length;
-    if (!canGenerate(user.plan, usedCount)) {
+    if (!isAdmin && !canGenerate(user.plan, usedCount)) {
       return NextResponse.json(
         {
           error: "Starter plan limit reached. Upgrade to continue.",
@@ -61,6 +67,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // ── AI ENGINE CONFIGURATION ──────────────────────────────────
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -69,7 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI(apiKey); // Standardized for Gemini 1.5/2.0
 
     const prompt = `You are Teos AI Engine, an elite social media content strategist.
 
@@ -82,17 +89,15 @@ Audience: founders, creators, and growth-focused users
 Write one high-impact, ready-to-publish social media post.
 Return ONLY the final post text.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
-    const postText = (response.text ?? "").trim();
+    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(prompt);
+    const postText = result.response.text().trim();
 
     if (!postText) {
       return NextResponse.json({ error: "Empty AI response" }, { status: 500 });
     }
 
+    // ── ENHANCEMENTS & PERSISTENCE ───────────────────────────────
     const hashtags = generateHashtags(parsed.prompt, parsed.platform);
     const imageResult = await generateImage(parsed.platform, parsed.prompt);
     const visibilityScore = getVisibilityScore(postText, hashtags, parsed.goal);
@@ -114,7 +119,7 @@ Return ONLY the final post text.`;
 
     return NextResponse.json({
       success: true,
-      plan: user.plan,
+      plan: isAdmin ? "founder" : user.plan,
       used: usedCount + 1,
       post: postText,
       hashtags,

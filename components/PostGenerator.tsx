@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { Loader2, Sparkles, Image as ImageIcon, Download, CheckCircle, Copy } from 'lucide-react';
 
 type Platform = 'x' | 'facebook' | 'instagram' | 'linkedin';
 type Tone = 'professional' | 'bold' | 'educational' | 'conversational';
@@ -10,7 +11,7 @@ type Generated = {
   post: string;
   hashtags: string[];
   imageUrl: string;
-  insights?: {
+  insights: {
     visibilityScore: number;
     bestTime: string;
     suggestedCTA: string;
@@ -18,255 +19,138 @@ type Generated = {
   };
 };
 
-export default function PostGenerator({ used, plan }: { used: number; plan: string }) {
+export default function PostGenerator({ used, plan, isAdmin }: { used: number; plan: string; isAdmin: boolean }) {
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState<Platform>('x');
   const [tone, setTone] = useState<Tone>('professional');
   const [goal, setGoal] = useState<Goal>('engagement');
-  const [generatedPost, setGeneratedPost] = useState<Generated | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [result, setResult] = useState<Generated | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [needsUpgrade, setNeedsUpgrade] = useState(false);
 
-  async function handleGenerate() {
-    if (!prompt.trim()) { setError('Please enter a topic or idea.'); return; }
-    setIsGenerating(true);
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return;
+    setLoading(true);
     setError(null);
-    setMessage(null);
-    setNeedsUpgrade(false);
-    setSaved(false);
+    setResult(null);
     try {
-      const response = await fetch('/api/generate', {
+      const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, platform, tone, goal }),
       });
-      const data = await response.json();
-      if (!response.ok) {
-        if (data.upgrade) setNeedsUpgrade(true);
-        throw new Error(data.error || 'Failed to generate post');
-      }
-      setGeneratedPost(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Generation failed');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Generation failed');
+      setResult(data);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
-      setIsGenerating(false);
+      setLoading(false);
     }
-  }
+  };
 
-  async function handleSave() {
-    if (!generatedPost) return;
-    setIsSaving(true);
-    setError(null);
-    setMessage(null);
-    try {
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          platform,
-          content: generatedPost.post,
-          hashtags: generatedPost.hashtags,
-          imageUrl: generatedPost.imageUrl,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to save post');
-      setMessage('Post saved. Refresh the page to see it in Saved posts.');
-      setSaved(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
-    } finally {
-      setIsSaving(false);
-    }
-  }
+  const copyToClipboard = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(`${result.post}\n\n${result.hashtags.join(' ')}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-  async function handleCopy() {
-    if (!generatedPost) return;
-    await navigator.clipboard.writeText(
-      generatedPost.post + '\n\n' + generatedPost.hashtags.join(' ')
-    );
-    setMessage('Post + hashtags copied to clipboard.');
-  }
-
-  const isLinkedInBlocked = platform === 'linkedin' && plan !== 'agency';
+  // Logic: LinkedIn is only blocked if user is NOT admin AND NOT on agency plan
+  const isLinkedInBlocked = platform === 'linkedin' && !isAdmin && plan !== 'agency';
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="mb-1 text-xl font-semibold">Generate post</h2>
-          <p className="mb-5 text-sm text-zinc-400">
-            Plan: <span className="font-medium text-white">{plan}</span>
-            {plan === 'starter' && <span className="ml-2 text-zinc-500">· {used}/10 posts used</span>}
-          </p>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      {/* ── INPUT CARD ── */}
+      <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-xl">
+        <div className="flex justify-between items-center mb-4">
+           <h2 className="text-xl font-bold text-white">Create Content</h2>
+           {isAdmin && <span className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded-full font-black text-white">FOUNDER MODE</span>}
         </div>
-        <div className="rounded-full bg-indigo-500/10 px-3 py-1 text-xs text-indigo-300 whitespace-nowrap">
-          AI visibility mode
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-white">Topic or idea</label>
+        
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="E.g. Why AI is changing how brands get discovered online"
-          className="w-full rounded-lg border border-white/20 bg-[#111118] p-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
-          rows={4}
+          placeholder="What's on your mind? (e.g., 'Sovereign tech in Egypt')"
+          className="w-full bg-[#111118] border border-white/10 rounded-xl p-4 text-white focus:ring-1 focus:ring-indigo-500 h-28 resize-none"
         />
-      </div>
-
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-white">Platform</label>
-          <select
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value as Platform)}
-            className="w-full rounded-lg border border-white/20 bg-[#111118] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none"
-          >
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+          <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2">
             <option value="x">X (Twitter)</option>
+            <option value="linkedin">LinkedIn {isLinkedInBlocked ? '🔒' : ''}</option>
             <option value="facebook">Facebook</option>
             <option value="instagram">Instagram</option>
-            <option value="linkedin">LinkedIn (Agency only)</option>
           </select>
-          {isLinkedInBlocked && (
-            <p className="mt-1 text-xs text-amber-400">LinkedIn requires Agency plan</p>
-          )}
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-white">Tone</label>
-          <select
-            value={tone}
-            onChange={(e) => setTone(e.target.value as Tone)}
-            className="w-full rounded-lg border border-white/20 bg-[#111118] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none"
-          >
+
+          <select value={tone} onChange={(e) => setTone(e.target.value as Tone)} className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2">
             <option value="professional">Professional</option>
             <option value="bold">Bold</option>
             <option value="educational">Educational</option>
-            <option value="conversational">Conversational</option>
           </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-white">Goal</label>
-          <select
-            value={goal}
-            onChange={(e) => setGoal(e.target.value as Goal)}
-            className="w-full rounded-lg border border-white/20 bg-[#111118] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none"
+
+          <button
+            onClick={handleGenerate}
+            disabled={loading || !prompt || isLinkedInBlocked}
+            className="col-span-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-all"
           >
-            <option value="engagement">Engagement</option>
-            <option value="authority">Authority</option>
-            <option value="sales">Sales</option>
-            <option value="community">Community</option>
-          </select>
+            {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+            {isAdmin ? "FOUNDER GENERATE" : "GENERATE"}
+          </button>
         </div>
+        {error && <p className="text-red-400 text-xs mt-3">{error}</p>}
       </div>
 
-      <button
-        onClick={handleGenerate}
-        disabled={isGenerating || isLinkedInBlocked}
-        className="w-full rounded-lg bg-indigo-600 p-3 font-medium text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        {isGenerating ? 'Generating…' : 'Generate post'}
-      </button>
-
-      {isGenerating && (
-        <p className="mt-3 text-sm text-indigo-300 text-center">
-          Creating post, hashtags, visual, and visibility insights…
-        </p>
-      )}
-
-      {needsUpgrade && (
-        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
-          <p className="text-sm text-amber-200 font-medium">You've reached the 10-post Starter limit.</p>
-          <a
-            href="/#pricing"
-            className="mt-2 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-          >
-            Upgrade to Pro — $29 USDC →
-          </a>
-        </div>
-      )}
-
-      {error && !needsUpgrade && <p className="mt-4 text-sm text-red-400">{error}</p>}
-      {message && <p className="mt-4 text-sm text-emerald-400">{message}</p>}
-
-      {generatedPost && (
-        <div className="mt-6 space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-white">Generated post</h3>
-            {generatedPost.insights && (
-              <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300 whitespace-nowrap">
-                Visibility: {generatedPost.insights.visibilityScore}/100
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-lg bg-[#111118] p-4">
-            <p className="whitespace-pre-wrap text-sm text-white leading-relaxed">{generatedPost.post}</p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h4 className="mb-2 text-sm font-medium text-white">Hashtags</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {generatedPost.hashtags.map((tag, i) => (
-                  <span key={i} className="rounded-full bg-indigo-500/20 px-2.5 py-1 text-xs text-indigo-300">
-                    {tag}
-                  </span>
+      {/* ── RESULTS ── */}
+      {result && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 relative group">
+              <button onClick={copyToClipboard} className="absolute top-4 right-4 p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors">
+                {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-zinc-400" />}
+              </button>
+              <p className="whitespace-pre-wrap text-zinc-200 leading-relaxed">{result.post}</p>
+              <div className="mt-4 flex flex-wrap gap-2 pt-4 border-t border-white/5">
+                {result.hashtags.map((h) => (
+                  <span key={h} className="text-indigo-400 text-xs font-mono">#{h}</span>
                 ))}
               </div>
-              {generatedPost.insights && (
-                <div className="mt-4 rounded-lg border border-white/10 bg-[#111118] p-3 text-sm">
-                  <p className="text-zinc-300">
-                    <span className="font-medium text-white">Best time: </span>
-                    {generatedPost.insights.bestTime}
-                  </p>
-                  <p className="mt-1.5 text-zinc-300">
-                    <span className="font-medium text-white">CTA tip: </span>
-                    {generatedPost.insights.suggestedCTA}
-                  </p>
-                  <ul className="mt-2 space-y-1 text-xs text-zinc-400">
-                    {generatedPost.insights.checklist.map((item) => (
-                      <li key={item} className="flex items-start gap-1.5">
-                        <span className="text-indigo-400 mt-0.5">·</span> {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
 
-            <div>
-              <h4 className="mb-2 text-sm font-medium text-white">Preview image</h4>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={generatedPost.imageUrl}
-                alt="Generated post image"
-                className="w-full rounded-lg object-cover"
-                style={{ maxHeight: '200px' }}
-              />
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group">
+              <img src={result.imageUrl} className="w-full object-cover max-h-[400px]" alt="AI Visual" />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                 <a href={result.imageUrl} target="_blank" className="bg-white text-black px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+                   <Download className="w-4 h-4" /> Download Image
+                 </a>
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={handleCopy}
-              className="flex-1 rounded-lg bg-indigo-600 p-2.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
-            >
-              Copy post + hashtags
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving || saved}
-              className="flex-1 rounded-lg border border-white/20 bg-white/5 p-2.5 text-sm font-medium text-white hover:bg-white/10 disabled:opacity-60 transition-colors"
-            >
-              {saved ? '✓ Saved' : isSaving ? 'Saving…' : 'Save post'}
-            </button>
+          <div className="space-y-4">
+            <div className="bg-indigo-600 rounded-2xl p-6 text-white">
+              <h4 className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">Visibility Score</h4>
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-black">{result.insights.visibilityScore}</span>
+                <span className="text-xl opacity-60">/100</span>
+              </div>
+              <p className="text-xs mt-4 opacity-90 leading-tight">
+                Optimized for high reach on {platform.toUpperCase()}. Best time to post: <strong>{result.insights.bestTime}</strong>.
+              </p>
+            </div>
+
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-5">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-4">Post Checklist</h4>
+              <ul className="space-y-3">
+                {result.insights.checklist.map((item) => (
+                  <li key={item} className="flex gap-3 text-xs text-zinc-400">
+                    <CheckCircle className="w-4 h-4 text-indigo-500 shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       )}

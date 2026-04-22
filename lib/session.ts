@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import crypto from "crypto";
 
 const COOKIE_NAME = "teos_session";
+// Add your official admin email here
+const ADMIN_EMAILS = ["aams1969@gmail.com", "ayman@teosegypt.com"]; 
 
 function getSecret() {
   return (
@@ -13,6 +15,14 @@ function getSecret() {
 
 function sign(value: string) {
   return crypto.createHmac("sha256", getSecret()).update(value).digest("hex");
+}
+
+/**
+ * Checks if the current session belongs to a founder/admin
+ */
+export function isFounder(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }
 
 export function createSession(email: string) {
