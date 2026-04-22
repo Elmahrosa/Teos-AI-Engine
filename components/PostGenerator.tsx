@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Loader2, Sparkles, Image as ImageIcon, Download, CheckCircle, Copy, Twitter, Linkedin, Facebook, Instagram } from 'lucide-react';
+import { Loader2, Sparkles, Download, CheckCircle, Copy, Twitter, Linkedin, Facebook } from 'lucide-react';
 
 type Platform = 'x' | 'facebook' | 'instagram' | 'linkedin';
 type Tone = 'professional' | 'bold' | 'educational' | 'conversational';
@@ -19,7 +19,15 @@ type Generated = {
   };
 };
 
-export default function PostGenerator({ used, plan, isAdmin }: { used: number; plan: string; isAdmin: boolean }) {
+export default function PostGenerator({
+  used,
+  plan,
+  isAdmin,
+}: {
+  used: number;
+  plan: string;
+  isAdmin: boolean;
+}) {
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState<Platform>('x');
   const [tone, setTone] = useState<Tone>('professional');
@@ -34,41 +42,66 @@ export default function PostGenerator({ used, plan, isAdmin }: { used: number; p
     setLoading(true);
     setError(null);
     setResult(null);
+
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, platform, tone, goal }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
       setResult(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Generation failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const fullCaption = result ? `${result.post}\n\n${result.hashtags.map(h => `#${h}`).join(' ')}` : '';
+  const fullCaption = result
+    ? `${result.post}\n\n${result.hashtags.map((h) => `#${h}`).join(' ')}`
+    : '';
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (!result) return;
-    navigator.clipboard.writeText(fullCaption);
+    await navigator.clipboard.writeText(fullCaption);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const shareToX = () => {
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(fullCaption)}`, "_blank");
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullCaption)}`,
+      '_blank'
+    );
   };
 
   const shareToLinkedIn = () => {
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://teos-ai-engine.vercel.app")}`, "_blank");
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+        'https://teos-ai-engine.vercel.app'
+      )}`,
+      '_blank'
+    );
   };
 
   const shareToFacebook = () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent("https://teos-ai-engine.vercel.app")}&quote=${encodeURIComponent(fullCaption)}`, "_blank");
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        'https://teos-ai-engine.vercel.app'
+      )}&quote=${encodeURIComponent(fullCaption)}`,
+      '_blank'
+    );
+  };
+
+  const openInstagramHelper = async () => {
+    if (!result) return;
+    await navigator.clipboard.writeText(fullCaption);
+    window.open('https://www.instagram.com/', '_blank');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const isLinkedInBlocked = platform === 'linkedin' && !isAdmin && plan !== 'agency';
@@ -77,29 +110,42 @@ export default function PostGenerator({ used, plan, isAdmin }: { used: number; p
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-xl">
         <div className="flex justify-between items-center mb-4">
-           <h2 className="text-xl font-bold text-white">Create Content</h2>
-           {isAdmin && <span className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded-full font-black text-white uppercase tracking-tighter">Founder Mode</span>}
+          <h2 className="text-xl font-bold text-white">Create Content</h2>
+          {isAdmin && (
+            <span className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded-full font-black text-white uppercase tracking-tighter">
+              Founder Mode
+            </span>
+          )}
         </div>
-        
+
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="What's on your mind? (e.g., 'Sovereign tech in Egypt')"
           className="w-full bg-[#111118] border border-white/10 rounded-xl p-4 text-white focus:ring-1 focus:ring-indigo-500 h-28 resize-none"
         />
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-          <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2">
+          <select
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value as Platform)}
+            className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2"
+          >
             <option value="x">X (Twitter)</option>
             <option value="linkedin">LinkedIn {isLinkedInBlocked ? '🔒' : ''}</option>
             <option value="facebook">Facebook</option>
             <option value="instagram">Instagram</option>
           </select>
 
-          <select value={tone} onChange={(e) => setTone(e.target.value as Tone)} className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2">
+          <select
+            value={tone}
+            onChange={(e) => setTone(e.target.value as Tone)}
+            className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2"
+          >
             <option value="professional">Professional</option>
             <option value="bold">Bold</option>
             <option value="educational">Educational</option>
+            <option value="conversational">Conversational</option>
           </select>
 
           <button
@@ -108,9 +154,10 @@ export default function PostGenerator({ used, plan, isAdmin }: { used: number; p
             className="col-span-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-all"
           >
             {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-            {isAdmin ? "FOUNDER GENERATE" : "GENERATE"}
+            {isAdmin ? 'FOUNDER GENERATE' : 'GENERATE'}
           </button>
         </div>
+
         {error && <p className="text-red-400 text-xs mt-3">{error}</p>}
       </div>
 
@@ -125,14 +172,19 @@ export default function PostGenerator({ used, plan, isAdmin }: { used: number; p
                 <button onClick={shareToLinkedIn} className="p-2 bg-[#0077b5] rounded-lg hover:opacity-80 transition" title="Post to LinkedIn">
                   <Linkedin className="w-4 h-4 text-white" />
                 </button>
-                <button onClick={shareToFacebook} className="p-2 bg-[#1877f2] rounded-lg hover:opacity-80 transition" title="Post to Facebook">
+                <button onClick={shareToFacebook} className="p-2 bg-[#1877f2] rounded-lg hover:opacity-80 transition" title="Share to Facebook">
                   <Facebook className="w-4 h-4 text-white" />
+                </button>
+                <button onClick={openInstagramHelper} className="p-2 bg-pink-600 rounded-lg hover:opacity-80 transition text-white text-xs px-3" title="Instagram Helper">
+                  IG
                 </button>
                 <button onClick={copyToClipboard} className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 ml-auto transition">
                   {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-zinc-400" />}
                 </button>
               </div>
+
               <p className="whitespace-pre-wrap text-zinc-200 leading-relaxed text-sm">{result.post}</p>
+
               <div className="mt-4 flex flex-wrap gap-2 pt-4 border-t border-white/5">
                 {result.hashtags.map((h) => (
                   <span key={h} className="text-indigo-400 text-xs font-mono">#{h}</span>
@@ -140,15 +192,22 @@ export default function PostGenerator({ used, plan, isAdmin }: { used: number; p
               </div>
             </div>
 
-            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group bg-zinc-900">
-              <img src={result.imageUrl} className="w-full object-contain max-h-[400px]" alt="AI Visual" />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
-                 <a href={result.imageUrl} download target="_blank" className="bg-white text-black px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-200 transition">
+            {result.imageUrl && (
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group bg-zinc-900">
+                <img src={result.imageUrl} className="w-full object-contain max-h-[400px]" alt="AI Visual" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+                  <a
+                    href={result.imageUrl}
+                    download
+                    target="_blank"
+                    className="bg-white text-black px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-200 transition"
+                  >
                     <Download className="w-5 h-5" /> Download Image
-                 </a>
-                 <p className="text-[10px] text-white/70">Right-click if download doesn't trigger</p>
+                  </a>
+                  <p className="text-[10px] text-white/70">Right-click if download doesn't trigger</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="space-y-4">
