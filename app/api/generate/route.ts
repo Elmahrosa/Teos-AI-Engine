@@ -4,16 +4,15 @@ import Anthropic from "@anthropic-ai/sdk";
 import { canGenerate, canUseLinkedIn } from "@/lib/limits";
 import { getSessionEmail } from "@/lib/session";
 import { prisma } from "@/lib/db";
+import { generateHashtags } from "@/lib/ai/generateHashtags";
+import { generateImage } from "@/lib/ai/generateImage";
+import { getVisibilityScore, getBestTime, getSuggestedCTA, getChecklist } from "@/lib/ai/insights";
 
 const schema = z.object({
   prompt: z.string().min(3).max(500),
   platform: z.enum(["x", "facebook", "instagram", "linkedin"]),
-  tone: z
-    .enum(["professional", "bold", "educational", "conversational"])
-    .default("professional"),
-  goal: z
-    .enum(["engagement", "authority", "sales", "community"])
-    .default("engagement"),
+  tone: z.enum(["professional", "bold", "educational", "conversational"]).default("professional"),
+  goal: z.enum(["engagement", "authority", "sales", "community"]).default("engagement"),
 });
 
 export async function POST(req: Request) {
@@ -23,90 +22,43 @@ export async function POST(req: Request) {
 
     const email = await getSessionEmail();
     console.log("[/api/generate] session email:", email);
-
-    if (!email) {
-      return NextResponse.json(
-        { error: "Please log in first" },
-        { status: 401 }
-      );
-    }
+    if (!email) return NextResponse.json({ error: "Please log in first" }, { status: 401 });
 
     const user = await prisma.user.findUnique({
       where: { email },
       include: { posts: { select: { id: true } } },
     });
-
     console.log("[/api/generate] user found:", !!user, "plan:", user?.plan);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     if (parsed.platform === "linkedin" && !canUseLinkedIn(user.plan)) {
-      return NextResponse.json(
-        { error: "LinkedIn requires Agency plan" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "LinkedIn requires Agency plan" }, { status: 403 });
     }
 
     const usedCount = user.posts.length;
-
     if (!canGenerate(user.plan, usedCount)) {
-      return NextResponse.json(
-        {
-          error: "Starter plan limit reached. Upgrade to continue.",
-          upgrade: true,
-        },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Starter plan limit reached. Upgrade to continue.", upgrade: true }, { status: 403 });
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       console.error("[/api/generate] Missing ANTHROPIC_API_KEY");
-      return NextResponse.json(
-        { error: "Server missing AI configuration" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Server missing AI configuration" }, { status: 500 });
     }
 
     const anthropic = new Anthropic({ apiKey });
 
-    const systemPrompt = `
-You are Teos AI Engine, an elite social media content generator.
+    const systemPrompt = `You are Teos AI Engine, an elite social media content strategist.
+Return ONLY valid JSON — no markdown, no backticks, no explanation.
+Exact shape:
+{"post":"full ready-to-publish post text","hookVariations":["hook 1","hook 2","hook 3"],"cta":"one clear call to action"}
+Rules: post must be complete, human, premium, scroll-stopping. Format for the platform.`;
 
-Return:
-1) Main post
-2) 3 hook variations
-3) Hashtags
-4) CTA suggestion
-5) Best posting time
-6) Visibility score
-
-Rules:
-- No fluff
-- Always sound human and premium
-- Keep content aligned with the user's goal
-- Format for the requested platform
-`;
-
-    const userPrompt = `
-Generate a high-performing social media post.
-
+    const userPrompt = `Platform: ${parsed.platform}
 Topic: ${parsed.prompt}
-Platform: ${parsed.platform}
 Goal: ${parsed.goal}
 Tone: ${parsed.tone}
-Audience: founders, creators, and growth-focused users
-
-Extra instructions:
-- Make it scroll-stopping
-- Optimize for algorithm reach
-- Include emotional hook
-`;
+Audience: founders, creators, and growth-focused users`;
 
     const response = await anthropic.messages.create({
       model: "claude-3-5-haiku-latest",
@@ -115,22 +67,33 @@ Extra instructions:
       messages: [{ role: "user", content: userPrompt }],
     });
 
-    const text = response.content
+    const raw = response.content
       .filter((block) => block.type === "text")
       .map((block) => block.text)
-      .join("\n\n")
+      .join("")
       .trim();
 
-    if (!text) {
-      console.error("[/api/generate] Empty text response from Anthropic");
-      return NextResponse.json(
-        { error: "Empty AI response" },
-        { status: 500 }
-      );
+    if (!raw) {
+      console.error("[/api/generate] Empty response from Anthropic");
+      return NextResponse.json({ error: "Empty AI response" }, { status: 500 });
     }
 
-    const hashtags: string[] = [];
-    const imageUrl: string | null = null;
+    let postText = "";
+    try {
+      const cleaned = raw.replace(/```json|```/g, "").trim();
+      const parsed2 = JSON.parse(cleaned);
+      postText = parsed2.post || cleaned;
+    } catch {
+      console.warn("[/api/generate] JSON parse failed, using raw text");
+      postText = raw;
+    }
+
+    const hashtags = generateHashtags(parsed.prompt, parsed.platform);
+    const imageResult = await generateImage(parsed.platform, parsed.prompt);
+    const visibilityScore = getVisibilityScore(postText, hashtags, parsed.goal);
+    const bestTime = getBestTime(parsed.platform);
+    const suggestedCTA = getSuggestedCTA(parsed.goal);
+    const checklist = getChecklist(parsed.platform, parsed.goal);
 
     try {
       await prisma.post.create({
@@ -138,40 +101,32 @@ Extra instructions:
           userId: user.id,
           prompt: parsed.prompt,
           platform: parsed.platform,
-          content: text,
+          content: postText,
           hashtags: JSON.stringify(hashtags),
-          imageUrl,
+          imageUrl: imageResult.url,
         },
       });
-      console.log("[/api/generate] post saved for user:", user.email);
+      console.log("[/api/generate] post saved for:", user.email);
     } catch (saveErr) {
-      console.error("[/api/generate] Auto-save failed:", saveErr);
+      console.error("[/api/generate] Auto-save failed (non-fatal):", saveErr);
     }
 
     return NextResponse.json({
       success: true,
       plan: user.plan,
       used: usedCount + 1,
-      result: text,
+      post: postText,
       hashtags,
-      imageUrl,
+      imageUrl: imageResult.url,
+      insights: { visibilityScore, bestTime, suggestedCTA, checklist },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid request", details: error.flatten() },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request", details: error.flatten() }, { status: 400 });
     }
-
     console.error("[/api/generate] fatal error:", error);
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Generation failed. Please try again.",
-      },
+      { error: error instanceof Error ? error.message : "Generation failed. Please try again." },
       { status: 500 }
     );
   }
