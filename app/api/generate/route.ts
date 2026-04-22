@@ -101,11 +101,31 @@ Extra instructions:
       .map((block) => block.text)
       .join("\n\n");
 
+    const hashtags: string[] = [];
+    const imageUrl: string | null = null;
+
+    try {
+      await prisma.post.create({
+        data: {
+          userId: user.id,
+          prompt: parsed.prompt,
+          platform: parsed.platform,
+          content: text,
+          hashtags: JSON.stringify(hashtags),
+          imageUrl,
+        },
+      });
+    } catch (saveErr) {
+      console.error("[/api/generate] Auto-save failed:", saveErr);
+    }
+
     return NextResponse.json({
       success: true,
       plan: user.plan,
       used: usedCount,
       result: text,
+      hashtags,
+      imageUrl,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

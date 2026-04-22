@@ -1,17 +1,50 @@
 import { cookies } from "next/headers";
+import crypto from "crypto";
 
 const COOKIE_NAME = "teos_session";
 
+function getSecret() {
+  return (
+    process.env.NEXTAUTH_SECRET ||
+    process.env.SESSION_SECRET ||
+    "dev-secret-change-me"
+  );
+}
+
+function sign(value: string) {
+  return crypto.createHmac("sha256", getSecret()).update(value).digest("hex");
+}
+
 export function createSession(email: string) {
-  cookies().set(COOKIE_NAME, email, {
+  const normalized = email.trim().toLowerCase();
+  const value = `${normalized}.${sign(normalized)}`;
+
+  cookies().set(COOKIE_NAME, value, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
+    maxAge: 60 * 60 * 24 * 30,
   });
 }
 
 export function getSessionEmail() {
-  const cookie = cookies().get(COOKIE_NAME);
-  return cookie?.value || null;
+  const raw = cookies().get(COOKIE_NAME)?.value;
+  if (!raw) return null;
+
+  const parts = raw.split(".");
+  if (parts.length < 2) return null;
+
+  const sig = parts.pop()!;
+  const email = parts.join(".").trim().toLowerCase();
+  const expected = sign(email);
+
+  return sig === expected ? email : null;
+}
+
+export function clearSession() {
+  cookies().set(COOKIE_NAME, "", {
+    path: "/",
+    maxAge: 0,
+  });
 }
