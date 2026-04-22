@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     const anthropic = new Anthropic({ apiKey });
 
     const response = await anthropic.messages.create({
-      model: "claude-3-5-haiku-20241022",
+      model: "claude-instant-1-2",
       max_tokens: 900,
       system: "You are Teos AI Engine, an elite social media content strategist. Return ONLY valid JSON with this exact shape: {\"post\":\"ready-to-publish post text\",\"hookVariations\":[\"h1\",\"h2\",\"h3\"],\"cta\":\"call to action\"}. No markdown, no backticks.",
       messages: [{ role: "user", content: `Platform: ${parsed.platform}\nTopic: ${parsed.prompt}\nGoal: ${parsed.goal}\nTone: ${parsed.tone}` }],
