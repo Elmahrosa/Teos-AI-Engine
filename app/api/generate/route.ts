@@ -18,11 +18,17 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const parsed = schema.parse(await req.json());
+    const body = await req.json();
+    const parsed = schema.parse(body);
 
     const email = await getSessionEmail();
+    console.log("[/api/generate] session email:", email);
+
     if (!email) {
-      return NextResponse.json({ error: "Please log in first" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Please log in first" },
+        { status: 401 }
+      );
     }
 
     const user = await prisma.user.findUnique({
@@ -30,8 +36,13 @@ export async function POST(req: Request) {
       include: { posts: { select: { id: true } } },
     });
 
+    console.log("[/api/generate] user found:", !!user, "plan:", user?.plan);
+
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
     }
 
     if (parsed.platform === "linkedin" && !canUseLinkedIn(user.plan)) {
@@ -42,6 +53,7 @@ export async function POST(req: Request) {
     }
 
     const usedCount = user.posts.length;
+
     if (!canGenerate(user.plan, usedCount)) {
       return NextResponse.json(
         {
@@ -52,9 +64,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY!,
-    });
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      console.error("[/api/generate] Missing ANTHROPIC_API_KEY");
+      return NextResponse.json(
+        { error: "Server missing AI configuration" },
+        { status: 500 }
+      );
+    }
+
+    const anthropic = new Anthropic({ apiKey });
 
     const systemPrompt = `
 You are Teos AI Engine, an elite social media content generator.
@@ -99,7 +118,16 @@ Extra instructions:
     const text = response.content
       .filter((block) => block.type === "text")
       .map((block) => block.text)
-      .join("\n\n");
+      .join("\n\n")
+      .trim();
+
+    if (!text) {
+      console.error("[/api/generate] Empty text response from Anthropic");
+      return NextResponse.json(
+        { error: "Empty AI response" },
+        { status: 500 }
+      );
+    }
 
     const hashtags: string[] = [];
     const imageUrl: string | null = null;
@@ -115,6 +143,7 @@ Extra instructions:
           imageUrl,
         },
       });
+      console.log("[/api/generate] post saved for user:", user.email);
     } catch (saveErr) {
       console.error("[/api/generate] Auto-save failed:", saveErr);
     }
@@ -135,9 +164,14 @@ Extra instructions:
       );
     }
 
-    console.error("[/api/generate]", error);
+    console.error("[/api/generate] fatal error:", error);
     return NextResponse.json(
-      { error: "Generation failed. Please try again." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Generation failed. Please try again.",
+      },
       { status: 500 }
     );
   }
