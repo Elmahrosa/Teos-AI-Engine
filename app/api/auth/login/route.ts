@@ -1,25 +1,34 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { prisma } from '@/lib/db';
-import { setSession } from '@/lib/session';
-
-const schema = z.object({
-  email: z.string().email(),
-  name: z.string().trim().min(1).max(80).optional(),
-});
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { createSession } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
-    const parsed = schema.parse(await req.json());
-    const email = parsed.email.toLowerCase();
-    await prisma.user.upsert({
+    const { email, name } = await req.json();
+
+    if (!email) {
+      return NextResponse.json({ error: "Email required" }, { status: 400 });
+    }
+
+    let user = await prisma.user.findUnique({
       where: { email },
-      update: parsed.name ? { name: parsed.name } : {},
-      create: { email, name: parsed.name || email.split('@')[0] },
     });
-    await setSession(email);
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name || "User",
+        },
+      });
+    }
+
+    createSession(user.email);
+
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Login failed' }, { status: 400 });
+
+  } catch (err) {
+    console.error("[LOGIN ERROR]", err);
+    return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }
 }
