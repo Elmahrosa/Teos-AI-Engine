@@ -109,7 +109,7 @@ Extra instructions:
 `;
 
     const response = await anthropic.messages.create({
-      model: "claude-3-haiku-20240307",
+      model: "claude-3-5-haiku-latest",
       max_tokens: 900,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
@@ -151,7 +151,7 @@ Extra instructions:
     return NextResponse.json({
       success: true,
       plan: user.plan,
-      used: usedCount,
+      used: usedCount + 1,
       result: text,
       hashtags,
       imageUrl,
