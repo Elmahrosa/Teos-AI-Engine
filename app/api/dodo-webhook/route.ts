@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 // 🔐 Loaded from environment (DO NOT hardcode)
-const DODO_WEBHOOK_SECRET = process.env.whsec_kxhrCa6NCbZ7QCRNH3OwTu3LOEO+cBQv
+const DODO_WEBHOOK_SECRET = process.env.notepad app/api/dodo-webhook/route.ts
 ;
 
 /**
