@@ -12,23 +12,17 @@ export async function POST(req: Request) {
 
   const formData = await req.formData();
   const email = String(formData.get("email") || "").trim().toLowerCase();
-  const plan = String(formData.get("plan") || "").trim().toLowerCase();
+  const lifetime = String(formData.get("lifetime") || "") === "true";
 
-  if (!email || !["starter", "pro", "agency"].includes(plan)) {
+  if (!email) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   await prisma.user.update({
     where: { email },
-    data: { plan, status: "active" },
-  });
-
-  await prisma.billingEvent.create({
     data: {
-      email,
-      provider: "admin",
-      plan,
-      status: "completed",
+      lifetime,
+      ...(lifetime ? { plan: "agency", status: "active" } : {}),
     },
   });
 

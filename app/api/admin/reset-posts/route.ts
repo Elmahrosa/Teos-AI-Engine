@@ -12,24 +12,22 @@ export async function POST(req: Request) {
 
   const formData = await req.formData();
   const email = String(formData.get("email") || "").trim().toLowerCase();
-  const plan = String(formData.get("plan") || "").trim().toLowerCase();
 
-  if (!email || !["starter", "pro", "agency"].includes(plan)) {
+  if (!email) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  await prisma.user.update({
+  const user = await prisma.user.findUnique({
     where: { email },
-    data: { plan, status: "active" },
+    select: { id: true },
   });
 
-  await prisma.billingEvent.create({
-    data: {
-      email,
-      provider: "admin",
-      plan,
-      status: "completed",
-    },
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  await prisma.post.deleteMany({
+    where: { userId: user.id },
   });
 
   return NextResponse.redirect(new URL("/admin", req.url));
