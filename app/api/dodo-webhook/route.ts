@@ -3,6 +3,13 @@ import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
+    // 🔐 VERIFY SECRET
+    const secret = req.headers.get("whsec_kxhrCa6NCbZ7QCRNH3OwTu3LOEO+cBQv ");
+
+    if (secret !== process.env.WEBHOOK_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
 
     const email = body?.customer?.email?.toLowerCase?.();
