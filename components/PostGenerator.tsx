@@ -8,9 +8,12 @@ type Tone = "professional" | "bold" | "educational" | "conversational";
 type Goal = "engagement" | "authority" | "sales" | "community";
 
 type Generated = {
+  success: boolean;
+  plan: string;
+  used: number;
   post: string;
   hashtags: string[];
-  imageUrl: string;
+  imageUrl: string | null;
   insights: {
     visibilityScore: number;
     bestTime: string;
@@ -39,22 +42,36 @@ export default function PostGenerator({
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+
     setLoading(true);
     setError(null);
     setResult(null);
+    setCopied(false);
 
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, platform, tone, goal }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          platform,
+          tone,
+          goal,
+        }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Generation failed");
+
+      if (!res.ok) {
+        setError(data?.error || "Generation failed.");
+        return;
+      }
+
       setResult(data);
-    } catch (err: any) {
-      setError(err.message || "Generation failed");
+    } catch (err) {
+      setError("Generation failed.");
     } finally {
       setLoading(false);
     }
@@ -72,6 +89,7 @@ export default function PostGenerator({
   };
 
   const shareToX = () => {
+    if (!result) return;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullCaption)}`,
       "_blank"
@@ -79,6 +97,7 @@ export default function PostGenerator({
   };
 
   const shareToLinkedIn = () => {
+    if (!result) return;
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
         "https://teos-ai-engine.vercel.app"
@@ -88,6 +107,7 @@ export default function PostGenerator({
   };
 
   const shareToFacebook = () => {
+    if (!result) return;
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
         "https://teos-ai-engine.vercel.app"
@@ -111,7 +131,10 @@ export default function PostGenerator({
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-xl">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-white">Create Content</h2>
+          <h2 className="text-xl font-bold text-white">
+            {isAdmin ? "Create Content" : "Generate post"}
+          </h2>
+
           {isAdmin && (
             <span className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded-full font-black text-white uppercase tracking-tighter">
               Founder Mode
@@ -133,7 +156,9 @@ export default function PostGenerator({
             className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2"
           >
             <option value="x">X (Twitter)</option>
-            <option value="linkedin">LinkedIn {isLinkedInBlocked ? "🔒" : ""}</option>
+            <option value="linkedin">
+              LinkedIn {isLinkedInBlocked ? "🔒" : ""}
+            </option>
             <option value="facebook">Facebook</option>
             <option value="instagram">Instagram</option>
           </select>
@@ -149,10 +174,21 @@ export default function PostGenerator({
             <option value="conversational">Conversational</option>
           </select>
 
+          <select
+            value={goal}
+            onChange={(e) => setGoal(e.target.value as Goal)}
+            className="bg-zinc-800 border-none rounded-lg text-xs text-white p-2"
+          >
+            <option value="engagement">Engagement</option>
+            <option value="authority">Authority</option>
+            <option value="sales">Sales</option>
+            <option value="community">Community</option>
+          </select>
+
           <button
             onClick={handleGenerate}
-            disabled={loading || !prompt || isLinkedInBlocked}
-            className="col-span-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-all"
+            disabled={loading || !prompt.trim() || isLinkedInBlocked}
+            className="col-span-2 md:col-span-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-all px-4"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -276,12 +312,24 @@ export default function PostGenerator({
               </h4>
               <ul className="space-y-3">
                 {result.insights.checklist.map((item) => (
-                  <li key={item} className="flex gap-3 text-xs text-zinc-400">
+                  <li
+                    key={item}
+                    className="flex gap-3 text-xs text-zinc-400"
+                  >
                     <CheckCircle className="w-4 h-4 text-indigo-500 shrink-0" />
                     {item}
                   </li>
                 ))}
               </ul>
+            </div>
+
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-5 shadow-sm">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-4">
+                Suggested CTA
+              </h4>
+              <p className="text-sm text-white">
+                {result.insights.suggestedCTA}
+              </p>
             </div>
           </div>
         </div>
