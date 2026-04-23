@@ -14,13 +14,24 @@ export async function POST(req: Request) {
     }
 
     if (!password || typeof password !== "string") {
-      return NextResponse.json({ error: "Password is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Password is required" },
+        { status: 400 }
+      );
     }
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    const db: any = prisma;
+
+    const user = await db.user.findUnique({
       where: { email: normalizedEmail },
+      select: {
+        id: true,
+        email: true,
+        plan: true,
+        passwordHash: true,
+      },
     });
 
     if (!user || !user.passwordHash) {
