@@ -1,23 +1,18 @@
-import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-import prisma from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
+import prisma from "@/lib/prisma";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-// 🔐 Loaded from environment (DO NOT hardcode)
-const DODO_WEBHOOK_SECRET = process.env.notepad app/api/dodo-webhook/route.ts
-;
+const DODO_WEBHOOK_SECRET = process.env.whsec_KEMK7E37n593lyaZk9SHnG93SfKoc3Zo;
 
-/**
- * Verify webhook signature from Dodo
- */
 function verifySignature(payload: string, signature: string | null) {
   if (!signature || !DODO_WEBHOOK_SECRET) return false;
 
-  const expected = crypto
-    .createHmac('sha256', DODO_WEBHOOK_SECRET)
-    .update(payload, 'utf8')
-    .digest('hex');
+  const expected = createHmac("sha256", DODO_WEBHOOK_SECRET)
+    .update(payload, "utf8")
+    .digest("hex");
 
   const expectedSignature = `sha256=${expected}`;
 
@@ -26,39 +21,37 @@ function verifySignature(payload: string, signature: string | null) {
 
   if (sigBuffer.length !== expectedBuffer.length) return false;
 
-  return crypto.timingSafeEqual(sigBuffer, expectedBuffer);
+  return timingSafeEqual(sigBuffer, expectedBuffer);
 }
 
-/**
- * Normalize email
- */
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-/**
- * Map Dodo Product IDs → Your Plans
- * ⚠️ MUST match EXACT IDs from Dodo dashboard
- */
 const PRODUCT_MAP: Record<
   string,
-  { plan: 'pro' | 'agency'; cycle: 'monthly' | 'yearly' | 'lifetime' }
+  { plan: "pro" | "agency"; cycle: "monthly" | "yearly" | "lifetime" }
 > = {
-  'pdt_0NdD9rAUd0JHiV9MBHMQ3': { plan: 'agency', cycle: 'monthly' },
-  'pdt_0NdKROHokTHJeCVrfxz7S': { plan: 'pro', cycle: 'yearly' },
-  'pdt_0NdKROLMbZygp9KhvIqJD': { plan: 'agency', cycle: 'yearly' },
-  'pdt_0NdKROPakM4X20mbE07jE': { plan: 'pro', cycle: 'lifetime' },
-  'pdt_0NdKROSisHzGMkTGaJ2T2': { plan: 'agency', cycle: 'lifetime' },
-  'pdt_0NdKFCdkDZ4bAdou4Z7cc': { plan: 'pro', cycle: 'monthly' },
+  // Pro Monthly
+  "pdt_0NdKFCdkDZ4bAdou4Z7cc": { plan: "pro", cycle: "monthly" },
+  // Agency Monthly
+  "pdt_0NdD9rAUd0JHiV9MBHMQ3": { plan: "agency", cycle: "monthly" },
+  // Pro Yearly
+  "pdt_0NdKROHokTHJeCVrfxz7S": { plan: "pro", cycle: "yearly" },
+  // Agency Yearly
+  "pdt_0NdKROLMbZygp9KhvIqJD": { plan: "agency", cycle: "yearly" },
+  // Pro Lifetime
+  "pdt_0NdKROPakM4X20mbE07jE": { plan: "pro", cycle: "lifetime" },
+  // Agency Lifetime
+  "pdt_0NdKROSisHzGMkTGaJ2T2": { plan: "agency", cycle: "lifetime" },
 };
 
 export async function POST(req: Request) {
   const payload = await req.text();
-  const signature = req.headers.get('x-dodo-signature');
+  const signature = req.headers.get("x-dodo-signature");
 
-  // 🔐 Verify request
   if (!verifySignature(payload, signature)) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   let event: any;
@@ -66,13 +59,12 @@ export async function POST(req: Request) {
   try {
     event = JSON.parse(payload);
   } catch (err) {
-    console.error('Invalid JSON:', err);
-    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+    console.error("Invalid webhook JSON:", err);
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
   try {
     await prisma.$transaction(async (tx) => {
-      // ✅ Prevent duplicate events
       const existing = await tx.paymentEvent.findUnique({
         where: { dodoEventId: event.id },
       });
@@ -86,7 +78,6 @@ export async function POST(req: Request) {
         },
       });
 
-      // 🔍 Extract product ID safely
       const productId =
         event?.data?.product_id ||
         event?.data?.product?.id ||
@@ -96,7 +87,6 @@ export async function POST(req: Request) {
 
       const product = productId ? PRODUCT_MAP[productId] : null;
 
-      // 🔍 Find user
       let user = null;
 
       if (event?.data?.metadata?.user_id) {
@@ -118,97 +108,63 @@ export async function POST(req: Request) {
       }
 
       if (!user) {
-        console.error('User not found:', {
+        console.error("Webhook user not found", {
           eventId: event.id,
+          eventType: event.type,
           productId,
           customerEmail,
         });
         return;
       }
 
-      // 🔄 Extract IDs
       const customerId =
-        event?.data?.customer?.id ||
-        event?.data?.customer_id ||
-        null;
+        event?.data?.customer?.id || event?.data?.customer_id || null;
 
       const subscriptionId =
-        event?.data?.subscription?.id ||
-        event?.data?.subscription_id ||
-        null;
+        event?.data?.subscription?.id || event?.data?.subscription_id || null;
 
-      // 🔎 Debug logs (keep for testing)
-      console.log('EVENT:', event.type);
-      console.log('PRODUCT ID:', productId);
-      console.log('EMAIL:', customerEmail);
-
-      // ⚠️ If product not mapped
       if (!product) {
-        console.error('Product not mapped:', productId);
+        console.error("Product not mapped", { productId, eventType: event.type });
         return;
       }
 
-      // 🔥 Handle events
       switch (event.type) {
-        case 'payment.succeeded':
-          if (product.cycle === 'lifetime') {
+        case "payment.succeeded": {
+          if (product.cycle === "lifetime") {
             await tx.user.update({
               where: { id: user.id },
               data: {
                 planTier: product.plan,
-                billingCycle: 'lifetime',
+                billingCycle: "lifetime",
                 isLifetime: true,
                 dodoCustomerId: customerId ?? user.dodoCustomerId,
-                dodoSubscriptionId:
-                  subscriptionId ?? user.dodoSubscriptionId,
-                subscriptionStatus: 'active',
+                dodoSubscriptionId: subscriptionId ?? user.dodoSubscriptionId,
+                subscriptionStatus: "active",
               },
             });
           }
           break;
+        }
 
-        case 'subscription.active':
-        case 'subscription.updated':
+        case "subscription.active":
+        case "subscription.updated": {
           await tx.user.update({
             where: { id: user.id },
             data: {
               planTier: product.plan,
               billingCycle: product.cycle,
-              isLifetime:
-                product.cycle === 'lifetime' ? true : user.isLifetime,
+              isLifetime: product.cycle === "lifetime" ? true : user.isLifetime,
               dodoCustomerId: customerId ?? user.dodoCustomerId,
-              dodoSubscriptionId:
-                subscriptionId ?? user.dodoSubscriptionId,
-              subscriptionStatus: 'active',
+              dodoSubscriptionId: subscriptionId ?? user.dodoSubscriptionId,
+              subscriptionStatus: "active",
             },
           });
           break;
+        }
 
-        case 'subscription.cancelled':
+        case "subscription.cancelled": {
           if (!user.isLifetime) {
             await tx.user.update({
               where: { id: user.id },
               data: {
-                planTier: 'starter',
-                billingCycle: 'free',
-                dodoSubscriptionId: null,
-                subscriptionStatus: 'cancelled',
-              },
-            });
-          }
-          break;
-
-        default:
-          console.log('Unhandled event:', event.type);
-      }
-    });
-
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error('Webhook error:', err);
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
-  }
-}
+                planTier: "s
