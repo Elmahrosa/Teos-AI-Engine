@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 import { canGenerate, canUseLinkedIn } from "@/lib/limits";
 import { getSessionEmail } from "@/lib/session";
 import { prisma } from "@/lib/db";
@@ -14,6 +14,8 @@ import {
   getChecklist,
 } from "@/lib/ai/insights";
 
+export const runtime = "nodejs";
+
 const schema = z.object({
   prompt: z.string().min(3).max(500),
   platform: z.enum(["x", "facebook", "instagram", "linkedin"]),
@@ -23,6 +25,10 @@ const schema = z.object({
   goal: z
     .enum(["engagement", "authority", "sales", "community"])
     .default("engagement"),
+});
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req: Request) {
@@ -72,18 +78,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
         { error: "Server missing AI configuration" },
         { status: 500 }
       );
     }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-    });
 
     const promptText = `
 You are Teos AI Engine, an elite social media content strategist.
@@ -103,8 +103,22 @@ Rules:
 - Make it concise, strong, and platform-appropriate
 `.trim();
 
-    const result = await model.generateContent(promptText);
-    const postText = result.response.text().trim();
+    const response = await client.responses.create({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      input: [
+        {
+          role: "system",
+          content:
+            "You are a high-conversion social media copywriter for founders, creators, startups, and agencies.",
+        },
+        {
+          role: "user",
+          content: promptText,
+        },
+      ],
+    });
+
+    const postText = response.output_text?.trim();
 
     if (!postText) {
       return NextResponse.json(
