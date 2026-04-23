@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -13,15 +14,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const normalizedEmail = email.trim().toLowerCase();
-
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: normalizedEmail,
+          email: email.trim().toLowerCase(),
+          password,
         }),
       });
 
@@ -45,7 +45,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl">
         <h1 className="text-3xl font-bold tracking-tight">Login</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Enter your email to access Teos AI Engine.
+          Sign in to Teos AI Engine.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -61,6 +61,18 @@ export default function LoginPage() {
             />
           </div>
 
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
+              required
+            />
+          </div>
+
           {error ? (
             <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
               {error}
@@ -69,10 +81,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || !email.trim()}
+            disabled={loading || !email.trim() || !password.trim()}
             className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
           >
-            {loading ? "Signing in..." : "Continue"}
+            {loading ? "Signing in..." : "Login"}
           </button>
         </form>
       </div>

@@ -6,38 +6,48 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const name = body?.name;
     const email = body?.email;
     const password = body?.password;
+
+    if (!name || typeof name !== "string") {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    if (!password || typeof password !== "string") {
-      return NextResponse.json({ error: "Password is required" }, { status: 400 });
+    if (!password || typeof password !== "string" || password.length < 6) {
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters" },
+        { status: 400 }
+      );
     }
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
-    if (!user || !user.passwordHash) {
+    if (existingUser) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
+        { error: "Account already exists. Please log in." },
+        { status: 409 }
       );
     }
 
-    const validPassword = await bcrypt.compare(password, user.passwordHash);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    if (!validPassword) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
+    const user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        passwordHash,
+        plan: "starter",
+      },
+    });
 
     cookies().set("user_email", normalizedEmail, {
       httpOnly: true,
@@ -55,7 +65,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error("[/api/auth/login]", error);
-    return NextResponse.json({ error: "Login failed" }, { status: 500 });
+    console.error("[/api/auth/signup]", error);
+    return NextResponse.json({ error: "Signup failed" }, { status: 500 });
   }
 }
