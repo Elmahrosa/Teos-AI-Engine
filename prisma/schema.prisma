@@ -13,11 +13,11 @@ model User {
   name      String?
   plan      String         @default("starter")
   status    String         @default("trial")
+  lifetime  Boolean        @default(false)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   posts     Post[]
   billing   BillingEvent[]
-  lifetime Boolean @default(false)
 }
 
 model Post {

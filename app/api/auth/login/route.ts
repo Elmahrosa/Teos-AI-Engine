@@ -4,13 +4,22 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const body = await req.json();
+    const email = body?.email;
+    const founderKey = body?.founderKey;
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const founderEmail = "aams1969@gmail.com";
+
+    if (normalizedEmail === founderEmail) {
+      if (!founderKey || founderKey !== process.env.FOUNDER_SECRET) {
+        return NextResponse.json({ error: "Unauthorized founder access" }, { status: 401 });
+      }
+    }
 
     let user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -27,9 +36,10 @@ export async function POST(req: Request) {
 
     cookies().set("user_email", normalizedEmail, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return NextResponse.json({
