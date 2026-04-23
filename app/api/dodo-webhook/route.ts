@@ -118,7 +118,10 @@ export async function POST(req: Request) {
         event?.data?.subscription?.id || event?.data?.subscription_id || null;
 
       if (!product) {
-        console.error("Product not mapped", { productId, eventType: event.type });
+        console.error("Product not mapped", {
+          productId,
+          eventType: event.type,
+        });
         return;
       }
 
@@ -147,7 +150,8 @@ export async function POST(req: Request) {
             data: {
               planTier: product.plan,
               billingCycle: product.cycle,
-              isLifetime: product.cycle === "lifetime" ? true : user.isLifetime,
+              isLifetime:
+                product.cycle === "lifetime" ? true : user.isLifetime,
               dodoCustomerId: customerId ?? user.dodoCustomerId,
               dodoSubscriptionId: subscriptionId ?? user.dodoSubscriptionId,
               subscriptionStatus: "active",
