@@ -16,7 +16,6 @@
     "deploy": "prisma migrate deploy && tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.90.0",
     "@google/genai": "^1.50.1",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.19.3",
