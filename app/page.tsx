@@ -1,6 +1,3 @@
-"use client";
-
-import React, { useState } from "react";
 import Link from "next/link";
 
 export const metadata = {
@@ -16,13 +13,6 @@ export const metadata = {
     type: "website",
   },
 };
-
-const PLATFORMS = [
-  { icon: "𝕏", label: "X / Twitter" },
-  { icon: "in", label: "LinkedIn" },
-  { icon: "f", label: "Facebook" },
-  { icon: "◎", label: "Instagram" },
-];
 
 const MONTHLY_PLANS = [
   {
@@ -44,7 +34,7 @@ const MONTHLY_PLANS = [
     payNote: null,
   },
   {
-    name: "Pro",
+    name: "Pro Monthly",
     price: "$29",
     period: "/month",
     highlight: true,
@@ -63,7 +53,7 @@ const MONTHLY_PLANS = [
     payNote: "USDC · Pi Network · Dodo",
   },
   {
-    name: "Agency",
+    name: "Agency Monthly",
     price: "$69",
     period: "/month",
     highlight: false,
@@ -168,17 +158,202 @@ const USE_CASES = [
   },
 ];
 
-export default function LandingPage() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "monthly"
-  );
+const PLATFORM_BADGES = [
+  { icon: "𝕏", label: "X / Twitter" },
+  { icon: "in", label: "LinkedIn" },
+  { icon: "f", label: "Facebook" },
+  { icon: "◎", label: "Instagram" },
+];
 
+function PlanCard({
+  plan,
+}: {
+  plan: {
+    name: string;
+    price: string;
+    period: string;
+    highlight: boolean;
+    badge: string | null;
+    posts: string;
+    features: string[];
+    cta: string;
+    href: string;
+    dodoLink: string | null;
+    payNote: string | null;
+  };
+}) {
+  return (
+    <div
+      style={{
+        padding: "2.25rem",
+        borderRadius: 20,
+        background: plan.highlight
+          ? "rgba(99,102,241,0.05)"
+          : "rgba(255,255,255,0.02)",
+        border: plan.highlight
+          ? "1px solid rgba(99,102,241,0.3)"
+          : "1px solid rgba(255,255,255,0.06)",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {plan.badge && (
+        <div
+          style={{
+            position: "absolute",
+            top: -12,
+            right: 20,
+            padding: "0.25rem 0.75rem",
+            borderRadius: 100,
+            background: "linear-gradient(135deg, #6366f1, #7c3aed)",
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: "#fff",
+            whiteSpace: "nowrap",
+            boxShadow: "0 2px 12px rgba(99,102,241,0.5)",
+          }}
+        >
+          {plan.badge}
+        </div>
+      )}
+
+      <div style={{ marginBottom: "1.5rem" }}>
+        <p
+          style={{
+            fontSize: "0.8rem",
+            color: "#7070a0",
+            margin: "0 0 0.4rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+          }}
+        >
+          {plan.name}
+        </p>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "0.25rem" }}>
+          <span
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 800,
+              color: "#e8e8f0",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            {plan.price}
+          </span>
+          {plan.period && (
+            <span style={{ fontSize: "0.875rem", color: "#7070a0" }}>
+              {plan.period}
+            </span>
+          )}
+        </div>
+        <p
+          style={{
+            fontSize: "0.8rem",
+            color: "#6366f1",
+            margin: "0.25rem 0 0",
+          }}
+        >
+          {plan.posts}
+        </p>
+      </div>
+
+      <ul
+        style={{
+          listStyle: "none",
+          padding: 0,
+          margin: "0 0 2rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.65rem",
+        }}
+      >
+        {plan.features.map((f) => (
+          <li
+            key={f}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              fontSize: "0.875rem",
+              color: "#9191a8",
+            }}
+          >
+            <span style={{ color: "#6366f1", fontSize: "1rem" }}>✓</span>
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      <div style={{ marginTop: "auto" }}>
+        {plan.dodoLink ? (
+          <a
+            href={plan.dodoLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "block",
+              textAlign: "center",
+              padding: "0.75rem 1.25rem",
+              borderRadius: 9,
+              background: plan.highlight
+                ? "linear-gradient(135deg, #6366f1, #7c3aed)"
+                : "rgba(255,255,255,0.06)",
+              border: plan.highlight ? "none" : "1px solid rgba(255,255,255,0.1)",
+              color: "#fff",
+              textDecoration: "none",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+              boxShadow: plan.highlight
+                ? "0 4px 20px rgba(99,102,241,0.4)"
+                : "none",
+            }}
+          >
+            {plan.cta}
+          </a>
+        ) : (
+          <Link
+            href={plan.href}
+            style={{
+              display: "block",
+              textAlign: "center",
+              padding: "0.75rem 1.25rem",
+              borderRadius: 9,
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#fff",
+              textDecoration: "none",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+            }}
+          >
+            {plan.cta}
+          </Link>
+        )}
+
+        {plan.payNote && (
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "#555570",
+              textAlign: "center",
+              margin: "0.75rem 0 0",
+            }}
+          >
+            {plan.payNote}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function LandingPage() {
   return (
     <main
       style={{
         minHeight: "100vh",
-        background:
-          "linear-gradient(135deg, #0a0a0f 0%, #0d0d1a 50%, #070710 100%)",
+        background: "linear-gradient(135deg, #0a0a0f 0%, #0d0d1a 50%, #070710 100%)",
         color: "#e8e8f0",
         fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
         overflowX: "hidden",
@@ -215,13 +390,7 @@ export default function LandingPage() {
           >
             T
           </div>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: "1.05rem",
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <span style={{ fontWeight: 700, fontSize: "1.05rem", letterSpacing: "-0.02em" }}>
             Teos AI Engine
           </span>
         </div>
@@ -269,18 +438,11 @@ export default function LandingPage() {
         }}
       >
         <p style={{ margin: 0, fontSize: "0.875rem", color: "#c4b5fd" }}>
-          <span style={{ fontWeight: 700, color: "#a5b4fc" }}>
-            🔥 Launch offer:
-          </span>{" "}
-          First 50 Pro users and first 50 Agency users get lifetime access —
-          Pro at $149 · Agency at $349 · one-time payment, never expires.{" "}
+          <span style={{ fontWeight: 700, color: "#a5b4fc" }}>🔥 Launch offer:</span>{" "}
+          First 50 Pro users and first 50 Agency users get lifetime access — Pro at $149 · Agency at $349 · one-time payment, never expires.{" "}
           <a
             href="#lifetime"
-            style={{
-              color: "#818cf8",
-              textDecoration: "underline",
-              fontWeight: 600,
-            }}
+            style={{ color: "#818cf8", textDecoration: "underline", fontWeight: 600 }}
           >
             Claim yours →
           </a>
@@ -341,19 +503,10 @@ export default function LandingPage() {
             margin: "0 auto 2.5rem",
           }}
         >
-          Teos AI Engine generates platform-optimized content for X, LinkedIn,
-          Instagram, and Facebook — with AI visibility scoring built for
-          founders, agencies, and creators.
+          Teos AI Engine generates platform-optimized content for X, LinkedIn, Instagram, and Facebook — with AI visibility scoring built for founders, agencies, and creators.
         </p>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            justifyContent: "center",
-            flexWrap: "wrap",
-          }}
-        >
+        <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
           <Link
             href="/signup"
             style={{
@@ -370,7 +523,7 @@ export default function LandingPage() {
           >
             Start free — 5 posts included
           </Link>
-          <Link
+          <a
             href="#pricing"
             style={{
               padding: "0.85rem 2rem",
@@ -383,7 +536,7 @@ export default function LandingPage() {
             }}
           >
             View pricing
-          </Link>
+          </a>
         </div>
 
         <div
@@ -395,7 +548,7 @@ export default function LandingPage() {
             flexWrap: "wrap",
           }}
         >
-          {PLATFORMS.map((p) => (
+          {PLATFORM_BADGES.map((p) => (
             <div
               key={p.label}
               style={{
@@ -417,10 +570,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section
-        id="use-cases"
-        style={{ maxWidth: 1000, margin: "0 auto", padding: "4rem 2rem" }}
-      >
+      <section id="use-cases" style={{ maxWidth: 1000, margin: "0 auto", padding: "4rem 2rem" }}>
         <div
           style={{
             display: "grid",
@@ -438,27 +588,11 @@ export default function LandingPage() {
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              <div style={{ fontSize: "2rem", marginBottom: "1.25rem" }}>
-                {uc.icon}
-              </div>
-              <h3
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 700,
-                  marginBottom: "0.75rem",
-                  color: "#fff",
-                }}
-              >
+              <div style={{ fontSize: "2rem", marginBottom: "1.25rem" }}>{uc.icon}</div>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem", color: "#fff" }}>
                 {uc.title}
               </h3>
-              <p
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#9191a8",
-                  lineHeight: 1.6,
-                  margin: 0,
-                }}
-              >
+              <p style={{ fontSize: "0.9rem", color: "#9191a8", lineHeight: 1.6, margin: 0 }}>
                 {uc.description}
               </p>
             </div>
@@ -466,95 +600,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section
-        id="pricing"
-        style={{ maxWidth: 1000, margin: "0 auto", padding: "5rem 2rem" }}
-      >
+      <section id="pricing" style={{ maxWidth: 1100, margin: "0 auto", padding: "5rem 2rem" }}>
         <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
-          <h2
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 800,
-              margin: "0 0 1rem",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Simple, transparent pricing
+          <h2 style={{ fontSize: "2.25rem", fontWeight: 800, margin: "0 0 1rem", letterSpacing: "-0.02em" }}>
+            Monthly Pricing
           </h2>
-          <p
-            style={{
-              color: "#9191a8",
-              fontSize: "1.05rem",
-              marginBottom: "2rem",
-            }}
-          >
-            Start for free, upgrade as you grow. Pay with crypto or fiat.
+          <p style={{ color: "#9191a8", fontSize: "1.05rem", marginBottom: "2rem" }}>
+            Start for free, upgrade as you grow.
           </p>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "1rem",
-            }}
-          >
-            <span
-              style={{
-                color: billingCycle === "monthly" ? "#fff" : "#7070a0",
-                fontWeight: 600,
-              }}
-            >
-              Monthly
-            </span>
-            <button
-              onClick={() =>
-                setBillingCycle(
-                  billingCycle === "monthly" ? "yearly" : "monthly"
-                )
-              }
-              style={{
-                width: 48,
-                height: 24,
-                borderRadius: 100,
-                background: "rgba(99,102,241,0.3)",
-                border: "none",
-                position: "relative",
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              <div
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  background: "#6366f1",
-                  position: "absolute",
-                  top: 3,
-                  left: billingCycle === "monthly" ? 3 : 27,
-                  transition: "all 0.2s ease",
-                }}
-              />
-            </button>
-            <span
-              style={{
-                color: billingCycle === "yearly" ? "#fff" : "#7070a0",
-                fontWeight: 600,
-              }}
-            >
-              Yearly{" "}
-              <span
-                style={{
-                  color: "#10b981",
-                  fontSize: "0.8rem",
-                  marginLeft: "0.25rem",
-                }}
-              >
-                -20% Off
-              </span>
-            </span>
-          </div>
         </div>
 
         <div
@@ -564,197 +617,40 @@ export default function LandingPage() {
             gap: "1.5rem",
           }}
         >
-          {(billingCycle === "monthly" ? MONTHLY_PLANS : YEARLY_PLANS).map(
-            (plan) => (
-              <div
-                key={plan.name}
-                style={{
-                  padding: "2.25rem",
-                  borderRadius: 20,
-                  background: plan.highlight
-                    ? "rgba(99,102,241,0.05)"
-                    : "rgba(255,255,255,0.02)",
-                  border: plan.highlight
-                    ? "1px solid rgba(99,102,241,0.3)"
-                    : "1px solid rgba(255,255,255,0.06)",
-                  position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                {plan.badge && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: -12,
-                      right: 20,
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: 100,
-                      background: "linear-gradient(135deg, #6366f1, #7c3aed)",
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      color: "#fff",
-                      whiteSpace: "nowrap",
-                      boxShadow: "0 2px 12px rgba(99,102,241,0.5)",
-                    }}
-                  >
-                    {plan.badge}
-                  </div>
-                )}
+          {MONTHLY_PLANS.map((plan) => (
+            <PlanCard key={plan.name} plan={plan} />
+          ))}
+        </div>
 
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <p
-                    style={{
-                      fontSize: "0.8rem",
-                      color: "#7070a0",
-                      margin: "0 0 0.4rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    {plan.name}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "baseline",
-                      gap: "0.25rem",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "2.25rem",
-                        fontWeight: 800,
-                        color: "#e8e8f0",
-                        letterSpacing: "-0.03em",
-                      }}
-                    >
-                      {plan.price}
-                    </span>
-                    {plan.period && (
-                      <span style={{ fontSize: "0.875rem", color: "#7070a0" }}>
-                        {plan.period}
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    style={{
-                      fontSize: "0.8rem",
-                      color: "#6366f1",
-                      margin: "0.25rem 0 0",
-                    }}
-                  >
-                    {plan.posts}
-                  </p>
-                </div>
+        <div style={{ textAlign: "center", marginTop: "4rem", marginBottom: "2rem" }}>
+          <h2 style={{ fontSize: "2.25rem", fontWeight: 800, margin: "0 0 1rem", letterSpacing: "-0.02em" }}>
+            Yearly Pricing
+          </h2>
+          <p style={{ color: "#9191a8", fontSize: "1.05rem" }}>
+            Save more with annual billing.
+          </p>
+        </div>
 
-                <ul
-                  style={{
-                    listStyle: "none",
-                    padding: 0,
-                    margin: "0 0 2rem",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.65rem",
-                  }}
-                >
-                  {plan.features.map((f) => (
-                    <li
-                      key={f}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.6rem",
-                        fontSize: "0.875rem",
-                        color: "#9191a8",
-                      }}
-                    >
-                      <span style={{ color: "#6366f1", fontSize: "1rem" }}>
-                        ✓
-                      </span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <div style={{ marginTop: "auto" }}>
-                  {plan.dodoLink ? (
-                    <a
-                      href={plan.dodoLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "block",
-                        textAlign: "center",
-                        padding: "0.75rem 1.25rem",
-                        borderRadius: 9,
-                        background: plan.highlight
-                          ? "linear-gradient(135deg, #6366f1, #7c3aed)"
-                          : "rgba(255,255,255,0.06)",
-                        border: plan.highlight
-                          ? "none"
-                          : "1px solid rgba(255,255,255,0.1)",
-                        color: "#fff",
-                        textDecoration: "none",
-                        fontSize: "0.9rem",
-                        fontWeight: 600,
-                        boxShadow: plan.highlight
-                          ? "0 4px 20px rgba(99,102,241,0.4)"
-                          : "none",
-                      }}
-                    >
-                      {plan.cta}
-                    </a>
-                  ) : (
-                    <Link
-                      href={plan.href}
-                      style={{
-                        display: "block",
-                        textAlign: "center",
-                        padding: "0.75rem 1.25rem",
-                        borderRadius: 9,
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        color: "#fff",
-                        textDecoration: "none",
-                        fontSize: "0.9rem",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {plan.cta}
-                    </Link>
-                  )}
-
-                  {plan.payNote && (
-                    <p
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#555570",
-                        textAlign: "center",
-                        margin: "0.75rem 0 0",
-                      }}
-                    >
-                      {plan.payNote}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )
-          )}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
+          {YEARLY_PLANS.map((plan) => (
+            <PlanCard key={plan.name} plan={plan} />
+          ))}
         </div>
       </section>
 
-      <section
-        id="lifetime"
-        style={{ maxWidth: 900, margin: "0 auto", padding: "3rem 2rem 5rem" }}
-      >
+      <section id="lifetime" style={{ maxWidth: 900, margin: "0 auto", padding: "3rem 2rem 5rem" }}>
         <div
           style={{
             padding: "2.5rem",
             borderRadius: 20,
             border: "1.5px solid rgba(245,158,11,0.35)",
-            background:
-              "linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(217,119,6,0.04) 100%)",
+            background: "linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(217,119,6,0.04) 100%)",
             position: "relative",
             overflow: "hidden",
           }}
@@ -778,27 +674,12 @@ export default function LandingPage() {
             🔥 First 50 Pro users + first 50 Agency users
           </div>
 
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "2rem",
-              marginTop: "1rem",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "1.75rem",
-                fontWeight: 800,
-                margin: "0 0 0.5rem",
-                color: "#fde68a",
-                letterSpacing: "-0.02em",
-              }}
-            >
+          <div style={{ textAlign: "center", marginBottom: "2rem", marginTop: "1rem" }}>
+            <h2 style={{ fontSize: "1.75rem", fontWeight: 800, margin: "0 0 0.5rem", color: "#fde68a", letterSpacing: "-0.02em" }}>
               Own it forever. Pay once.
             </h2>
             <p style={{ color: "#b45309", fontSize: "0.95rem", margin: 0 }}>
-              Limited lifetime launch pricing for the first 50 Pro users and
-              the first 50 Agency users.
+              Limited lifetime launch pricing for the first 50 Pro users and the first 50 Agency users.
             </p>
           </div>
 
@@ -832,46 +713,16 @@ export default function LandingPage() {
                 >
                   {lp.name}
                 </p>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: "0.25rem",
-                    justifyContent: "center",
-                    marginBottom: "0.4rem",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "2.5rem",
-                      fontWeight: 800,
-                      color: "#fde68a",
-                      letterSpacing: "-0.03em",
-                    }}
-                  >
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.25rem", justifyContent: "center", marginBottom: "0.4rem" }}>
+                  <span style={{ fontSize: "2.5rem", fontWeight: 800, color: "#fde68a", letterSpacing: "-0.03em" }}>
                     {lp.price}
                   </span>
-                  <span style={{ fontSize: "0.8rem", color: "#d97706" }}>
-                    {lp.period}
-                  </span>
+                  <span style={{ fontSize: "0.8rem", color: "#d97706" }}>{lp.period}</span>
                 </div>
-                <p
-                  style={{
-                    fontSize: "0.8rem",
-                    color: "#b45309",
-                    margin: "0 0 0.5rem",
-                  }}
-                >
+                <p style={{ fontSize: "0.8rem", color: "#b45309", margin: "0 0 0.5rem" }}>
                   {lp.posts}
                 </p>
-                <p
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "#fde68a",
-                    fontWeight: 700,
-                    margin: "0 0 1.5rem",
-                  }}
-                >
+                <p style={{ fontSize: "0.85rem", color: "#fde68a", fontWeight: 700, margin: "0 0 1.5rem" }}>
                   🔥 {lp.scarcity}
                 </p>
                 <a
@@ -892,13 +743,7 @@ export default function LandingPage() {
                 >
                   {lp.cta}
                 </a>
-                <p
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#b45309",
-                    margin: "0.75rem 0 0",
-                  }}
-                >
+                <p style={{ fontSize: "0.75rem", color: "#b45309", margin: "0.75rem 0 0" }}>
                   Dodo · USDC · Pi Network
                 </p>
               </div>
@@ -907,9 +752,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section
-        style={{ maxWidth: 700, margin: "0 auto", padding: "0 2rem 4rem" }}
-      >
+      <section style={{ maxWidth: 700, margin: "0 auto", padding: "0 2rem 4rem" }}>
         <div
           style={{
             padding: "2rem",
@@ -920,82 +763,16 @@ export default function LandingPage() {
           }}
         >
           <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>π</div>
-          <h3
-            style={{
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              margin: "0 0 0.5rem",
-              color: "#a5b4fc",
-            }}
-          >
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", color: "#a5b4fc" }}>
             Built for Pi pioneers
           </h3>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "#7070a0",
-              lineHeight: 1.7,
-              margin: "0 0 1.5rem",
-            }}
-          >
-            Teos AI Engine accepts Pi Network payments — making it one of the
-            first SaaS tools to bring real utility to the Pi ecosystem.
+          <p style={{ fontSize: "0.875rem", color: "#7070a0", lineHeight: 1.7, margin: "0 0 1.5rem" }}>
+            Teos AI Engine accepts Pi Network payments — making it one of the first SaaS tools to bring real utility to the Pi ecosystem.
           </p>
-          <div
-            style={{
-              display: "flex",
-              gap: "1rem",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            {[
-              { label: "Pi Network", desc: "Pay with Pi" },
-              { label: "USDC", desc: "Solana on-chain" },
-              { label: "Dodo", desc: "Fast checkout" },
-            ].map((m) => (
-              <div
-                key={m.label}
-                style={{
-                  padding: "0.65rem 1.25rem",
-                  borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(255,255,255,0.03)",
-                }}
-              >
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    color: "#c4c4d4",
-                  }}
-                >
-                  {m.label}
-                </p>
-                <p
-                  style={{
-                    margin: "0.1rem 0 0",
-                    fontSize: "0.75rem",
-                    color: "#555570",
-                  }}
-                >
-                  {m.desc}
-                </p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      <section
-        style={{
-          maxWidth: 640,
-          margin: "0 auto",
-          padding: "0 2rem 7rem",
-          textAlign: "center",
-        }}
-      >
+      <section style={{ maxWidth: 640, margin: "0 auto", padding: "0 2rem 7rem", textAlign: "center" }}>
         <h2
           style={{
             fontSize: "2.25rem",
@@ -1010,9 +787,7 @@ export default function LandingPage() {
         >
           Start building your audience today
         </h2>
-        <p
-          style={{ color: "#7070a0", fontSize: "1rem", marginBottom: "2rem" }}
-        >
+        <p style={{ color: "#7070a0", fontSize: "1rem", marginBottom: "2rem" }}>
           Free starter plan. No credit card. 5 posts included.
         </p>
         <Link
@@ -1034,27 +809,14 @@ export default function LandingPage() {
         </Link>
       </section>
 
-      <footer
-        style={{
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          padding: "2rem",
-          textAlign: "center",
-        }}
-      >
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "2rem", textAlign: "center" }}>
         <p style={{ fontSize: "0.8rem", color: "#404060", margin: 0 }}>
-          © {new Date().getFullYear()} Elmahrosa International · Alexandria,
-          Egypt ·{" "}
-          <a
-            href="mailto:ayman@teosegypt.com"
-            style={{ color: "#555570", textDecoration: "none" }}
-          >
+          © {new Date().getFullYear()} Elmahrosa International · Alexandria, Egypt ·{" "}
+          <a href="mailto:ayman@teosegypt.com" style={{ color: "#555570", textDecoration: "none" }}>
             ayman@teosegypt.com
           </a>{" "}
           ·{" "}
-          <Link
-            href="/admin"
-            style={{ color: "#555570", textDecoration: "none" }}
-          >
+          <Link href="/admin" style={{ color: "#555570", textDecoration: "none" }}>
             Admin
           </Link>
         </p>
