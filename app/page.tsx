@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import Link from "next/link";
 
 export const metadata = {
@@ -21,7 +22,7 @@ const PLATFORMS = [
   { icon: "◎", label: "Instagram" },
 ];
 
-const PLANS = [
+const MONTHLY_PLANS = [
   {
     name: "Starter",
     price: "Free",
@@ -54,9 +55,9 @@ const PLANS = [
       "Priority generation",
       "Post history dashboard",
     ],
-    cta: "Start Pro — $29/mo",
-    href: "https://dodo.pe/ca34csksg9",
-    dodoLink: "https://dodo.pe/ca34csksg9",
+    cta: "Upgrade to Pro",
+    href: "https://dodo.pe/ljkagv2ixcr",
+    dodoLink: "https://dodo.pe/ljkagv2ixcr",
     payNote: "USDC · Pi Network · Dodo",
   },
   {
@@ -73,9 +74,50 @@ const PLANS = [
       "Advanced support",
       "Best for teams and power users",
     ],
-    cta: "Start Agency — $69/mo",
-    href: "https://dodo.pe/3inq9s4o2i",
-    dodoLink: "https://dodo.pe/3inq9s4o2i",
+    cta: "Upgrade to Agency",
+    href: "https://dodo.pe/ep9cgmojbua",
+    dodoLink: "https://dodo.pe/ep9cgmojbua",
+    payNote: "USDC · Pi Network · Dodo",
+  },
+];
+
+const YEARLY_PLANS = [
+  {
+    name: "Pro Yearly",
+    price: "$290",
+    period: "/year",
+    highlight: true,
+    badge: "Best Value",
+    posts: "100 posts / month",
+    features: [
+      "Save $58 per year",
+      "100 posts per month",
+      "All 4 platforms",
+      "LinkedIn unlocked",
+      "Priority generation",
+    ],
+    cta: "Upgrade to Pro Yearly",
+    href: "https://dodo.pe/dbvnd9a4pp",
+    dodoLink: "https://dodo.pe/dbvnd9a4pp",
+    payNote: "USDC · Pi Network · Dodo",
+  },
+  {
+    name: "Agency Yearly",
+    price: "$690",
+    period: "/year",
+    highlight: false,
+    badge: null,
+    posts: "Unlimited posts",
+    features: [
+      "Save $138 per year",
+      "Unlimited posts",
+      "All 4 platforms",
+      "LinkedIn + multi-brand",
+      "Priority support",
+    ],
+    cta: "Upgrade to Agency Yearly",
+    href: "https://dodo.pe/relh2gradr9",
+    dodoLink: "https://dodo.pe/relh2gradr9",
     payNote: "USDC · Pi Network · Dodo",
   },
 ];
@@ -83,19 +125,23 @@ const PLANS = [
 const LIFETIME_PLANS = [
   {
     name: "Pro Lifetime",
-    price: "$97",
+    price: "$149",
     period: "one-time",
     posts: "100 posts/month — forever",
     cta: "Claim Pro Lifetime",
-    href: "https://dodo.pe/ep9cgmojbua",
+    href: "https://dodo.pe/79q4irl1347",
+    description: "One-time payment. Lock your Pro launch price.",
+    scarcity: "Only 32 / 50 spots remaining",
   },
   {
     name: "Agency Lifetime",
-    price: "$197",
+    price: "$349",
     period: "one-time",
     posts: "Unlimited — forever",
     cta: "Claim Agency Lifetime",
-    href: "https://dodo.pe/b62i4f5c5u",
+    href: "https://dodo.pe/91zcmc4xi27",
+    description: "Unlimited workflow with founder launch pricing.",
+    scarcity: "Only 14 / 50 spots remaining",
   },
 ];
 
@@ -121,6 +167,8 @@ const USE_CASES = [
 ];
 
 export default function LandingPage() {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+
   return (
     <main
       style={{
@@ -131,6 +179,7 @@ export default function LandingPage() {
         overflowX: "hidden",
       }}
     >
+      {/* Navigation */}
       <nav
         style={{
           display: "flex",
@@ -200,6 +249,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* Top Banner */}
       <div
         style={{
           background:
@@ -211,7 +261,7 @@ export default function LandingPage() {
       >
         <p style={{ margin: 0, fontSize: "0.875rem", color: "#c4b5fd" }}>
           <span style={{ fontWeight: 700, color: "#a5b4fc" }}>🔥 Launch offer:</span>{" "}
-          First 100 users get lifetime access — Pro at $97 · Agency at $197 · one-time payment,
+          First 100 users get lifetime access — Pro at $149 · Agency at $349 · one-time payment,
           never expires.{" "}
           <a
             href="#lifetime"
@@ -222,6 +272,7 @@ export default function LandingPage() {
         </p>
       </div>
 
+      {/* Hero Section */}
       <section
         style={{
           maxWidth: 820,
@@ -344,79 +395,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <div
-        style={{
-          borderTop: "1px solid rgba(255,255,255,0.05)",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-          background: "rgba(255,255,255,0.02)",
-          padding: "1.25rem 2rem",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 900,
-            margin: "0 auto",
-            display: "flex",
-            gap: "2rem",
-            justifyContent: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          {[
-            { icon: "🌍", text: "Built for founders and agencies" },
-            { icon: "π", text: "Built for Pi pioneers" },
-            { icon: "⚡", text: "USDC on Solana" },
-            { icon: "🔐", text: "Session-based auth" },
-          ].map((item) => (
-            <div
-              key={item.text}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                fontSize: "0.85rem",
-                color: "#7070a0",
-              }}
-            >
-              <span>{item.icon}</span>
-              <span>{item.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <section style={{ maxWidth: 960, margin: "0 auto", padding: "5rem 2rem" }}>
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 0.75rem" }}>
-            Built for the way you actually work
-          </h2>
-          <p style={{ color: "#7070a0", fontSize: "1rem" }}>
-            Not a generic toy. Designed for operators who ship fast.
-          </p>
-        </div>
-
+      {/* Use Cases */}
+      <section id="use-cases" style={{ maxWidth: 1000, margin: "0 auto", padding: "4rem 2rem" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: "1.25rem",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "1.5rem",
           }}
         >
           {USE_CASES.map((uc) => (
             <div
               key={uc.title}
               style={{
-                padding: "1.75rem",
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.07)",
+                padding: "2rem",
+                borderRadius: 16,
                 background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                transition: "all 0.3s ease",
               }}
             >
-              <div style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>{uc.icon}</div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 0.6rem", color: "#e0e0f0" }}>
+              <div style={{ fontSize: "2rem", marginBottom: "1.25rem" }}>{uc.icon}</div>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem", color: "#fff" }}>
                 {uc.title}
               </h3>
-              <p style={{ fontSize: "0.875rem", color: "#7070a0", lineHeight: 1.65, margin: 0 }}>
+              <p style={{ fontSize: "0.9rem", color: "#9191a8", lineHeight: 1.6, margin: 0 }}>
                 {uc.description}
               </p>
             </div>
@@ -424,71 +427,71 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section
-        style={{
-          background: "rgba(99,102,241,0.04)",
-          borderTop: "1px solid rgba(99,102,241,0.1)",
-          borderBottom: "1px solid rgba(99,102,241,0.1)",
-          padding: "5rem 2rem",
-        }}
-      >
-        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 3rem" }}>
-            Three steps to ready-to-post content
+      {/* Pricing Section */}
+      <section id="pricing" style={{ maxWidth: 1000, margin: "0 auto", padding: "5rem 2rem" }}>
+        <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
+          <h2 style={{ fontSize: "2.25rem", fontWeight: 800, margin: "0 0 1rem", letterSpacing: "-0.02em" }}>
+            Simple, transparent pricing
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "2rem" }}>
-            {[
-              { step: "01", title: "Describe your idea", desc: "Type a topic, update, or insight. No templates. No blank-page struggle." },
-              { step: "02", title: "Pick your platform", desc: "Choose X, LinkedIn, Instagram, or Facebook. Each post adapts to that platform's format." },
-              { step: "03", title: "Review and publish", desc: "Get your visibility score and CTA suggestion, then copy and post in seconds." },
-            ].map((s) => (
-              <div key={s.step} style={{ textAlign: "left" }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#6366f1", letterSpacing: "0.1em", marginBottom: "0.75rem" }}>
-                  {s.step}
-                </div>
-                <h3 style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 0.5rem", color: "#e0e0f0" }}>
-                  {s.title}
-                </h3>
-                <p style={{ fontSize: "0.875rem", color: "#7070a0", lineHeight: 1.65, margin: 0 }}>
-                  {s.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" style={{ maxWidth: 1000, margin: "0 auto", padding: "5rem 2rem 2rem" }}>
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 0.75rem" }}>
-            Simple, honest pricing
-          </h2>
-          <p style={{ color: "#7070a0", fontSize: "1rem" }}>
-            Checkout with Dodo · USDC on Solana · Pi Network
+          <p style={{ color: "#9191a8", fontSize: "1.05rem", marginBottom: "2rem" }}>
+            Start for free, upgrade as you grow. Pay with crypto or fiat.
           </p>
+
+          {/* Billing Toggle */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
+            <span style={{ color: billingCycle === "monthly" ? "#fff" : "#7070a0", fontWeight: 600 }}>Monthly</span>
+            <button
+              onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
+              style={{
+                width: 48,
+                height: 24,
+                borderRadius: 100,
+                background: "rgba(99,102,241,0.3)",
+                border: "none",
+                position: "relative",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: "50%",
+                  background: "#6366f1",
+                  position: "absolute",
+                  top: 3,
+                  left: billingCycle === "monthly" ? 3 : 27,
+                  transition: "all 0.2s ease",
+                }}
+              />
+            </button>
+            <span style={{ color: billingCycle === "yearly" ? "#fff" : "#7070a0", fontWeight: 600 }}>
+              Yearly <span style={{ color: "#10b981", fontSize: "0.8rem", marginLeft: "0.25rem" }}>-20% Off</span>
+            </span>
+          </div>
         </div>
 
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "1.25rem",
-            alignItems: "start",
+            gap: "1.5rem",
           }}
         >
-          {PLANS.map((plan) => (
+          {(billingCycle === "monthly" ? MONTHLY_PLANS : YEARLY_PLANS).map((plan) => (
             <div
               key={plan.name}
               style={{
-                padding: "2rem",
-                borderRadius: 16,
+                padding: "2.25rem",
+                borderRadius: 20,
+                background: plan.highlight ? "rgba(99,102,241,0.05)" : "rgba(255,255,255,0.02)",
                 border: plan.highlight
-                  ? "1.5px solid rgba(99,102,241,0.6)"
-                  : "1px solid rgba(255,255,255,0.07)",
-                background: plan.highlight
-                  ? "rgba(99,102,241,0.07)"
-                  : "rgba(255,255,255,0.025)",
+                  ? "1px solid rgba(99,102,241,0.3)"
+                  : "1px solid rgba(255,255,255,0.06)",
                 position: "relative",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               {plan.badge && (
@@ -496,9 +499,8 @@ export default function LandingPage() {
                   style={{
                     position: "absolute",
                     top: -12,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    padding: "0.25rem 0.85rem",
+                    right: 20,
+                    padding: "0.25rem 0.75rem",
                     borderRadius: 100,
                     background: "linear-gradient(135deg, #6366f1, #7c3aed)",
                     fontSize: "0.75rem",
@@ -538,59 +540,62 @@ export default function LandingPage() {
                 ))}
               </ul>
 
-              {plan.dodoLink ? (
-                <a
-                  href={plan.dodoLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    padding: "0.75rem 1.25rem",
-                    borderRadius: 9,
-                    background: plan.highlight
-                      ? "linear-gradient(135deg, #6366f1, #7c3aed)"
-                      : "rgba(255,255,255,0.06)",
-                    border: plan.highlight ? "none" : "1px solid rgba(255,255,255,0.1)",
-                    color: "#fff",
-                    textDecoration: "none",
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    boxShadow: plan.highlight ? "0 4px 20px rgba(99,102,241,0.4)" : "none",
-                  }}
-                >
-                  {plan.cta}
-                </a>
-              ) : (
-                <Link
-                  href={plan.href}
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    padding: "0.75rem 1.25rem",
-                    borderRadius: 9,
-                    background: "rgba(255,255,255,0.06)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "#fff",
-                    textDecoration: "none",
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {plan.cta}
-                </Link>
-              )}
+              <div style={{ marginTop: "auto" }}>
+                {plan.dodoLink ? (
+                  <a
+                    href={plan.dodoLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      padding: "0.75rem 1.25rem",
+                      borderRadius: 9,
+                      background: plan.highlight
+                        ? "linear-gradient(135deg, #6366f1, #7c3aed)"
+                        : "rgba(255,255,255,0.06)",
+                      border: plan.highlight ? "none" : "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      textDecoration: "none",
+                      fontSize: "0.9rem",
+                      fontWeight: 600,
+                      boxShadow: plan.highlight ? "0 4px 20px rgba(99,102,241,0.4)" : "none",
+                    }}
+                  >
+                    {plan.cta}
+                  </a>
+                ) : (
+                  <Link
+                    href={plan.href}
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      padding: "0.75rem 1.25rem",
+                      borderRadius: 9,
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      textDecoration: "none",
+                      fontSize: "0.9rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {plan.cta}
+                  </Link>
+                )}
 
-              {plan.payNote && (
-                <p style={{ fontSize: "0.75rem", color: "#555570", textAlign: "center", margin: "0.75rem 0 0" }}>
-                  {plan.payNote}
-                </p>
-              )}
+                {plan.payNote && (
+                  <p style={{ fontSize: "0.75rem", color: "#555570", textAlign: "center", margin: "0.75rem 0 0" }}>
+                    {plan.payNote}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
+      {/* Lifetime Section */}
       <section id="lifetime" style={{ maxWidth: 900, margin: "0 auto", padding: "3rem 2rem 5rem" }}>
         <div
           style={{
@@ -666,8 +671,11 @@ export default function LandingPage() {
                   </span>
                   <span style={{ fontSize: "0.8rem", color: "#d97706" }}>{lp.period}</span>
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "#b45309", margin: "0 0 1.5rem" }}>
+                <p style={{ fontSize: "0.8rem", color: "#b45309", margin: "0 0 0.5rem" }}>
                   {lp.posts}
+                </p>
+                <p style={{ fontSize: "0.85rem", color: "#fde68a", fontWeight: 700, margin: "0 0 1.5rem" }}>
+                  🔥 {lp.scarcity}
                 </p>
                 <a
                   href={lp.href}
@@ -696,6 +704,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pi Network Section */}
       <section style={{ maxWidth: 700, margin: "0 auto", padding: "0 2rem 4rem" }}>
         <div
           style={{
@@ -742,6 +751,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Footer Section */}
       <section style={{ maxWidth: 640, margin: "0 auto", padding: "0 2rem 7rem", textAlign: "center" }}>
         <h2
           style={{
@@ -779,6 +789,7 @@ export default function LandingPage() {
         </Link>
       </section>
 
+      {/* Footer */}
       <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "2rem", textAlign: "center" }}>
         <p style={{ fontSize: "0.8rem", color: "#404060", margin: 0 }}>
           © {new Date().getFullYear()} Elmahrosa International · Alexandria, Egypt ·{" "}
