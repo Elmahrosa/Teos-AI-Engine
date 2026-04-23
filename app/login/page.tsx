@@ -14,24 +14,15 @@ export default function LoginPage() {
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const payload: Record<string, string> = { email: normalizedEmail };
-
-      if (normalizedEmail === "aams1969@gmail.com") {
-        const founderKey = window.prompt("Enter founder key");
-        if (!founderKey) {
-          setLoading(false);
-          setError("Founder key required.");
-          return;
-        }
-        payload.founderKey = founderKey;
-      }
 
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          email: normalizedEmail,
+        }),
       });
 
       const data = await res.json();
@@ -43,7 +34,7 @@ export default function LoginPage() {
       }
 
       window.location.href = "/dashboard";
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
