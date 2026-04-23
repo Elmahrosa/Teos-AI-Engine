@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const DODO_WEBHOOK_SECRET = process.env.whsec_KEMK7E37n593lyaZk9SHnG93SfKoc3Zo;
+const DODO_WEBHOOK_SECRET = process.env.DODO_WEBHOOK_SECRET;
 
 function verifySignature(payload: string, signature: string | null) {
   if (!signature || !DODO_WEBHOOK_SECRET) return false;
@@ -32,17 +32,11 @@ const PRODUCT_MAP: Record<
   string,
   { plan: "pro" | "agency"; cycle: "monthly" | "yearly" | "lifetime" }
 > = {
-  // Pro Monthly
   "pdt_0NdKFCdkDZ4bAdou4Z7cc": { plan: "pro", cycle: "monthly" },
-  // Agency Monthly
   "pdt_0NdD9rAUd0JHiV9MBHMQ3": { plan: "agency", cycle: "monthly" },
-  // Pro Yearly
   "pdt_0NdKROHokTHJeCVrfxz7S": { plan: "pro", cycle: "yearly" },
-  // Agency Yearly
   "pdt_0NdKROLMbZygp9KhvIqJD": { plan: "agency", cycle: "yearly" },
-  // Pro Lifetime
   "pdt_0NdKROPakM4X20mbE07jE": { plan: "pro", cycle: "lifetime" },
-  // Agency Lifetime
   "pdt_0NdKROSisHzGMkTGaJ2T2": { plan: "agency", cycle: "lifetime" },
 };
 
@@ -167,4 +161,28 @@ export async function POST(req: Request) {
             await tx.user.update({
               where: { id: user.id },
               data: {
-                planTier: "s
+                planTier: "starter",
+                billingCycle: "free",
+                dodoSubscriptionId: null,
+                subscriptionStatus: "cancelled",
+              },
+            });
+          }
+          break;
+        }
+
+        default: {
+          console.log("Unhandled Dodo event:", event.type);
+        }
+      }
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("Webhook processing error:", err);
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 }
+    );
+  }
+}
