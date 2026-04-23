@@ -17,14 +17,10 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      const totalUsers = await prisma.user.count();
-      const lifetime = totalUsers < 100;
-
       user = await prisma.user.create({
         data: {
           email: normalizedEmail,
-          plan: lifetime ? "agency" : "starter",
-          lifetime,
+          plan: "starter",
         },
       });
     }
@@ -41,7 +37,6 @@ export async function POST(req: Request) {
       user: {
         email: user.email,
         plan: user.plan,
-        lifetime: user.lifetime,
       },
     });
   } catch (error) {
