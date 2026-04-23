@@ -11,11 +11,25 @@ export default async function AdminPage() {
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
-    include: {
-      posts: { select: { id: true } },
+    select: {
+      id: true,
+      email: true,
+      plan: true,
+      status: true,
+      lifetime: true,
+      createdAt: true,
+      posts: {
+        select: { id: true },
+      },
       billing: {
         orderBy: { createdAt: "desc" },
         take: 3,
+        select: {
+          id: true,
+          provider: true,
+          plan: true,
+          status: true,
+        },
       },
     },
   });
@@ -80,6 +94,7 @@ export default async function AdminPage() {
               <tr>
                 <th className="px-3 py-3">Email</th>
                 <th className="px-3 py-3">Plan</th>
+                <th className="px-3 py-3">Status</th>
                 <th className="px-3 py-3">Lifetime</th>
                 <th className="px-3 py-3">Posts</th>
                 <th className="px-3 py-3">Billing</th>
@@ -111,6 +126,12 @@ export default async function AdminPage() {
                       }`}
                     >
                       {u.plan}
+                    </span>
+                  </td>
+
+                  <td className="px-3 py-4">
+                    <span className="rounded-full bg-white/5 px-2 py-1 text-xs text-zinc-300">
+                      {u.status}
                     </span>
                   </td>
 
