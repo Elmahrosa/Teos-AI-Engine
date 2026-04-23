@@ -16,7 +16,6 @@ export default async function AdminPage() {
       email: true,
       plan: true,
       status: true,
-      lifetime: true,
       createdAt: true,
       posts: {
         select: { id: true },
@@ -38,7 +37,6 @@ export default async function AdminPage() {
   const starterUsers = users.filter((u) => u.plan === "starter").length;
   const proUsers = users.filter((u) => u.plan === "pro").length;
   const agencyUsers = users.filter((u) => u.plan === "agency").length;
-  const lifetimeUsers = users.filter((u) => u.lifetime).length;
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-white">
@@ -58,7 +56,7 @@ export default async function AdminPage() {
         </a>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <p className="text-sm text-zinc-400">Total Users</p>
           <p className="mt-2 text-3xl font-bold">{totalUsers}</p>
@@ -78,11 +76,6 @@ export default async function AdminPage() {
           <p className="text-sm text-yellow-300">Agency</p>
           <p className="mt-2 text-3xl font-bold text-yellow-200">{agencyUsers}</p>
         </div>
-
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5">
-          <p className="text-sm text-emerald-300">Lifetime</p>
-          <p className="mt-2 text-3xl font-bold text-emerald-200">{lifetimeUsers}</p>
-        </div>
       </div>
 
       <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -95,7 +88,6 @@ export default async function AdminPage() {
                 <th className="px-3 py-3">Email</th>
                 <th className="px-3 py-3">Plan</th>
                 <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">Lifetime</th>
                 <th className="px-3 py-3">Posts</th>
                 <th className="px-3 py-3">Billing</th>
                 <th className="px-3 py-3">Created</th>
@@ -133,16 +125,6 @@ export default async function AdminPage() {
                     <span className="rounded-full bg-white/5 px-2 py-1 text-xs text-zinc-300">
                       {u.status}
                     </span>
-                  </td>
-
-                  <td className="px-3 py-4">
-                    {u.lifetime ? (
-                      <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-xs text-emerald-300">
-                        Yes
-                      </span>
-                    ) : (
-                      <span className="text-zinc-500">No</span>
-                    )}
                   </td>
 
                   <td className="px-3 py-4">{u.posts.length}</td>
@@ -188,18 +170,6 @@ export default async function AdminPage() {
                         <input type="hidden" name="plan" value="agency" />
                         <button className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-3 py-1.5 text-xs text-yellow-200 hover:bg-yellow-500/20">
                           Agency
-                        </button>
-                      </form>
-
-                      <form action="/api/admin/lifetime" method="POST">
-                        <input type="hidden" name="email" value={u.email} />
-                        <input
-                          type="hidden"
-                          name="lifetime"
-                          value={u.lifetime ? "false" : "true"}
-                        />
-                        <button className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-200 hover:bg-emerald-500/20">
-                          {u.lifetime ? "Remove Lifetime" : "Make Lifetime"}
                         </button>
                       </form>
 
