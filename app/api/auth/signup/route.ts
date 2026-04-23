@@ -6,43 +6,37 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
     const name = body?.name;
     const email = body?.email;
     const password = body?.password;
 
-    if (!name || typeof name !== "string") {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    if (!email || typeof email !== "string") {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
-    if (!password || typeof password !== "string" || password.length < 6) {
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
+        { error: "All fields are required" },
         { status: 400 }
       );
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const db: any = prisma;
 
-    const existingUser = await db.user.findUnique({
+    // check if user exists
+    const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      select: { id: true },
     });
 
-    if (existingUser) {
+    if (existing) {
       return NextResponse.json(
-        { error: "Account already exists. Please log in." },
-        { status: 409 }
+        { error: "Account already exists" },
+        { status: 400 }
       );
     }
 
+    // hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = await db.user.create({
+    // create user
+    const user = await prisma.user.create({
       data: {
         name: name.trim(),
         email: normalizedEmail,
@@ -51,6 +45,7 @@ export async function POST(req: Request) {
       },
     });
 
+    // set cookie
     cookies().set("user_email", normalizedEmail, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -67,7 +62,10 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error("[/api/auth/signup]", error);
-    return NextResponse.json({ error: "Signup failed" }, { status: 500 });
+    console.error("[SIGNUP ERROR]", error);
+    return NextResponse.json(
+      { error: "Signup failed" },
+      { status: 500 }
+    );
   }
 }
