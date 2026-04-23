@@ -2,59 +2,55 @@ import { cookies } from "next/headers";
 import crypto from "crypto";
 
 const COOKIE_NAME = "teos_session";
-// Add your official admin email here
-const ADMIN_EMAILS = ["aams1969@gmail.com", "ayman@teosegypt.com"]; 
-
-function getSecret() {
-  return (
-    process.env.NEXTAUTH_SECRET ||
-    process.env.SESSION_SECRET ||
-    "dev-secret-change-me"
-  );
-}
 
 function sign(value: string) {
-  return crypto.createHmac("sha256", getSecret()).update(value).digest("hex");
+  const secret = process.env.SESSION_SECRET || "dev_session_secret_change_me";
+  return crypto.createHmac("sha256", secret).update(value).digest("hex");
 }
 
-/**
- * Checks if the current session belongs to a founder/admin
- */
-export function isFounder(email: string | null | undefined): boolean {
-  if (!email) return false;
-  return ADMIN_EMAILS.includes(email.trim().toLowerCase());
-}
+export async function createSession(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const payload = Buffer.from(normalizedEmail).toString("base64url");
+  const signature = sign(payload);
+  const token = `${payload}.${signature}`;
 
-export function createSession(email: string) {
-  const normalized = email.trim().toLowerCase();
-  const value = `${normalized}.${sign(normalized)}`;
-
-  cookies().set(COOKIE_NAME, value, {
+  const store = await cookies();
+  store.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
-export function getSessionEmail() {
-  const raw = cookies().get(COOKIE_NAME)?.value;
-  if (!raw) return null;
-
-  const parts = raw.split(".");
-  if (parts.length < 2) return null;
-
-  const sig = parts.pop()!;
-  const email = parts.join(".").trim().toLowerCase();
-  const expected = sign(email);
-
-  return sig === expected ? email : null;
-}
-
-export function clearSession() {
-  cookies().set(COOKIE_NAME, "", {
+export async function destroySession() {
+  const store = await cookies();
+  store.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     path: "/",
     maxAge: 0,
   });
+}
+
+export async function clearSession() {
+  await destroySession();
+}
+
+export async function getSessionEmail() {
+  const store = await cookies();
+  const token = store.get(COOKIE_NAME)?.value;
+  if (!token) return null;
+
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return null;
+  if (sign(payload) !== signature) return null;
+
+  try {
+    return Buffer.from(payload, "base64url").toString("utf8").toLowerCase();
+  } catch {
+    return null;
+  }
 }
