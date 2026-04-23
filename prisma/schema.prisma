@@ -8,16 +8,20 @@ datasource db {
 }
 
 model User {
-  id        String         @id @default(cuid())
-  email     String         @unique
-  name      String?
-  plan      String         @default("starter")
-  status    String         @default("trial")
-  lifetime  Boolean        @default(false)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  posts     Post[]
-  billing   BillingEvent[]
+  id               String         @id @default(cuid())
+  email            String         @unique
+  name             String?
+  passwordHash     String?
+  role             String         @default("user")
+  plan             String         @default("starter")
+  status           String         @default("trial")
+  lifetime         Boolean        @default(false)
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  posts            Post[]
+  billing          BillingEvent[]
 }
 
 model Post {
