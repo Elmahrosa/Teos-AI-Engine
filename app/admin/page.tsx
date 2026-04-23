@@ -22,12 +22,14 @@ export default async function AdminPage() {
       },
       billing: {
         orderBy: { createdAt: "desc" },
-        take: 3,
+        take: 5,
         select: {
           id: true,
           provider: true,
           plan: true,
           status: true,
+          email: true,
+          createdAt: true,
         },
       },
     },
@@ -37,12 +39,13 @@ export default async function AdminPage() {
   const starterUsers = users.filter((u) => u.plan === "starter").length;
   const proUsers = users.filter((u) => u.plan === "pro").length;
   const agencyUsers = users.filter((u) => u.plan === "agency").length;
+  const totalPosts = users.reduce((sum, u) => sum + u.posts.length, 0);
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-white">
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Admin Panel</h1>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="mt-2 text-sm text-zinc-400">
             Founder control center for Teos AI Engine
           </p>
@@ -75,6 +78,37 @@ export default async function AdminPage() {
         <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-5">
           <p className="text-sm text-yellow-300">Agency</p>
           <p className="mt-2 text-3xl font-bold text-yellow-200">{agencyUsers}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <p className="text-sm text-zinc-400">Total Posts Saved</p>
+          <p className="mt-2 text-3xl font-bold">{totalPosts}</p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <p className="text-sm text-zinc-400">Quick Actions</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a
+              href="/"
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+            >
+              View Landing Page
+            </a>
+            <a
+              href="/signup"
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+            >
+              View Signup
+            </a>
+            <a
+              href="/login"
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+            >
+              View Login
+            </a>
+          </div>
         </div>
       </div>
 
@@ -177,6 +211,14 @@ export default async function AdminPage() {
                         <input type="hidden" name="email" value={u.email} />
                         <button className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs text-red-200 hover:bg-red-500/20">
                           Reset Posts
+                        </button>
+                      </form>
+
+                      <form action="/api/admin/manual-activate" method="POST">
+                        <input type="hidden" name="email" value={u.email} />
+                        <input type="hidden" name="plan" value={u.plan} />
+                        <button className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-200 hover:bg-emerald-500/20">
+                          Re-sync Billing
                         </button>
                       </form>
                     </div>
