@@ -3,7 +3,9 @@
 import { useState } from "react";
 
 export default function SignupPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -13,15 +15,15 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const normalizedEmail = email.trim().toLowerCase();
-
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: normalizedEmail,
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          password,
         }),
       });
 
@@ -33,7 +35,6 @@ export default function SignupPage() {
         return;
       }
 
-      // redirect to dashboard
       window.location.href = "/dashboard";
     } catch {
       setError("Something went wrong. Please try again.");
@@ -47,13 +48,25 @@ export default function SignupPage() {
         <h1 className="text-3xl font-bold tracking-tight">Create account</h1>
 
         <p className="mt-2 text-sm text-zinc-400">
-          Start free — no password needed.
+          Start free — create your account.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
+              required
+            />
+          </div>
+
           <div>
             <label className="mb-2 block text-sm text-zinc-300">Email</label>
-
             <input
               type="email"
               value={email}
@@ -61,6 +74,19 @@ export default function SignupPage() {
               placeholder="you@example.com"
               className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
               required
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Create a password"
+              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
+              required
+              minLength={6}
             />
           </div>
 
@@ -72,10 +98,15 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            disabled={loading || !email.trim()}
+            disabled={
+              loading ||
+              !name.trim() ||
+              !email.trim() ||
+              !password.trim()
+            }
             className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
           >
-            {loading ? "Creating..." : "Create free account"}
+            {loading ? "Creating account..." : "Create free account"}
           </button>
         </form>
       </div>
