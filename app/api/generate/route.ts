@@ -17,55 +17,112 @@ import {
 const schema = z.object({
   prompt: z.string().min(3).max(500),
   platform: z.enum(["x", "facebook", "instagram", "linkedin"]),
-  tone: z.enum(["professional", "bold", "educational", "conversational"]).default("professional"),
-  goal: z.enum(["engagement", "authority", "sales", "community"]).default("engagement"),
+  tone: z
+    .enum(["professional", "bold", "educational", "conversational"])
+    .default("professional"),
+  goal: z
+    .enum(["engagement", "authority", "sales", "community"])
+    .default("engagement"),
 });
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = schema.parse(body);
+
     const email = await getSessionEmail();
-    
-    if (!email) return NextResponse.json({ error: "Please log in first" }, { status: 401 });
+    if (!email) {
+      return NextResponse.json(
+        { error: "Please log in first" },
+        { status: 401 }
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: { email },
       include: { posts: { select: { id: true } } },
     });
 
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
 
     const isAdmin = isAdminEmail(email);
 
-    if (parsed.platform === "linkedin" && !isAdmin && !canUseLinkedIn(user.plan)) {
-      return NextResponse.json({ error: "LinkedIn requires Agency plan" }, { status: 403 });
+    if (
+      parsed.platform === "linkedin" &&
+      !isAdmin &&
+      !canUseLinkedIn(user.plan)
+    ) {
+      return NextResponse.json(
+        { error: "LinkedIn requires Agency plan" },
+        { status: 403 }
+      );
     }
 
     const usedCount = user.posts.length;
+
     if (!isAdmin && !canGenerate(user.plan, usedCount)) {
-      return NextResponse.json({ error: "Starter plan limit reached.", upgrade: true }, { status: 403 });
+      return NextResponse.json(
+        { error: "Starter plan limit reached.", upgrade: true },
+        { status: 403 }
+      );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return NextResponse.json({ error: "Server missing AI configuration" }, { status: 500 });
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "Server missing AI configuration" },
+        { status: 500 }
+      );
+    }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+    });
 
-    const promptText = `You are Teos AI Engine, an elite social media content strategist.
+    const promptText = `
+You are Teos AI Engine, an elite social media content strategist.
+
+Write one high-impact, ready-to-publish social media post.
+
 Platform: ${parsed.platform}
 Topic: ${parsed.prompt}
 Goal: ${parsed.goal}
 Tone: ${parsed.tone}
 Audience: founders, creators, and growth-focused users
-Write one high-impact, ready-to-publish social media post. Return ONLY the final post text.`;
+
+Rules:
+- Output only the final post text
+- No extra labels
+- No markdown code fences
+- Make it concise, strong, and platform-appropriate
+`.trim();
 
     const result = await model.generateContent(promptText);
     const postText = result.response.text().trim();
 
+    if (!postText) {
+      return NextResponse.json(
+        { error: "Empty AI response." },
+        { status: 500 }
+      );
+    }
+
     const hashtags = generateHashtags(parsed.prompt, parsed.platform);
-    const imageResult = await generateImage(parsed.platform, parsed.prompt);
+
+    let imageUrl: string | null = null;
+    try {
+      const imageResult = await generateImage(parsed.platform, parsed.prompt);
+      imageUrl = imageResult?.url || null;
+    } catch (imageError) {
+      console.error("[/api/generate] image generation failed:", imageError);
+    }
+
     const visibilityScore = getVisibilityScore(postText, hashtags, parsed.goal);
 
     await prisma.post.create({
@@ -75,7 +132,7 @@ Write one high-impact, ready-to-publish social media post. Return ONLY the final
         platform: parsed.platform,
         content: postText,
         hashtags: JSON.stringify(hashtags),
-        imageUrl: imageResult.url,
+        imageUrl,
       },
     });
 
@@ -85,7 +142,7 @@ Write one high-impact, ready-to-publish social media post. Return ONLY the final
       used: usedCount + 1,
       post: postText,
       hashtags,
-      imageUrl: imageResult.url,
+      imageUrl,
       insights: {
         visibilityScore,
         bestTime: getBestTime(parsed.platform),
@@ -94,6 +151,18 @@ Write one high-impact, ready-to-publish social media post. Return ONLY the final
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: "Generation failed." }, { status: 500 });
+    console.error("[/api/generate] error:", error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid request." },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Generation failed." },
+      { status: 500 }
+    );
   }
 }
