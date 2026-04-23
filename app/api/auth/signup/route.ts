@@ -26,9 +26,11 @@ export async function POST(req: Request) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const db: any = prisma;
 
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await db.user.findUnique({
       where: { email: normalizedEmail },
+      select: { id: true },
     });
 
     if (existingUser) {
@@ -40,11 +42,11 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         name: name.trim(),
         email: normalizedEmail,
-        passwordHash,
+        passwordHash: passwordHash,
         plan: "starter",
       },
     });
