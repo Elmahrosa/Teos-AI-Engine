@@ -7,7 +7,16 @@ import LogoutButton from "@/components/LogoutButton";
 export default async function DashboardPage() {
   const user = await requireUser();
 
-  const isAdmin = user.email === "aams1969@gmail.com";
+  const founderEmails = [
+    "aams1969@gmail.com",
+    "elma7rosa@gmx.com",
+    "ayman@teosegypt.com",
+  ];
+
+  const isAdmin =
+    founderEmails.includes(user.email.toLowerCase()) ||
+    user.plan === "founder";
+
   const isStarter = !isAdmin && user.plan === "starter";
 
   const postCount = user.posts.length;
@@ -17,7 +26,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl px-6 py-10 text-white">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="mt-1 text-sm text-zinc-400">
@@ -38,12 +47,31 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <LogoutButton />
+        <div className="flex flex-wrap items-center gap-3">
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="rounded-xl border border-yellow-400/40 bg-yellow-500/10 px-4 py-2 text-sm font-bold text-yellow-300 hover:bg-yellow-500/20"
+              title="Founder Admin"
+            >
+              👑 Founder Admin
+            </Link>
+          )}
+
+          <Link
+            href="/signup"
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-white/10"
+          >
+            + Create Account
+          </Link>
+
+          <LogoutButton />
+        </div>
       </div>
 
       {isAdmin && (
         <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-200">
-          Founder mode enabled — unlimited generation and LinkedIn access unlocked.
+          👑 Founder mode enabled — unlimited generation, LinkedIn access, and admin controls unlocked.
         </div>
       )}
 
@@ -110,7 +138,10 @@ export default async function DashboardPage() {
               )}
 
               {isAdmin && (
-                <li className="text-emerald-300">✓ Unlimited posts</li>
+                <>
+                  <li className="text-emerald-300">✓ Unlimited posts</li>
+                  <li className="text-emerald-300">✓ Admin dashboard enabled</li>
+                </>
               )}
 
               {(isAdmin || user.plan === "agency") && (
@@ -131,7 +162,7 @@ export default async function DashboardPage() {
                 href="/#pricing"
                 className="mt-4 block rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold hover:bg-indigo-500"
               >
-                Upgrade to Pro — $19/month
+                Upgrade to Pro — $29/month
               </Link>
             )}
 
@@ -140,9 +171,38 @@ export default async function DashboardPage() {
                 href="/#pricing"
                 className="mt-4 block rounded-lg border border-yellow-500/30 py-2 text-center text-sm text-yellow-300 hover:bg-white/5"
               >
-                Upgrade to Agency — $49/month
+                Upgrade to Agency — $69/month
               </Link>
             )}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h2 className="text-lg font-semibold">Account</h2>
+
+            <div className="mt-4 space-y-3 text-sm">
+              <Link
+                href="/signup"
+                className="block rounded-lg border border-white/10 px-4 py-2 text-center font-semibold text-zinc-200 hover:bg-white/10"
+              >
+                Create new user account
+              </Link>
+
+              <a
+                href="mailto:support@teosegypt.com?subject=Teos AI Engine Account Recovery"
+                className="block rounded-lg border border-purple-500/30 px-4 py-2 text-center font-semibold text-purple-300 hover:bg-purple-500/10"
+              >
+                Recover account by email
+              </a>
+
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="block rounded-lg bg-yellow-500/20 px-4 py-2 text-center font-bold text-yellow-300 hover:bg-yellow-500/30"
+                >
+                  👑 Open Founder Admin
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
