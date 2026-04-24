@@ -1,16 +1,19 @@
-import PostGenerator from '@/components/PostGenerator';
-import { requireUser } from '@/lib/auth';
-import { getRemainingPosts } from '@/lib/limits';
-import Link from 'next/link';
-import LogoutButton from '@/components/LogoutButton';
+import PostGenerator from "@/components/PostGenerator";
+import { requireUser } from "@/lib/auth";
+import { getRemainingPosts, PLAN_LIMITS } from "@/lib/limits";
+import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const isAdmin = user.email === 'aams1969@gmail.com';
-  const isStarter = !isAdmin && user.plan === 'starter';
+
+  const isAdmin = user.email === "aams1969@gmail.com";
+  const isStarter = !isAdmin && user.plan === "starter";
+
   const postCount = user.posts.length;
-  const remaining = getRemainingPosts(user.plan, postCount);
-  const atLimit = isStarter && postCount >= 10;
+  const remaining = getRemainingPosts(user.plan, postCount, isAdmin);
+  const starterLimit = PLAN_LIMITS.starter;
+  const atLimit = isStarter && postCount >= starterLimit;
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl px-6 py-10 text-white">
@@ -18,22 +21,23 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="mt-1 text-sm text-zinc-400">
-            {user.email} ·{' '}
+            {user.email} ·{" "}
             <span
               className={`font-medium ${
                 isAdmin
-                  ? 'text-emerald-300'
-                  : user.plan === 'agency'
-                  ? 'text-yellow-300'
-                  : user.plan === 'pro'
-                  ? 'text-indigo-300'
-                  : 'text-zinc-300'
+                  ? "text-emerald-300"
+                  : user.plan === "agency"
+                  ? "text-yellow-300"
+                  : user.plan === "pro"
+                  ? "text-indigo-300"
+                  : "text-zinc-300"
               }`}
             >
-              {isAdmin ? 'founder mode' : `${user.plan} plan`}
+              {isAdmin ? "founder mode" : `${user.plan} plan`}
             </span>
           </p>
         </div>
+
         <LogoutButton />
       </div>
 
@@ -45,18 +49,26 @@ export default async function DashboardPage() {
 
       {isStarter && (
         <div className="mt-6 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-5">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-white">
-                Starter plan · {postCount}/10 posts used
+                Starter plan · {postCount}/{starterLimit} posts used
                 {remaining !== null && remaining > 0 && (
-                  <span className="ml-2 text-zinc-400">({remaining} remaining)</span>
+                  <span className="ml-2 text-zinc-400">
+                    ({remaining} remaining)
+                  </span>
                 )}
               </p>
+
               <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-indigo-500"
-                  style={{ width: `${Math.min((postCount / 10) * 100, 100)}%` }}
+                  style={{
+                    width: `${Math.min(
+                      (postCount / starterLimit) * 100,
+                      100
+                    )}%`,
+                  }}
                 />
               </div>
             </div>
@@ -71,38 +83,50 @@ export default async function DashboardPage() {
 
           {atLimit && (
             <p className="mt-3 text-sm text-amber-300">
-              You reached the 10-post limit. Upgrade to continue.
+              You reached the {starterLimit}-post Starter limit. Upgrade to continue.
             </p>
           )}
         </div>
       )}
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1.2fr,0.8fr]">
-        <PostGenerator
-          used={postCount}
-          plan={user.plan}
-          isAdmin={isAdmin}
-        />
+        <PostGenerator used={postCount} plan={user.plan} isAdmin={isAdmin} />
 
         <div className="space-y-6">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
             <h2 className="text-lg font-semibold">Plan details</h2>
 
             <ul className="mt-4 space-y-2 text-sm text-zinc-300">
-              {!isAdmin && user.plan === 'starter' && <li>10 posts maximum</li>}
-              {(isAdmin || user.plan !== 'starter') && (
+              {!isAdmin && user.plan === "starter" && (
+                <li>{starterLimit} posts maximum</li>
+              )}
+
+              {!isAdmin && user.plan === "pro" && (
+                <li>{PLAN_LIMITS.pro} posts included</li>
+              )}
+
+              {!isAdmin && user.plan === "agency" && (
+                <li>{PLAN_LIMITS.agency} posts included</li>
+              )}
+
+              {isAdmin && (
                 <li className="text-emerald-300">✓ Unlimited posts</li>
               )}
-              {(isAdmin || user.plan === 'agency') && (
+
+              {(isAdmin || user.plan === "agency") && (
                 <li className="text-emerald-300">✓ LinkedIn enabled</li>
               )}
-              {!isAdmin && user.plan !== 'agency' && (
+
+              {!isAdmin && user.plan !== "agency" && (
                 <li className="text-zinc-400">LinkedIn: Agency only</li>
               )}
-              <li className="text-zinc-400">Payment handled via Dodo during launch</li>
+
+              <li className="text-zinc-400">
+                Payment handled via Dodo during launch
+              </li>
             </ul>
 
-            {!isAdmin && user.plan === 'starter' && (
+            {!isAdmin && user.plan === "starter" && (
               <Link
                 href="/#pricing"
                 className="mt-4 block rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold hover:bg-indigo-500"
@@ -111,7 +135,7 @@ export default async function DashboardPage() {
               </Link>
             )}
 
-            {!isAdmin && user.plan === 'pro' && (
+            {!isAdmin && user.plan === "pro" && (
               <Link
                 href="/#pricing"
                 className="mt-4 block rounded-lg border border-yellow-500/30 py-2 text-center text-sm text-yellow-300 hover:bg-white/5"
@@ -124,7 +148,7 @@ export default async function DashboardPage() {
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
             <h2 className="text-lg font-semibold">Saved posts</h2>
 
-            {postCount === 0 ? (
+            {user.posts.length === 0 ? (
               <p className="mt-3 text-sm text-zinc-400">No saved posts yet.</p>
             ) : (
               <div className="mt-4 space-y-3">
@@ -133,7 +157,7 @@ export default async function DashboardPage() {
                     key={post.id}
                     className="rounded-xl border border-white/10 bg-[#111118] p-4"
                   >
-                    <p className="text-sm text-white whitespace-pre-wrap">
+                    <p className="whitespace-pre-wrap text-sm text-white">
                       {post.content}
                     </p>
                   </div>
