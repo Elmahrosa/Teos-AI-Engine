@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { setSession } from "@/lib/session";
+import { sendWelcomeEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
@@ -39,29 +40,52 @@ export async function POST(req: Request) {
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password,10);
 
     const user = await db.user.create({
-      data: {
+      data:{
         name,
         email,
         passwordHash,
-        plan: "starter",
-        status: "active",
+        plan:"starter",
+        status:"active",
       },
     });
+
+    // Optional welcome email only if configured
+    if (process.env.RESEND_API_KEY) {
+      try {
+        await sendWelcomeEmail(
+          user.email,
+          user.name
+        );
+      } catch (emailError) {
+        console.error(
+          "WELCOME_EMAIL_FAILED",
+          emailError
+        );
+      }
+    }
 
     await setSession(user.email);
 
     return NextResponse.json({
-      success: true,
-      user: {
-        email: user.email,
-        plan: user.plan,
+      success:true,
+      user:{
+        email:user.email,
+        plan:user.plan,
       },
     });
-  } catch (error) {
-    console.error("[/api/auth/signup]", error);
-    return NextResponse.json({ error: "Signup failed" }, { status: 500 });
+
+  } catch(error){
+    console.error(
+      "[/api/auth/signup]",
+      error
+    );
+
+    return NextResponse.json(
+      { error:"Signup failed" },
+      { status:500 }
+    );
   }
 }
