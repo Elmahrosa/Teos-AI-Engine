@@ -3,23 +3,29 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  // directUrl is optional — only needed if your Neon plan uses connection pooling
-  // If you get "prisma generate" errors, also set DATABASE_URL_DIRECT in Vercel
-  // directUrl = env("DATABASE_URL_DIRECT")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String         @id @default(cuid())
-  email     String         @unique
-  name      String?
-  plan      String         @default("starter")
-  status    String         @default("trial")
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  posts     Post[]
-  billing   BillingEvent[]
+  id                 String         @id @default(cuid())
+  email              String         @unique
+  name               String?
+  passwordHash       String?
+  plan               String         @default("starter")
+  status             String         @default("trial")
+  planTier           String         @default("starter")
+  billingCycle       String         @default("free")
+  isLifetime         Boolean        @default(false)
+  dodoCustomerId     String?
+  dodoSubscriptionId String?
+  subscriptionStatus String?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  posts              Post[]
+  billing            BillingEvent[]
 }
 
 model Post {
