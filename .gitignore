@@ -6,3 +6,4 @@ prisma/dev.db
 .vercel
 .env*.local
 _backup_before_auth_fix/
+.env.backup
