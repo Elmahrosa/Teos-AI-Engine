@@ -7,9 +7,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const name = body?.name;
-    const email = body?.email;
-    const password = body?.password;
+    const name = String(body?.name || "").trim();
+    const email = String(body?.email || "").trim().toLowerCase();
+    const password = String(body?.password || "");
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -18,35 +18,58 @@ export async function POST(req: Request) {
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // check if user exists
-    const existing = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (existing) {
+    if (password.length < 6) {
       return NextResponse.json(
-        { error: "Account already exists" },
+        { error: "Password must be at least 6 characters" },
         { status: 400 }
       );
     }
 
-    // hash password
+    const db = prisma as any;
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // create user
-    const user = await prisma.user.create({
-      data: {
-        name: name.trim(),
-        email: normalizedEmail,
-        passwordHash: passwordHash,
-        plan: "starter",
+    let user = await db.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        plan: true,
+        passwordHash: true,
       },
     });
 
-    // set cookie
-    cookies().set("user_email", normalizedEmail, {
+    if (user && user.passwordHash) {
+      return NextResponse.json(
+        { error: "Account already exists. Please log in." },
+        { status: 409 }
+      );
+    }
+
+    if (user && !user.passwordHash) {
+      user = await db.user.update({
+        where: { email },
+        data: {
+          name,
+          passwordHash,
+          plan: user.plan || "starter",
+        },
+      });
+    }
+
+    if (!user) {
+      user = await db.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          plan: "starter",
+          status: "active",
+        },
+      });
+    }
+
+    cookies().set("user_email", email, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -62,10 +85,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error("[SIGNUP ERROR]", error);
-    return NextResponse.json(
-      { error: "Signup failed" },
-      { status: 500 }
-    );
+    console.error("[/api/auth/signup]", error);
+    return NextResponse.json({ error: "Signup failed" }, { status: 500 });
   }
 }
