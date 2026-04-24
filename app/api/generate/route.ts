@@ -1,181 +1,162 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import OpenAI from "openai";
-import { canGenerate, canUseLinkedIn } from "@/lib/limits";
-import { getSessionEmail } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { isAdminEmail } from "@/lib/auth";
-import { generateHashtags } from "@/lib/ai/generateHashtags";
-import { generateImage } from "@/lib/ai/generateImage";
-import {
-  getVisibilityScore,
-  getBestTime,
-  getSuggestedCTA,
-  getChecklist,
-} from "@/lib/ai/insights";
+import { getSessionEmail } from "@/lib/session";
 
-export const runtime = "nodejs";
-
-const schema = z.object({
-  prompt: z.string().min(3).max(500),
-  platform: z.enum(["x", "facebook", "instagram", "linkedin"]),
-  tone: z
-    .enum(["professional", "bold", "educational", "conversational"])
-    .default("professional"),
-  goal: z
-    .enum(["engagement", "authority", "sales", "community"])
-    .default("engagement"),
-});
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const parsed = schema.parse(body);
-
     const email = await getSessionEmail();
+
     if (!email) {
-      return NextResponse.json(
-        { error: "Please log in first" },
-        { status: 401 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: { posts: { select: { id: true } } },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    const isAdmin = isAdminEmail(email);
-
-    if (
-      parsed.platform === "linkedin" &&
-      !isAdmin &&
-      !canUseLinkedIn(user.plan)
-    ) {
-      return NextResponse.json(
-        { error: "LinkedIn requires Agency plan" },
-        { status: 403 }
-      );
-    }
-
-    const usedCount = user.posts.length;
-
-    if (!isAdmin && !canGenerate(user.plan, usedCount)) {
-      return NextResponse.json(
-        { error: "Starter plan limit reached.", upgrade: true },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Please log in first" }, { status: 401 });
     }
 
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: "Server missing AI configuration" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "OPENAI_API_KEY missing" }, { status: 500 });
     }
 
-    const promptText = `
-You are Teos AI Engine, an elite social media content strategist.
+    const body = await req.json();
+    const prompt = String(body.prompt || "").trim();
+    const platform = String(body.platform || "x");
+    const tone = String(body.tone || "professional");
+    const goal = String(body.goal || "engagement");
 
-Write one high-impact, ready-to-publish social media post.
+    if (!prompt) {
+      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    }
 
-Platform: ${parsed.platform}
-Topic: ${parsed.prompt}
-Goal: ${parsed.goal}
-Tone: ${parsed.tone}
-Audience: founders, creators, and growth-focused users
+    const db = prisma as any;
 
-Rules:
-- Output only the final post text
-- No extra labels
-- No markdown code fences
-- Make it concise, strong, and platform-appropriate
-`.trim();
-
-    const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      input: [
-        {
-          role: "system",
-          content:
-            "You are a high-conversion social media copywriter for founders, creators, startups, and agencies.",
-        },
-        {
-          role: "user",
-          content: promptText,
-        },
-      ],
+    const user = await db.user.findUnique({
+      where: { email },
+      include: { posts: true },
     });
 
-    const postText = response.output_text?.trim();
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-    if (!postText) {
+    const isAdmin = email === "aams1969@gmail.com";
+    const plan = user.plan || "starter";
+
+    if (!isAdmin && platform === "linkedin" && plan !== "agency") {
       return NextResponse.json(
-        { error: "Empty AI response." },
+        { error: "LinkedIn is Agency only" },
+        { status: 403 }
+      );
+    }
+
+    if (!isAdmin && plan === "starter" && user.posts.length >= 5) {
+      return NextResponse.json(
+        { error: "Starter limit reached. Upgrade to continue." },
+        { status: 403 }
+      );
+    }
+
+    const aiPrompt = `
+Create a social media post.
+
+Platform: ${platform}
+Tone: ${tone}
+Goal: ${goal}
+
+User request:
+${prompt}
+
+Return JSON only:
+{
+  "post": "...",
+  "hashtags": ["tag1","tag2","tag3"],
+  "visibilityScore": 85,
+  "bestTime": "Today at 7 PM",
+  "suggestedCTA": "...",
+  "checklist": ["Clear hook", "Strong CTA", "Platform optimized"]
+}
+`;
+
+    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are Teos AI Engine, a premium social media content strategist. Return valid JSON only.",
+          },
+          {
+            role: "user",
+            content: aiPrompt,
+          },
+        ],
+        temperature: 0.8,
+      }),
+    });
+
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      console.error("[OPENAI ERROR]", errText);
+      return NextResponse.json(
+        { error: "AI provider failed" },
         { status: 500 }
       );
     }
 
-    const hashtags = generateHashtags(parsed.prompt, parsed.platform);
+    const aiJson = await aiRes.json();
+    const raw = aiJson?.choices?.[0]?.message?.content || "";
 
-    let imageUrl: string | null = null;
+    let parsed: any;
     try {
-      const imageResult = await generateImage(parsed.platform, parsed.prompt);
-      imageUrl = imageResult?.url || null;
-    } catch (imageError) {
-      console.error("[/api/generate] image generation failed:", imageError);
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = {
+        post: raw || "Generated content unavailable.",
+        hashtags: ["TeosAI", "AIContent", "Launch"],
+        visibilityScore: 80,
+        bestTime: "Today at 7 PM",
+        suggestedCTA: "Try Teos AI Engine today.",
+        checklist: ["Platform optimized", "Clear CTA", "Readable format"],
+      };
     }
 
-    const visibilityScore = getVisibilityScore(postText, hashtags, parsed.goal);
+    const hashtags = Array.isArray(parsed.hashtags)
+      ? parsed.hashtags.map((h: string) => String(h).replace("#", ""))
+      : ["TeosAI", "AIContent"];
 
-    await prisma.post.create({
+    const saved = await db.post.create({
       data: {
         userId: user.id,
-        prompt: parsed.prompt,
-        platform: parsed.platform,
-        content: postText,
-        hashtags: JSON.stringify(hashtags),
-        imageUrl,
+        platform,
+        prompt,
+        content: String(parsed.post || ""),
+        hashtags: hashtags.join(","),
       },
     });
 
     return NextResponse.json({
       success: true,
-      plan: isAdmin ? "founder" : user.plan,
-      used: usedCount + 1,
-      post: postText,
+      plan,
+      used: user.posts.length + 1,
+      post: saved.content,
       hashtags,
-      imageUrl,
+      imageUrl: null,
       insights: {
-        visibilityScore,
-        bestTime: getBestTime(parsed.platform),
-        suggestedCTA: getSuggestedCTA(parsed.goal),
-        checklist: getChecklist(parsed.platform, parsed.goal),
+        visibilityScore: Number(parsed.visibilityScore || 80),
+        bestTime: String(parsed.bestTime || "Today at 7 PM"),
+        suggestedCTA: String(parsed.suggestedCTA || "Try Teos AI Engine today."),
+        checklist: Array.isArray(parsed.checklist)
+          ? parsed.checklist
+          : ["Clear hook", "Strong CTA", "Platform optimized"],
       },
     });
   } catch (error) {
-    console.error("[/api/generate] error:", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid request." },
-        { status: 400 }
-      );
-    }
-
+    console.error("[/api/generate]", error);
     return NextResponse.json(
-      { error: "Generation failed." },
+      { error: "Generation failed server-side" },
       { status: 500 }
     );
   }
