@@ -40,8 +40,8 @@ export default function PostGenerator({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+  async function handleGenerate() {
+    if (!prompt.trim() || loading) return;
 
     setLoading(true);
     setError(null);
@@ -51,52 +51,63 @@ export default function PostGenerator({
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
+        credentials: "include",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
         },
         body: JSON.stringify({
-          prompt,
+          prompt: prompt.trim(),
           platform,
           tone,
           goal,
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = {};
+      }
 
       if (!res.ok) {
-        setError(data?.error || "Generation failed.");
+        setError(data?.error || `Generation failed (${res.status})`);
         return;
       }
 
-      setResult(data);
+      setResult(data as Generated);
     } catch (err) {
-      setError("Generation failed.");
+      console.error("[PostGenerator]", err);
+      setError("Generation request failed.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const fullCaption = result
     ? `${result.post}\n\n${result.hashtags.map((h) => `#${h}`).join(" ")}`
     : "";
 
-  const copyToClipboard = async () => {
+  async function copyToClipboard() {
     if (!result) return;
     await navigator.clipboard.writeText(fullCaption);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }
 
-  const shareToX = () => {
+  function shareToX() {
     if (!result) return;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullCaption)}`,
       "_blank"
     );
-  };
+  }
 
-  const shareToLinkedIn = () => {
+  function shareToLinkedIn() {
     if (!result) return;
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
@@ -104,9 +115,9 @@ export default function PostGenerator({
       )}`,
       "_blank"
     );
-  };
+  }
 
-  const shareToFacebook = () => {
+  function shareToFacebook() {
     if (!result) return;
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
@@ -114,15 +125,15 @@ export default function PostGenerator({
       )}&quote=${encodeURIComponent(fullCaption)}`,
       "_blank"
     );
-  };
+  }
 
-  const openInstagramHelper = async () => {
+  async function openInstagramHelper() {
     if (!result) return;
     await navigator.clipboard.writeText(fullCaption);
     window.open("https://www.instagram.com/", "_blank");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }
 
   const isLinkedInBlocked =
     platform === "linkedin" && !isAdmin && plan !== "agency";
@@ -207,43 +218,19 @@ export default function PostGenerator({
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 relative group">
               <div className="flex gap-2 mb-4 flex-wrap">
-                <button
-                  onClick={shareToX}
-                  className="px-3 py-2 bg-black rounded-lg border border-white/10 hover:bg-zinc-800 transition text-sm text-white"
-                  title="Post to X"
-                >
+                <button onClick={shareToX} className="px-3 py-2 bg-black rounded-lg border border-white/10 hover:bg-zinc-800 transition text-sm text-white">
                   X
                 </button>
-
-                <button
-                  onClick={shareToLinkedIn}
-                  className="px-3 py-2 bg-[#0077b5] rounded-lg hover:opacity-80 transition text-sm text-white"
-                  title="Post to LinkedIn"
-                >
+                <button onClick={shareToLinkedIn} className="px-3 py-2 bg-[#0077b5] rounded-lg hover:opacity-80 transition text-sm text-white">
                   LinkedIn
                 </button>
-
-                <button
-                  onClick={shareToFacebook}
-                  className="px-3 py-2 bg-[#1877f2] rounded-lg hover:opacity-80 transition text-sm text-white"
-                  title="Share to Facebook"
-                >
+                <button onClick={shareToFacebook} className="px-3 py-2 bg-[#1877f2] rounded-lg hover:opacity-80 transition text-sm text-white">
                   Facebook
                 </button>
-
-                <button
-                  onClick={openInstagramHelper}
-                  className="px-3 py-2 bg-pink-600 rounded-lg hover:opacity-80 transition text-sm text-white"
-                  title="Instagram Helper"
-                >
+                <button onClick={openInstagramHelper} className="px-3 py-2 bg-pink-600 rounded-lg hover:opacity-80 transition text-sm text-white">
                   Instagram
                 </button>
-
-                <button
-                  onClick={copyToClipboard}
-                  className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 ml-auto transition"
-                  title="Copy"
-                >
+                <button onClick={copyToClipboard} className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 ml-auto transition">
                   {copied ? (
                     <CheckCircle className="w-4 h-4 text-green-500" />
                   ) : (
@@ -267,23 +254,11 @@ export default function PostGenerator({
 
             {result.imageUrl && (
               <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group bg-zinc-900">
-                <img
-                  src={result.imageUrl}
-                  className="w-full object-contain max-h-[400px]"
-                  alt="AI Visual"
-                />
+                <img src={result.imageUrl} className="w-full object-contain max-h-[400px]" alt="AI Visual" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
-                  <a
-                    href={result.imageUrl}
-                    download
-                    target="_blank"
-                    className="bg-white text-black px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-200 transition"
-                  >
+                  <a href={result.imageUrl} download target="_blank" className="bg-white text-black px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-200 transition">
                     <Download className="w-5 h-5" /> Download Image
                   </a>
-                  <p className="text-[10px] text-white/70">
-                    Right-click if download doesn't trigger
-                  </p>
                 </div>
               </div>
             )}
@@ -312,10 +287,7 @@ export default function PostGenerator({
               </h4>
               <ul className="space-y-3">
                 {result.insights.checklist.map((item) => (
-                  <li
-                    key={item}
-                    className="flex gap-3 text-xs text-zinc-400"
-                  >
+                  <li key={item} className="flex gap-3 text-xs text-zinc-400">
                     <CheckCircle className="w-4 h-4 text-indigo-500 shrink-0" />
                     {item}
                   </li>
