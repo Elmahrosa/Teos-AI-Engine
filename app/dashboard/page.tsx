@@ -92,10 +92,7 @@ export default async function DashboardPage() {
                 <div
                   className="h-full rounded-full bg-indigo-500"
                   style={{
-                    width: `${Math.min(
-                      (postCount / starterLimit) * 100,
-                      100
-                    )}%`,
+                    width: `${Math.min((postCount / starterLimit) * 100, 100)}%`,
                   }}
                 />
               </div>
@@ -153,7 +150,7 @@ export default async function DashboardPage() {
               )}
 
               <li className="text-zinc-400">
-                Payment handled via Dodo during launch
+                Payment handled via Dodo or Pi launch activation
               </li>
             </ul>
 
@@ -174,6 +171,13 @@ export default async function DashboardPage() {
                 Upgrade to Agency — $69/month
               </Link>
             )}
+
+            <Link
+              href="/pay/pi"
+              className="mt-3 block rounded-lg border border-purple-500/30 py-2 text-center text-sm font-semibold text-purple-300 hover:bg-purple-500/10"
+            >
+              π Pay with Pi / Request Activation
+            </Link>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -187,12 +191,19 @@ export default async function DashboardPage() {
                 Create new user account
               </Link>
 
-              <a
-                href="mailto:support@teosegypt.com?subject=Teos AI Engine Account Recovery"
+              <Link
+                href="/forgot-password"
                 className="block rounded-lg border border-purple-500/30 px-4 py-2 text-center font-semibold text-purple-300 hover:bg-purple-500/10"
               >
-                Recover account by email
-              </a>
+                Recover account / reset password
+              </Link>
+
+              <Link
+                href="/pay/pi"
+                className="block rounded-lg border border-purple-500/30 px-4 py-2 text-center font-semibold text-purple-300 hover:bg-purple-500/10"
+              >
+                π Pi payment activation
+              </Link>
 
               {isAdmin && (
                 <Link
