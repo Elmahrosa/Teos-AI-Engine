@@ -1,163 +1,208 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { getSessionEmail } from "@/lib/session";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/session";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+const PRIMARY_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const FALLBACK_MODEL = "gpt-4o-mini";
+
+function jsonError(message: string, status = 500, details?: string) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: message,
+      details: details || null,
+    },
+    { status }
+  );
+}
+
+async function callOpenAI(prompt: string, model: string) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.8,
+      max_tokens: 900,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are Teos AI Engine. Generate high-converting social media content. Return clean JSON only.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  const raw = await res.text();
+
+  if (!res.ok) {
+    console.error("OPENAI_ERROR", {
+      model,
+      status: res.status,
+      body: raw,
+    });
+
+    throw new Error(`OpenAI ${res.status}: ${raw}`);
+  }
+
+  return JSON.parse(raw);
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const email = await getSessionEmail();
-
-    if (!email) {
-      return NextResponse.json({ error: "Please log in first" }, { status: 401 });
-    }
-
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: "OPENAI_API_KEY missing" }, { status: 500 });
+      console.error("OPENAI_MISSING_KEY");
+      return jsonError("OpenAI API key is missing on server.", 500);
     }
 
-    const body = await req.json();
-    const prompt = String(body.prompt || "").trim();
-    const platform = String(body.platform || "x");
-    const tone = String(body.tone || "professional");
-    const goal = String(body.goal || "engagement");
+    const sessionUser = await getSessionUser();
 
-    if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    if (!sessionUser?.email) {
+      return jsonError("Unauthorized. Please log in again.", 401);
     }
 
-    const db = prisma as any;
-
-    const user = await db.user.findUnique({
-      where: { email },
-      include: { posts: true },
+    const user = await prisma.user.findUnique({
+      where: { email: sessionUser.email },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return jsonError("User not found.", 404);
     }
 
-    const isAdmin = email === "aams1969@gmail.com";
+    const body = await req.json();
+
+    const topic = body.topic || body.prompt || "";
+    const platform = body.platform || "X";
+    const tone = body.tone || "Professional";
+    const goal = body.goal || "Engagement";
+
+    if (!topic.trim()) {
+      return jsonError("Please enter a topic or prompt.", 400);
+    }
+
     const plan = user.plan || "starter";
+    const used = user.postsUsed || 0;
 
-    if (!isAdmin && platform === "linkedin" && plan !== "agency") {
-      return NextResponse.json(
-        { error: "LinkedIn is Agency only" },
-        { status: 403 }
-      );
+    const canUseLinkedIn =
+      plan === "agency" ||
+      plan === "agency_yearly" ||
+      plan === "agency_lifetime" ||
+      plan === "founder";
+
+    if (platform.toLowerCase() === "linkedin" && !canUseLinkedIn) {
+      return jsonError("LinkedIn is unlocked on Agency plan only.", 403);
     }
 
-    if (!isAdmin && plan === "starter" && user.posts.length >= 5) {
-      return NextResponse.json(
-        { error: "Starter limit reached. Upgrade to continue." },
-        { status: 403 }
-      );
+    if (plan === "starter" && used >= 5) {
+      return jsonError("Starter limit reached. Please upgrade.", 403);
     }
 
     const aiPrompt = `
 Create a social media post.
 
+Topic: ${topic}
 Platform: ${platform}
 Tone: ${tone}
 Goal: ${goal}
 
-User request:
-${prompt}
-
-Return JSON only:
+Return JSON only with this exact shape:
 {
-  "post": "...",
-  "hashtags": ["tag1","tag2","tag3"],
-  "visibilityScore": 85,
-  "bestTime": "Today at 7 PM",
-  "suggestedCTA": "...",
-  "checklist": ["Clear hook", "Strong CTA", "Platform optimized"]
+  "post": "string",
+  "hashtags": ["tag1", "tag2", "tag3"],
+  "insights": {
+    "visibilityScore": 85,
+    "bestTime": "string",
+    "suggestedCTA": "string",
+    "checklist": ["string", "string", "string"]
+  }
 }
 `;
 
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are Teos AI Engine, a premium social media content strategist. Return valid JSON only.",
-          },
-          {
-            role: "user",
-            content: aiPrompt,
-          },
-        ],
-        temperature: 0.8,
-      }),
-    });
+    let aiData;
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("[OPENAI ERROR]", errText);
-      return NextResponse.json(
-        { error: "AI provider failed" },
-        { status: 500 }
-      );
-    }
-
-    const aiJson = await aiRes.json();
-    const raw = aiJson?.choices?.[0]?.message?.content || "";
-
-    let parsed: any;
     try {
-      parsed = JSON.parse(raw);
-    } catch {
-      parsed = {
-        post: raw || "Generated content unavailable.",
-        hashtags: ["TeosAI", "AIContent", "Launch"],
-        visibilityScore: 80,
-        bestTime: "Today at 7 PM",
-        suggestedCTA: "Try Teos AI Engine today.",
-        checklist: ["Platform optimized", "Clear CTA", "Readable format"],
-      };
+      aiData = await callOpenAI(aiPrompt, PRIMARY_MODEL);
+    } catch (firstError: any) {
+      console.error("PRIMARY_MODEL_FAILED", {
+        model: PRIMARY_MODEL,
+        error: firstError?.message,
+      });
+
+      if (PRIMARY_MODEL !== FALLBACK_MODEL) {
+        aiData = await callOpenAI(aiPrompt, FALLBACK_MODEL);
+      } else {
+        throw firstError;
+      }
     }
 
-    const hashtags = Array.isArray(parsed.hashtags)
-      ? parsed.hashtags.map((h: string) => String(h).replace("#", ""))
-      : ["TeosAI", "AIContent"];
+    const content = aiData?.choices?.[0]?.message?.content;
 
-    const saved = await db.post.create({
+    if (!content) {
+      console.error("OPENAI_EMPTY_CONTENT", aiData);
+      return jsonError("AI returned empty content.", 502);
+    }
+
+    let parsed;
+
+    try {
+      parsed = JSON.parse(content);
+    } catch (parseError) {
+      console.error("OPENAI_JSON_PARSE_FAILED", content);
+      return jsonError("AI returned invalid JSON.", 502, content);
+    }
+
+    const post = parsed.post || "";
+    const hashtags = Array.isArray(parsed.hashtags) ? parsed.hashtags : [];
+
+    const insights = {
+      visibilityScore: parsed.insights?.visibilityScore ?? 80,
+      bestTime: parsed.insights?.bestTime ?? "Today at peak audience time",
+      suggestedCTA: parsed.insights?.suggestedCTA ?? "Ask your audience to take action.",
+      checklist: Array.isArray(parsed.insights?.checklist)
+        ? parsed.insights.checklist
+        : ["Clear hook", "Strong CTA", "Relevant hashtags"],
+    };
+
+    await prisma.user.update({
+      where: { id: user.id },
       data: {
-        userId: user.id,
-        platform,
-        prompt,
-        content: String(parsed.post || ""),
-        hashtags: hashtags.join(","),
+        postsUsed: {
+          increment: 1,
+        },
       },
     });
 
     return NextResponse.json({
       success: true,
       plan,
-      used: user.posts.length + 1,
-      post: saved.content,
+      used: used + 1,
+      post,
       hashtags,
       imageUrl: null,
-      insights: {
-        visibilityScore: Number(parsed.visibilityScore || 80),
-        bestTime: String(parsed.bestTime || "Today at 7 PM"),
-        suggestedCTA: String(parsed.suggestedCTA || "Try Teos AI Engine today."),
-        checklist: Array.isArray(parsed.checklist)
-          ? parsed.checklist
-          : ["Clear hook", "Strong CTA", "Platform optimized"],
-      },
+      insights,
     });
-  } catch (error) {
-    console.error("[/api/generate]", error);
-    return NextResponse.json(
-      { error: "Generation failed server-side" },
-      { status: 500 }
+  } catch (error: any) {
+    console.error("GENERATE_ROUTE_FATAL", {
+      message: error?.message,
+      stack: error?.stack,
+    });
+
+    return jsonError(
+      "AI provider failed.",
+      502,
+      process.env.NODE_ENV === "production" ? "Check Vercel function logs." : error?.message
     );
   }
 }
