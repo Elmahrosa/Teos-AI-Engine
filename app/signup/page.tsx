@@ -3,30 +3,34 @@
 import { useState } from "react";
 
 export default function SignupPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [name,setName]=useState("");
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
+
+    if (loading) return;
+
     setLoading(true);
+    setError("");
 
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
-        credentials: "include",   // ensures cookies are persisted
-        cache: "no-store",        // avoids cached responses
+        credentials: "include",
+        cache: "no-store",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":"application/json",
+          "Cache-Control":"no-cache"
         },
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim().toLowerCase(),
-          password,
-        }),
+          password
+        })
       });
 
       const data = await res.json();
@@ -37,8 +41,11 @@ export default function SignupPage() {
         return;
       }
 
-      window.location.href = "/dashboard";
-    } catch {
+      // hard redirect after cookie set
+      window.location.assign("/dashboard");
+
+    } catch (err) {
+      console.error(err);
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
@@ -47,47 +54,60 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl">
-        <h1 className="text-3xl font-bold tracking-tight">Create account</h1>
+
+        <h1 className="text-3xl font-bold tracking-tight">
+          Create account
+        </h1>
 
         <p className="mt-2 text-sm text-zinc-400">
           Start free — create your account.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+
           <div>
-            <label className="mb-2 block text-sm text-zinc-300">Name</label>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Name
+            </label>
+
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e)=>setName(e.target.value)}
               placeholder="Your name"
-              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
               required
+              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-zinc-300">Email</label>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Email
+            </label>
+
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e)=>setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
               required
+              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-zinc-300">Password</label>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Password
+            </label>
+
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e)=>setPassword(e.target.value)}
               placeholder="Create a password"
-              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
-              required
               minLength={6}
+              required
+              className="w-full rounded-xl border border-white/10 bg-[#111118] px-4 py-3 text-white outline-none focus:border-indigo-500"
             />
           </div>
 
@@ -109,7 +129,9 @@ export default function SignupPage() {
           >
             {loading ? "Creating account..." : "Create free account"}
           </button>
+
         </form>
+
       </div>
     </main>
   );
