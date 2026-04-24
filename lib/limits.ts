@@ -1,7 +1,7 @@
 export const PLAN_LIMITS = {
   starter: 5,
-  pro: 100,
-  agency: Infinity,
+  pro: 50,
+  agency: 200,
 } as const;
 
 export type PlanName = keyof typeof PLAN_LIMITS;
@@ -9,10 +9,11 @@ export type PlanName = keyof typeof PLAN_LIMITS;
 export function normalizePlan(plan?: string | null): PlanName {
   if (!plan) return "starter";
 
-  const p = plan.toLowerCase();
+  const p = plan.trim().toLowerCase();
 
   if (p === "pro") return "pro";
   if (p === "agency") return "agency";
+
   return "starter";
 }
 
@@ -22,11 +23,12 @@ export function canGenerate(
   isAdmin = false,
   lifetime = false
 ): boolean {
-  if (isAdmin) return true;
-  if (lifetime) return true;
+  if (isAdmin || lifetime) return true;
 
   const normalized = normalizePlan(plan);
-  return usedCount < PLAN_LIMITS[normalized];
+  const limit = PLAN_LIMITS[normalized];
+
+  return usedCount < limit;
 }
 
 export function canUseLinkedIn(
@@ -34,11 +36,9 @@ export function canUseLinkedIn(
   isAdmin = false,
   lifetime = false
 ): boolean {
-  if (isAdmin) return true;
-  if (lifetime) return true;
+  if (isAdmin || lifetime) return true;
 
-  const normalized = normalizePlan(plan);
-  return normalized === "agency";
+  return normalizePlan(plan) === "agency";
 }
 
 export function getRemainingPosts(
@@ -47,12 +47,24 @@ export function getRemainingPosts(
   isAdmin = false,
   lifetime = false
 ): number | null {
-  if (isAdmin) return null;
-  if (lifetime) return null;
+  if (isAdmin || lifetime) return null;
 
   const normalized = normalizePlan(plan);
   const limit = PLAN_LIMITS[normalized];
 
-  if (!Number.isFinite(limit)) return null;
   return Math.max(0, limit - usedCount);
+}
+
+export function isAtLimit(
+  plan?: string | null,
+  usedCount = 0,
+  isAdmin = false,
+  lifetime = false
+): boolean {
+  return !canGenerate(
+    plan,
+    usedCount,
+    isAdmin,
+    lifetime
+  );
 }

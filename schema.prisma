@@ -11,39 +11,38 @@ model User {
   id                 String         @id @default(cuid())
   email              String         @unique
   name               String?
-  passwordHash       String?
   plan               String         @default("starter")
   status             String         @default("trial")
-  planTier           String         @default("starter")
-  billingCycle       String         @default("free")
-  isLifetime         Boolean        @default(false)
-  dodoCustomerId     String?
-  dodoSubscriptionId String?
-  subscriptionStatus String?
-  resetToken         String?
-  resetTokenExpiry   DateTime?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
-  posts              Post[]
+  billingCycle       String         @default("free")
+  dodoCustomerId     String?
+  dodoSubscriptionId String?
+  isLifetime         Boolean        @default(false)
+  passwordHash       String?
+  planTier           String         @default("starter")
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  subscriptionStatus String?
   billing            BillingEvent[]
+  posts              Post[]
 }
 
 model Post {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   platform  String
   prompt    String
   content   String
   hashtags  String
   imageUrl  String?
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model BillingEvent {
   id        String   @id @default(cuid())
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   email     String?
   provider  String
   plan      String
@@ -52,4 +51,5 @@ model BillingEvent {
   txHash    String?
   status    String   @default("pending")
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

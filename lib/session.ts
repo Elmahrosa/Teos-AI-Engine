@@ -1,56 +1,60 @@
 import { cookies } from "next/headers";
-import crypto from "crypto";
+import { SignJWT, jwtVerify } from "jose";
 
-const COOKIE_NAME = "teos_session";
+const COOKIE_NAME="teos_session";
 
-function sign(value: string) {
-  const secret = process.env.SESSION_SECRET || "dev_session_secret_change_me";
-  return crypto.createHmac("sha256", secret).update(value).digest("hex");
+if(!process.env.SESSION_SECRET){
+ throw new Error("SESSION_SECRET missing");
 }
 
-export async function createSession(email: string) {
-  const normalizedEmail = email.trim().toLowerCase();
-  const payload = Buffer.from(normalizedEmail).toString("base64url");
-  const signature = sign(payload);
-  const token = `${payload}.${signature}`;
+const secret = new TextEncoder().encode(
+ process.env.SESSION_SECRET
+);
 
-  const store = await cookies();
-  store.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
+export async function setSession(email:string){
+ const token = await new SignJWT({email})
+   .setProtectedHeader({alg:"HS256"})
+   .setIssuedAt()
+   .setExpirationTime("7d")
+   .sign(secret);
+
+ const cookieStore = await cookies();
+
+ cookieStore.set(COOKIE_NAME,token,{
+   httpOnly:true,
+   secure:process.env.NODE_ENV==="production",
+   sameSite:"lax",
+   path:"/",
+   maxAge:60*60*24*7
+ });
 }
 
-export async function destroySession() {
-  const store = await cookies();
-  store.set(COOKIE_NAME, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
+export async function getSessionEmail(){
+ try{
+   const cookieStore=await cookies();
+   const token=cookieStore.get(COOKIE_NAME)?.value;
+
+   if(!token) return null;
+
+   const {payload}=await jwtVerify(
+      token,
+      secret
+   );
+
+   return typeof payload.email==="string"
+      ? payload.email
+      : null;
+
+ }catch{
+   return null;
+ }
 }
 
-export async function clearSession() {
-  await destroySession();
-}
+export async function clearSession(){
+ const cookieStore=await cookies();
 
-export async function getSessionEmail() {
-  const store = await cookies();
-  const token = store.get(COOKIE_NAME)?.value;
-  if (!token) return null;
-
-  const [payload, signature] = token.split(".");
-  if (!payload || !signature) return null;
-  if (sign(payload) !== signature) return null;
-
-  try {
-    return Buffer.from(payload, "base64url").toString("utf8").toLowerCase();
-  } catch {
-    return null;
-  }
+ cookieStore.set(COOKIE_NAME,"",{
+   path:"/",
+   maxAge:0
+ });
 }
