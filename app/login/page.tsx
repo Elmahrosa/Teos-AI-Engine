@@ -16,6 +16,8 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "include",   // ensures cookies are persisted
+        cache: "no-store",        // avoids cached responses
         headers: {
           "Content-Type": "application/json",
         },
@@ -73,11 +75,11 @@ export default function LoginPage() {
             />
           </div>
 
-          {error ? (
+          {error && (
             <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
               {error}
             </div>
-          ) : null}
+          )}
 
           <button
             type="submit"

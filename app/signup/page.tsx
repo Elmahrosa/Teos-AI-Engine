@@ -17,6 +17,8 @@ export default function SignupPage() {
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
+        credentials: "include",   // ensures cookies are persisted
+        cache: "no-store",        // avoids cached responses
         headers: {
           "Content-Type": "application/json",
         },
@@ -52,7 +54,6 @@ export default function SignupPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          
           <div>
             <label className="mb-2 block text-sm text-zinc-300">Name</label>
             <input
