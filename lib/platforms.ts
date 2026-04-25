@@ -4,7 +4,7 @@ export const PLATFORMS: Record<Platform, {
   icon: string;
   label: string;
   style: string;
-  hashtags: (min: number, max: number) => number;
+ hashtags: () => number;
 }> = {
   x: {
     icon: '𝕏',
