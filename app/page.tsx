@@ -285,7 +285,6 @@ function ImageGeneratorTab({ postText }: { postText: string }) {
 
       {done && (
         <div className="fadeUp rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(201,168,76,.2)" }}>
-          {/* Simulated image preview */}
           <div className="relative flex items-center justify-center"
             style={{ background: "linear-gradient(135deg,#0D0D0D,#1A0D30)", minHeight: "220px" }}>
             <div className="text-center px-8">
@@ -298,7 +297,6 @@ function ImageGeneratorTab({ postText }: { postText: string }) {
                 ✓ Generated · Ready to download
               </div>
             </div>
-            {/* Decorative hieroglyph border */}
             <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent)" }} />
             <div className="absolute inset-x-0 bottom-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent)" }} />
           </div>
@@ -353,7 +351,6 @@ function ShareRow({ postText }: { postText: string }) {
             <Icon s={12} /> {label}
           </a>
         ))}
-        {/* Instagram — no web intent, show copy */}
         <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs syne transition-all hover:opacity-80"
           style={{ background: "rgba(225,48,108,.1)", border: "1px solid rgba(225,48,108,.25)", color: "#E1306C" }}>
@@ -485,7 +482,7 @@ export default function HomePage() {
           <span className="syne font-800 text-sm tracking-widest uppercase" style={{ color: "#C9A84C" }}>TEOS AI</span>
         </Link>
         <div className="hidden md:flex items-center gap-6 text-xs syne tracking-widest uppercase" style={{ color: "rgba(255,255,255,.5)" }}>
-          {[["Features", "#features"], ["Pricing", "#pricing"], ["Demo", "#demo"], ["Pi Launch", "#pi-launch"]].map(([l, h]) => (
+          {[["Features", "#features"], ["Pricing", "#pricing"], ["Demo", "#demo"], ["Watch", "#watch-demo"], ["Pi Launch", "#pi-launch"]].map(([l, h]) => (
             <a key={l} href={h} className="hover:text-white transition-colors">{l}</a>
           ))}
         </div>
@@ -500,7 +497,7 @@ export default function HomePage() {
         {menuOpen && (
           <div className="absolute top-full left-0 right-0 py-5 px-6 flex flex-col gap-4"
             style={{ background: "rgba(5,5,5,.98)", borderBottom: "1px solid rgba(201,168,76,.1)" }}>
-            {[["Features", "#features"], ["Pricing", "#pricing"], ["Demo", "#demo"], ["Pi Launch", "#pi-launch"], ["Login", "/login"]].map(([l, h]) => (
+            {[["Features", "#features"], ["Pricing", "#pricing"], ["Demo", "#demo"], ["Watch", "#watch-demo"], ["Pi Launch", "#pi-launch"], ["Login", "/login"]].map(([l, h]) => (
               <a key={l} href={h} className="syne text-xs tracking-widest uppercase" style={{ color: "rgba(255,255,255,.7)" }} onClick={() => setMenuOpen(false)}>{l}</a>
             ))}
             <Link href="/signup" className="btn-primary syne text-xs tracking-widest uppercase px-5 py-3 rounded-full text-center mt-1" onClick={() => setMenuOpen(false)}>Get Started Free</Link>
@@ -517,14 +514,12 @@ export default function HomePage() {
         <div className="orb w-[500px] h-[500px] top-10 -left-40" style={{ background: "#7B4FBF" }} />
         <div className="orb w-[400px] h-[400px] bottom-10 -right-20" style={{ background: "#C9A84C" }} />
 
-        {/* Launch ribbon */}
         <div className="fu1 mb-6 px-5 py-2 rounded-full border text-xs syne tracking-widest flex items-center gap-2"
           style={{ borderColor: "rgba(201,168,76,.4)", background: "rgba(201,168,76,.06)", color: "#C9A84C" }}>
           <span>🔥</span><span>First 50 Users Lifetime Offer Open</span>
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 live-dot" />
         </div>
 
-        {/* Logo */}
         <div className="float relative mb-10 fadeUp">
           <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle,rgba(123,79,191,.25) 0%,transparent 70%)", transform: "scale(1.8)", filter: "blur(20px)" }} />
           <img
@@ -536,7 +531,6 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Pi badge */}
         <div className="fu1 mb-6 px-4 py-2 rounded-full border text-xs syne tracking-widest flex items-center gap-2"
           style={{ borderColor: "rgba(201,168,76,.25)", background: "rgba(201,168,76,.04)", color: "rgba(255,255,255,.6)" }}>
           <span style={{ color: "#C9A84C", fontWeight: 700 }}>π</span>
@@ -562,7 +556,7 @@ export default function HomePage() {
           <Link href="/signup" className="btn-primary syne tracking-widest uppercase text-sm px-9 py-4 rounded-full flex items-center gap-2">
             <span>✦</span> Start Free — 5 Posts
           </Link>
-          <a href="#demo" className="btn-ghost syne tracking-widest uppercase text-sm px-9 py-4 rounded-full flex items-center gap-2">
+          <a href="#watch-demo" className="btn-ghost syne tracking-widest uppercase text-sm px-9 py-4 rounded-full flex items-center gap-2">
             <span>▶</span> Watch 90-sec Demo
           </a>
           <a href="/pay/pi" className="syne tracking-widest uppercase text-sm px-9 py-4 rounded-full flex items-center gap-2 transition-all"
@@ -572,7 +566,6 @@ export default function HomePage() {
         </div>
         <p className="fu5 text-xs syne tracking-widest" style={{ color: "rgba(255,255,255,.2)" }}>No credit card · Instant access · 5 free posts</p>
 
-        {/* Urgency seats bar */}
         <div className="fu5 mt-10 w-full max-w-sm">
           <div className="px-5 py-4 rounded-2xl" style={{ background: "rgba(201,168,76,.06)", border: "1px solid rgba(201,168,76,.15)" }}>
             <p className="text-xs syne tracking-widest uppercase text-center mb-3" style={{ color: "#C9A84C" }}>🔥 Lifetime Seats Filling Fast</p>
@@ -583,7 +576,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          HOT OFFERS — Lifetime (above fold urgency)
+          HOT OFFERS — Lifetime
       ══════════════════════════════════════════════════════════════════════ */}
       <section className="py-4 px-6" style={{ background: "#070707" }}>
         <div className="max-w-5xl mx-auto">
@@ -650,7 +643,6 @@ export default function HomePage() {
           </div>
 
           <div className="rounded-3xl overflow-hidden" style={{ border: "1px solid rgba(201,168,76,.2)", background: "#0A0A0A" }}>
-            {/* Window bar */}
             <div className="flex items-center gap-2 px-5 py-3.5 relative overflow-hidden"
               style={{ background: "#111", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
               <div className="w-3 h-3 rounded-full bg-red-500/60" />
@@ -660,7 +652,6 @@ export default function HomePage() {
               <div className="scan-line" />
             </div>
 
-            {/* Generator Tabs */}
             <div className="flex items-center gap-2 px-5 py-3" style={{ background: "#0D0D0D", borderBottom: "1px solid rgba(255,255,255,.04)" }}>
               {(["post", "image"] as const).map(tab => (
                 <button key={tab} onClick={() => setGeneratorTab(tab)}
@@ -676,10 +667,8 @@ export default function HomePage() {
             </div>
 
             <div className="p-6 md:p-8">
-              {/* ── POST GENERATOR TAB ── */}
               {generatorTab === "post" && (
                 <div className="space-y-6">
-                  {/* Input */}
                   <div>
                     <label className="text-xs syne tracking-widest uppercase mb-3 block" style={{ color: "#C9A84C" }}>
                       01 — Your Content Idea
@@ -692,7 +681,6 @@ export default function HomePage() {
                       onChange={e => setDemoInput(e.target.value)}
                       readOnly={demoStep > 0}
                     />
-                    {/* 7 platforms */}
                     <div className="flex gap-2 mt-2 flex-wrap">
                       {platforms.map(p => (
                         <button key={p} onClick={() => setSelectedPlatform(p)}
@@ -708,7 +696,6 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* Generate button */}
                   <button onClick={runDemo}
                     className="w-full py-3.5 rounded-xl syne text-sm font-700 tracking-widest uppercase flex items-center justify-center gap-2 transition-all duration-300"
                     style={{
@@ -722,10 +709,8 @@ export default function HomePage() {
                           : (<><span>↺</span> Try Another Idea</>)}
                   </button>
 
-                  {/* Output */}
                   {demoStep === 2 && (
                     <div className="space-y-5 fadeUp">
-                      {/* Before/After */}
                       <div className="grid md:grid-cols-2 gap-3">
                         <div className="rounded-xl p-4" style={{ background: "#111", border: "1px solid rgba(255,255,255,.06)" }}>
                           <div className="text-xs syne uppercase mb-2" style={{ color: "rgba(255,255,255,.2)" }}>❌ Before TEOS</div>
@@ -753,7 +738,6 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      {/* Generated post */}
                       <div>
                         <label className="text-xs syne tracking-widest uppercase mb-3 block" style={{ color: "#9B6FDF" }}>
                           02 — Generated Post ({selectedPlatform})
@@ -765,7 +749,6 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      {/* Score + CTA */}
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="rounded-xl p-5" style={{ background: "#0F0F0F", border: "1px solid rgba(201,168,76,.15)" }}>
                           <div className="text-xs syne tracking-widest uppercase mb-3" style={{ color: "#C9A84C" }}>03 — Visibility Score</div>
@@ -780,7 +763,7 @@ export default function HomePage() {
                         </div>
                         <div className="rounded-xl p-5" style={{ background: "#0F0F0F", border: "1px solid rgba(123,79,191,.2)" }}>
                           <div className="text-xs syne tracking-widest uppercase mb-3" style={{ color: "#9B6FDF" }}>04 — Suggested CTA</div>
-                          <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.7)" }}>"{demoCta}"</p>
+                          <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.7)" }}>&ldquo;{demoCta}&rdquo;</p>
                           <div className="mt-3 flex gap-2">
                             <button className="text-xs syne px-3 py-1.5 rounded-lg"
                               style={{ background: "rgba(201,168,76,.1)", color: "#C9A84C", border: "1px solid rgba(201,168,76,.2)" }}>
@@ -790,12 +773,10 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      {/* Share Row */}
                       <div className="rounded-xl p-5" style={{ background: "#0F0F0F", border: "1px solid rgba(255,255,255,.06)" }}>
                         <ShareRow postText={activePost} />
                       </div>
 
-                      {/* Action Bar */}
                       <div className="rounded-xl p-5" style={{ background: "#0F0F0F", border: "1px solid rgba(255,255,255,.06)" }}>
                         <div className="text-xs syne tracking-widest uppercase mb-3" style={{ color: "rgba(255,255,255,.3)" }}>Actions:</div>
                         <ActionBar
@@ -816,7 +797,6 @@ export default function HomePage() {
                 </div>
               )}
 
-              {/* ── IMAGE GENERATOR TAB ── */}
               {generatorTab === "image" && (
                 <ImageGeneratorTab postText={activePost} />
               )}
@@ -826,48 +806,61 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          VIDEO DEMO
+          TEOS82 FOUNDER DEMO — Loom Video
       ══════════════════════════════════════════════════════════════════════ */}
       <section id="watch-demo" className="py-24 px-6" style={{ background: "#070707" }}>
-        <div className="max-w-3xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center">
           <div className="inline-block px-4 py-1.5 rounded-full text-xs syne tracking-widest uppercase mb-6"
-            style={{ border: "1px solid var(--brd)", color: "#C9A84C" }}>Video Demo</div>
-          <h2 className="text-4xl md:text-5xl font-700 mb-4" style={{ letterSpacing: "-0.02em" }}>
-            Watch the 90-Second<br /><span className="shimmer-text">Product Walkthrough</span>
-          </h2>
-          <p className="text-sm syne mb-10" style={{ color: "rgba(255,255,255,.4)" }}>From signup to first post in under 2 minutes</p>
-
-          {/* SWAP inner div for <iframe src="YOUR_LOOM_URL" className="absolute inset-0 w-full h-full" frameBorder="0" allowFullScreen /> */}
-          <div className="relative rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(201,168,76,.25)", background: "#0A0A0A", minHeight: "360px" }}>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-8">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full border-2" style={{ borderColor: "rgba(201,168,76,.35)", animation: "pulse-ring 2s ease-out infinite" }} />
-                <div className="relative flex items-center justify-center rounded-full"
-                  style={{ width: "80px", height: "80px", background: "linear-gradient(135deg,#C9A84C,#7B4FBF)" }}>
-                  <span style={{ fontSize: "1.6rem", marginLeft: "5px" }}>▶</span>
-                </div>
-              </div>
-              <div className="text-center max-w-sm">
-                <p className="syne font-700 text-base mb-2" style={{ color: "rgba(255,255,255,.8)" }}>Founder Preview — Recording This Week</p>
-                <p className="text-xs syne leading-relaxed" style={{ color: "rgba(255,255,255,.35)" }}>
-                  See: idea → post → visibility score → publish in under 90 seconds.
-                </p>
-              </div>
-              <div className="flex gap-3 flex-wrap justify-center">
-                <a href="https://twitter.com/KING_TEOS" target="_blank" rel="noopener noreferrer"
-                  className="syne text-xs tracking-widest uppercase px-5 py-2 rounded-full"
-                  style={{ background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.2)", color: "#C9A84C" }}>
-                  Follow @KING_TEOS for Drop
-                </a>
-                <Link href="/signup" className="syne text-xs tracking-widest uppercase px-5 py-2 rounded-full btn-primary">
-                  Try It Live Instead →
-                </Link>
-              </div>
-            </div>
-            {[["top-4 left-4", "border-t-2 border-l-2 rounded-tl"], ["top-4 right-4", "border-t-2 border-r-2 rounded-tr"], ["bottom-4 left-4", "border-b-2 border-l-2 rounded-bl"], ["bottom-4 right-4", "border-b-2 border-r-2 rounded-br"]].map(([p, b]) => (
-              <div key={p} className={`absolute ${p} w-8 h-8 ${b}`} style={{ borderColor: "rgba(201,168,76,.2)" }} />
-            ))}
+            style={{ border: "1px solid var(--brd)", color: "#C9A84C" }}>
+            Founder Live Demo • TEOS82
           </div>
+
+          <h2 className="text-4xl md:text-6xl font-700 mb-5" style={{ letterSpacing: "-0.02em" }}>
+            Watch TEOS AI Engine
+            <br />
+            <span className="shimmer-text">Turn Ideas Into Reach</span>
+          </h2>
+
+          <p className="max-w-2xl mx-auto mb-10 text-sm md:text-base syne"
+            style={{ color: "rgba(255,255,255,.55)" }}>
+            Real founder walkthrough from Egypt. Generate posts, score visibility, optimize and publish.
+          </p>
+
+          <div style={{
+            position: "relative",
+            paddingBottom: "56.25%",
+            height: 0,
+            overflow: "hidden",
+            borderRadius: "28px",
+            boxShadow: "0 30px 90px rgba(123,79,191,.30)",
+            border: "1px solid rgba(201,168,76,.25)",
+            background: "#050505"
+          }}>
+            <iframe
+              src="https://www.loom.com/embed/743e3e9aa180475388c1d1c894089603"
+              frameBorder="0"
+              allowFullScreen
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+            />
+          </div>
+
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link href="/signup" className="btn-primary syne tracking-widest uppercase text-sm px-8 py-4 rounded-full">
+              Start Free — 5 Posts
+            </Link>
+            <a href="https://dodo.pe/relh2gradr9" target="_blank" rel="noopener noreferrer"
+              className="btn-ghost syne tracking-widest uppercase text-sm px-8 py-4 rounded-full">
+              Claim Lifetime $149
+            </a>
+            <Link href="/pay/pi" className="syne tracking-widest uppercase text-sm px-8 py-4 rounded-full"
+              style={{ background: "rgba(201,168,76,.08)", border: "1px solid rgba(201,168,76,.25)", color: "#C9A84C" }}>
+              π Pay with Pi
+            </Link>
+          </div>
+
+          <p className="text-xs syne mt-6" style={{ color: "rgba(255,255,255,.25)" }}>
+            TEOS82 Founder Demo • Built in Egypt 🇪🇬 • Make AI Great Again
+          </p>
         </div>
       </section>
 
@@ -1017,7 +1010,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Monthly */}
           {pricingTab === "monthly" && (
             <div className="grid md:grid-cols-3 gap-5">
               {MONTHLY_PLANS.map(plan => (
@@ -1043,7 +1035,6 @@ export default function HomePage() {
                       </li>
                     ))}
                   </ul>
-                  {/* Upgrade teaser on paid plans */}
                   {plan.style === "pop" && (
                     <div className="mb-6 px-4 py-3 rounded-xl text-xs syne" style={{ background: "rgba(123,79,191,.08)", border: "1px solid rgba(123,79,191,.2)" }}>
                       <div className="text-xs tracking-widest uppercase mb-1.5" style={{ color: "#9B6FDF" }}>Included in next upgrade:</div>
@@ -1075,7 +1066,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Yearly */}
           {pricingTab === "yearly" && (
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {YEARLY_PLANS.map(plan => (
@@ -1102,7 +1092,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Lifetime */}
           {pricingTab === "lifetime" && (
             <div className="grid md:grid-cols-2 gap-6">
               <div className="md:col-span-2 max-w-sm mx-auto w-full">
@@ -1144,7 +1133,6 @@ export default function HomePage() {
                       </li>
                     ))}
                   </ul>
-                  {/* Upgrade teaser */}
                   <div className="mb-6 px-4 py-3 rounded-xl" style={{ background: "rgba(123,79,191,.08)", border: "1px solid rgba(123,79,191,.2)" }}>
                     <div className="text-xs syne tracking-widest uppercase mb-1.5" style={{ color: "#9B6FDF" }}>Next upgrade includes:</div>
                     {["TikTok content generator", "Short-form video hooks", "AI reel / video scripts", "Image generation", "Social auto-publishing"].map(u => (
@@ -1165,6 +1153,7 @@ export default function HomePage() {
               ))}
             </div>
           )}
+
           <div className="text-center mt-8">
             <p className="text-xs syne" style={{ color: "rgba(255,255,255,.2)" }}>All plans: Pi Network · USDC · Card via Dodo Payments</p>
           </div>
@@ -1208,7 +1197,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          ROADMAP — What You're Buying Into
+          ROADMAP
       ══════════════════════════════════════════════════════════════════════ */}
       <section className="py-24 px-6" style={{ background: "#050505" }}>
         <div className="max-w-5xl mx-auto">
@@ -1382,7 +1371,7 @@ export default function HomePage() {
             </div>
             <div className="flex flex-col gap-2.5">
               <span className="text-xs syne tracking-widest uppercase" style={{ color: "rgba(255,255,255,.2)" }}>Navigate</span>
-              {[["Features", "#features"], ["Pricing", "#pricing"], ["Pi Launch", "#pi-launch"], ["Demo", "#demo"], ["Login", "/login"], ["Get Started", "/signup"]].map(([l, h]) => (
+              {[["Features", "#features"], ["Pricing", "#pricing"], ["Pi Launch", "#pi-launch"], ["Demo", "#demo"], ["Watch Demo", "#watch-demo"], ["Login", "/login"], ["Get Started", "/signup"]].map(([l, h]) => (
                 <a key={l} href={h} className="text-xs syne hover:text-white transition-colors"
                   style={{ color: l === "Get Started" ? "#C9A84C" : "rgba(255,255,255,.35)" }}>
                   {l}
