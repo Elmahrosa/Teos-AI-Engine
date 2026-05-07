@@ -1,19 +1,22 @@
 model User {
-  id                 String   @id @default(cuid())
+  id                 String         @id @default(cuid())
+  email              String         @unique
   name               String?
-  email              String   @unique
-  passwordHash       String?
-  plan               String   @default("starter")
-  planTier           String   @default("starter")
-  billingCycle       String   @default("free")
-  isLifetime         Boolean  @default(false)
+  plan               String         @default("starter")
+  status             String         @default("trial")
+  isAdmin            Boolean        @default(false)
+  postsUsed          Int            @default(0)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  billingCycle       String         @default("free")
   dodoCustomerId     String?
   dodoSubscriptionId String?
-  subscriptionStatus String?
+  isLifetime         Boolean        @default(false)
+  passwordHash       String?
+  planTier           String         @default("starter")
   resetToken         String?
   resetTokenExpiry   DateTime?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
+  subscriptionStatus String?
+  billing            BillingEvent[]
   posts              Post[]
 }

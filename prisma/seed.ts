@@ -7,16 +7,11 @@ async function main() {
 
   const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
   if (existing) {
-    // Upgrade to agency if still on starter
-    if (existing.plan === 'starter') {
-      await prisma.user.update({
-        where: { email: adminEmail },
-        data: { plan: 'agency', status: 'active' },
-      });
-      console.log(`✓ Founder account upgraded to agency: ${adminEmail}`);
-    } else {
-      console.log(`✓ Founder account already exists (${existing.plan}): ${adminEmail}`);
-    }
+    await prisma.user.update({
+      where: { email: adminEmail },
+      data: { plan: 'agency', status: 'active', isAdmin: true },
+    });
+    console.log(`✓ Founder account updated (admin): ${adminEmail}`);
   } else {
     await prisma.user.create({
       data: {
@@ -24,9 +19,10 @@ async function main() {
         name: 'Ayman Seif',
         plan: 'agency',
         status: 'active',
+        isAdmin: true,
       },
     });
-    console.log(`✓ Founder account created (agency): ${adminEmail}`);
+    console.log(`✓ Founder account created (admin): ${adminEmail}`);
   }
 }
 

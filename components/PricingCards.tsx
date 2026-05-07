@@ -160,8 +160,8 @@ export default function PricingCards() {
             <span className="rounded-full border border-red-400/30 bg-red-400/10 px-2.5 py-0.5 text-xs font-semibold text-red-300">Big Sale #2</span>
           </div>
           <div className="mb-1">
-            <span className="text-zinc-500 line-through text-lg mr-2">$599</span>
-            <span className="text-5xl font-extrabold text-white">$99</span>
+            <span className="text-zinc-500 line-through text-lg mr-2">$414</span>
+            <span className="text-5xl font-extrabold text-white">$69</span>
           </div>
           <p className="text-sm font-semibold text-green-400 mb-1">6 Months for the Price of 1!</p>
           <p className="text-xs text-zinc-500 mb-2">1 month + 5 months FREE</p>

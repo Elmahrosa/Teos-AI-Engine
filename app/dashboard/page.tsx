@@ -7,19 +7,11 @@ import LogoutButton from "@/components/LogoutButton";
 export default async function DashboardPage() {
   const user = await requireUser();
 
-  const founderEmails = [
-    "aams1969@gmail.com",
-    "elma7rosa@gmx.com",
-    "ayman@teosegypt.com",
-  ];
-
-  const isAdmin =
-    founderEmails.includes(user.email.toLowerCase()) ||
-    user.plan === "founder";
+  const isAdmin = user.isAdmin || user.plan === "founder";
 
   const isStarter = !isAdmin && user.plan === "starter";
 
-  const postCount = user.posts.length;
+  const postCount = user.postsUsed || 0;
   const remaining = getRemainingPosts(user.plan, postCount, isAdmin);
   const starterLimit = PLAN_LIMITS.starter;
   const atLimit = isStarter && postCount >= starterLimit;

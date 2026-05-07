@@ -2,20 +2,21 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionEmail } from "@/lib/session";
 
-export function isAdminEmail(email?: string | null) {
+export function isAdminEmail(email?: string | null): boolean {
   if (!email) return false;
 
   const normalized = email.trim().toLowerCase();
-  const adminList =
-    process.env.ADMIN_EMAILS ||
-    process.env.ADMIN_EMAIL ||
-    "aams1969@gmail.com";
 
-  return adminList
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean)
-    .includes(normalized);
+  const listEnv = process.env.ADMIN_EMAILS;
+  if (listEnv) {
+    const list = listEnv.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+    if (list.includes(normalized)) return true;
+  }
+
+  const singleEnv = process.env.ADMIN_EMAIL;
+  if (singleEnv && singleEnv.trim().toLowerCase() === normalized) return true;
+
+  return false;
 }
 
 export async function getCurrentUser() {
@@ -36,7 +37,7 @@ export async function getCurrentUser() {
 
   return {
     ...user,
-    isAdmin: isAdminEmail(user.email),
+    isAdmin: user.isAdmin || isAdminEmail(user.email),
   };
 }
 
@@ -44,4 +45,9 @@ export async function requireUser() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   return user;
+}
+
+export function canUseLinkedIn(plan?: string | null, isAdmin = false): boolean {
+  if (isAdmin) return true;
+  return plan === "agency";
 }

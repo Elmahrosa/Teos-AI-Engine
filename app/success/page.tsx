@@ -33,7 +33,7 @@ function SuccessForm() {
     }
   }
 
-  const planLabel = plan === 'agency' ? 'Agency — $99 USDC' : plan === 'pro' ? 'Pro — $29 USDC' : 'Starter (Free)';
+  const planLabel = plan === 'agency' ? 'Agency — $69 USDC' : plan === 'pro' ? 'Pro — $29 USDC' : 'Starter (Free)';
 
   return (
     <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">

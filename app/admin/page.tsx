@@ -16,6 +16,8 @@ export default async function AdminPage() {
       email: true,
       plan: true,
       status: true,
+      isAdmin: true,
+      postsUsed: true,
       createdAt: true,
       posts: {
         select: { id: true },
@@ -39,7 +41,7 @@ export default async function AdminPage() {
   const starterUsers = users.filter((u) => u.plan === "starter").length;
   const proUsers = users.filter((u) => u.plan === "pro").length;
   const agencyUsers = users.filter((u) => u.plan === "agency").length;
-  const totalPosts = users.reduce((sum, u) => sum + u.posts.length, 0);
+  const totalPosts = users.reduce((sum, u) => sum + u.postsUsed, 0);
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-white">
@@ -122,7 +124,7 @@ export default async function AdminPage() {
                 <th className="px-3 py-3">Email</th>
                 <th className="px-3 py-3">Plan</th>
                 <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">Posts</th>
+                <th className="px-3 py-3">Posts Used</th>
                 <th className="px-3 py-3">Billing</th>
                 <th className="px-3 py-3">Created</th>
                 <th className="px-3 py-3">Actions</th>
@@ -134,7 +136,7 @@ export default async function AdminPage() {
                 <tr key={u.id} className="border-b border-white/5 align-top">
                   <td className="px-3 py-4">
                     <div className="font-medium text-white">{u.email}</div>
-                    {u.email === "aams1969@gmail.com" ? (
+                    {u.isAdmin ? (
                       <div className="mt-1 inline-block rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
                         Founder/Admin
                       </div>
@@ -161,7 +163,7 @@ export default async function AdminPage() {
                     </span>
                   </td>
 
-                  <td className="px-3 py-4">{u.posts.length}</td>
+                  <td className="px-3 py-4">{u.postsUsed ?? 0}</td>
 
                   <td className="px-3 py-4 text-xs text-zinc-400">
                     {u.billing.length === 0 ? (

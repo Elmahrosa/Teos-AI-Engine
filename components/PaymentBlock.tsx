@@ -17,7 +17,7 @@ export default function PaymentBlock() {
       </div>
 
       <div className="border p-4 rounded-lg">
-        <h3 className="text-xl font-bold">Agency – $49/month</h3>
+        <h3 className="text-xl font-bold">Agency – $69/month</h3>
         <p>200 posts/day • All platforms + LinkedIn</p>
         <a href={PLANS.agency.link}>
           <button className="mt-3 bg-purple-600 text-white px-4 py-2 rounded">

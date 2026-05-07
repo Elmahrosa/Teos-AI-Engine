@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const amount = parsed.plan === 'pro' ? (parsed.network === 'pi' ? 14.5 : 29) : parsed.plan === 'agency' ? (parsed.network === 'pi' ? 49.5 : 99) : 0;
+    const amount = parsed.plan === 'pro' ? (parsed.network === 'pi' ? 14.5 : 29) : parsed.plan === 'agency' ? (parsed.network === 'pi' ? 34.5 : 69) : 0;
 
     const billingEvent = await prisma.billingEvent.create({
       data: {
