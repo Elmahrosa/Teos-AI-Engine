@@ -1,4 +1,4 @@
-name: CI - Build Check
+name: CI - Build & Deploy
 
 on:
   push:
@@ -42,3 +42,16 @@ jobs:
           NEXTAUTH_URL: "http://localhost:3000"
           OPENAI_API_KEY: "sk-test-ci"
           ADMIN_EMAIL: "ci@test.com"
+
+  # Vercel deploy (uncomment and set secrets in GitHub to enable)
+  # deploy:
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: vercel/action@v34
+  #       with:
+  #         vercel-token: ${{ secrets.VERCEL_TOKEN }}
+  #         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+  #         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
