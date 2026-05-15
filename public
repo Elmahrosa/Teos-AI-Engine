@@ -1,7 +1,0 @@
-public/tailogo.jpeg        ← README logo
-public/teos_ai_hero.png   ← unused reference
-public/teos_instagram_post.png
-public/000.png
-public/og-image.png       ← layout.tsx OpenGraph
-public/favicon.ico        ← layout.tsx icon
-public/apple-icon.png     ← layout.tsx apple icon
