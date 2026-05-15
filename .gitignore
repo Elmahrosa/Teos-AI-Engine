@@ -14,3 +14,4 @@ users.json.bak
 .vscode/
 *.swp
 *.swo
+.vercel
