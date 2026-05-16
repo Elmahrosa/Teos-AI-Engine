@@ -7,10 +7,6 @@ export function isAdminEmail(email: string | null | undefined): boolean {
   return allowed.includes(email.toLowerCase());
 }
 
-export function isAdmin(user: { role?: string; email?: string | null }): boolean {
-  return user.role === "admin" || user.role === "founder" || isAdminEmail(user.email);
-}
-
 export function canUseLinkedIn(user: { plan: string; email?: string | null }): boolean {
   if (isAdminEmail(user.email)) return true;
   return user.plan === "agency";
