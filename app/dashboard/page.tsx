@@ -2,10 +2,10 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
-import { PLANS, getPlan, isWithinDailyLimit, isWithinTotalLimit } from "@/lib/plans";
+import { PLANS, getPlan, isWithinDailyLimit, isWithinTotalLimit, isFounder } from "@/lib/plans";
 import Link from "next/link";
 
-type Platform = "x" | "facebook" | "instagram" | "linkedin";
+type Platform = "x" | "facebook" | "instagram" | "linkedin" | "telegram";
 type Tone = "professional" | "casual" | "witty" | "inspirational" | "urgent";
 
 interface Post {
@@ -29,6 +29,7 @@ const PLATFORM_ICONS: Record<Platform, string> = {
   facebook: "f",
   instagram: "◈",
   linkedin: "in",
+  telegram: "✈",
 };
 
 const TONES: { value: Tone; label: string }[] = [
@@ -138,6 +139,9 @@ export default function DashboardPage() {
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-xs text-[#8a88a0]">{plan.name}</span>
+            {isFounder(session.user?.email ?? null) && (
+              <Link href="/dashboard/founder" className="text-xs text-gold-500 hover:text-gold-400">Founder</Link>
+            )}
             <button onClick={() => signOut()} className="text-xs text-[#5a5870] hover:text-[#e8e6f0]">Sign out</button>
           </div>
         </div>
@@ -147,7 +151,7 @@ export default function DashboardPage() {
         <div className="flex gap-4 mb-8">
           <button onClick={() => setTab("generate")} className={`text-sm font-semibold px-4 py-2 rounded-lg transition-all ${tab === "generate" ? "bg-gold-500/15 text-gold-500" : "text-[#5a5870]"}`}>Generate</button>
           <button onClick={() => setTab("saved")} className={`text-sm font-semibold px-4 py-2 rounded-lg transition-all ${tab === "saved" ? "bg-gold-500/15 text-gold-500" : "text-[#5a5870]"}`}>Saved Posts</button>
-          <Link href="/pricing" className="text-sm font-semibold px-4 py-2 rounded-lg text-teal-400 ml-auto">Upgrade</Link>
+          <Link href="/#pricing" className="text-sm font-semibold px-4 py-2 rounded-lg text-teal-400 ml-auto">Upgrade</Link>
         </div>
 
         {tab === "generate" && (
@@ -159,7 +163,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex gap-2 flex-wrap">
-              {(["x", "linkedin", "instagram", "facebook"] as Platform[]).map(p => (
+              {(["x", "linkedin", "instagram", "facebook", "telegram"] as Platform[]).map(p => (
                 <button key={p} onClick={() => setPlatform(p)}
                   className={`px-3 py-1.5 rounded-lg text-xs transition-all ${platform === p ? "bg-gold-500/15 text-gold-500 border border-gold-500/30" : "text-[#5a5870] border border-white/[0.06]"}`}>
                   {PLATFORM_ICONS[p]} {p}

@@ -9,16 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.64",
+    "@ai-sdk/anthropic": "^3.0.78",
     "@anthropic-ai/sdk": "^0.27.0",
     "@auth/prisma-adapter": "^2.11.1",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.8.0",
-    "@prisma/client": "^7.7.0",
-    "ai": "^6.0.142",
+    "@prisma/client": "^7.8.0",
+    "ai": "^6.0.183",
     "autoprefixer": "^10.4.17",
     "date-fns": "^3.6.0",
-    "next": "^16.2.4",
+    "next": "^16.2.6",
     "next-auth": "^4.24.7",
     "postcss": "^8",
     "react": "^18.2.0",
@@ -31,9 +31,9 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^10.2.0",
-    "eslint-config-next": "^16.2.4",
-    "prisma": "^7.7.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.6",
+    "prisma": "^7.8.0",
     "typescript": "^5"
   },
   "type": "module"
