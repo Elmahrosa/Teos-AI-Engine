@@ -6,15 +6,22 @@ import { PLANS, getPlan, isWithinDailyLimit, isWithinTotalLimit } from "@/lib/pl
 import Link from "next/link";
 
 type Platform = "x" | "facebook" | "instagram" | "linkedin";
-type PostStatus = "draft" | "published";
+type Tone = "professional" | "casual" | "witty" | "inspirational" | "urgent";
 
 interface Post {
   id: string;
   platform: Platform;
   prompt: string;
   content: string;
-  status: PostStatus;
+  status: "draft" | "published";
   createdAt: string;
+}
+
+interface UserMeta {
+  dailyPostsUsed: number;
+  plan: string;
+  name?: string;
+  email?: string;
 }
 
 const PLATFORM_ICONS: Record<Platform, string> = {
@@ -24,10 +31,19 @@ const PLATFORM_ICONS: Record<Platform, string> = {
   linkedin: "in",
 };
 
+const TONES: { value: Tone; label: string }[] = [
+  { value: "professional", label: "Professional" },
+  { value: "casual", label: "Casual" },
+  { value: "witty", label: "Witty" },
+  { value: "inspirational", label: "Inspirational" },
+  { value: "urgent", label: "Urgent" },
+];
+
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [tab, setTab] = useState<"generate" | "saved">("generate");
   const [platform, setPlatform] = useState<Platform>("x");
+  const [tone, setTone] = useState<Tone>("professional");
   const [prompt, setPrompt] = useState("");
   const [generated, setGenerated] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -106,7 +122,8 @@ export default function DashboardPage() {
     );
   }
 
-  const dailyUsed = (session.user as any)?.dailyPostsUsed ?? 0;
+  const userMeta = session.user as unknown as UserMeta;
+  const dailyUsed = userMeta?.dailyPostsUsed ?? 0;
   const remaining = isWithinDailyLimit(plan, dailyUsed)
     ? (plan.dailyPostLimit === -1 ? Infinity : plan.dailyPostLimit - dailyUsed)
     : 0;
@@ -141,7 +158,7 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {(["x", "linkedin", "instagram", "facebook"] as Platform[]).map(p => (
                 <button key={p} onClick={() => setPlatform(p)}
                   className={`px-3 py-1.5 rounded-lg text-xs transition-all ${platform === p ? "bg-gold-500/15 text-gold-500 border border-gold-500/30" : "text-[#5a5870] border border-white/[0.06]"}`}>
@@ -149,6 +166,13 @@ export default function DashboardPage() {
                 </button>
               ))}
             </div>
+
+            <select value={tone} onChange={e => setTone(e.target.value as Tone)}
+              className="w-full rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm text-[#e8e6f0] outline-none focus:border-gold-500/40">
+              {TONES.map(t => (
+                <option key={t.value} value={t.value} className="bg-bg">{t.label}</option>
+              ))}
+            </select>
 
             <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
               placeholder="What do you want to post about?"
@@ -175,6 +199,17 @@ export default function DashboardPage() {
                   <button onClick={handleSave} disabled={saving}
                     className="text-xs px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20">
                     {saving ? "Saving..." : saveSuccess ? "Saved!" : "Save"}
+                  </button>
+                  <button onClick={() => {
+                    const blob = new Blob([generated], { type: "text/plain" });
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = platform + "-post.txt";
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                  }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                    Export
                   </button>
                 </div>
               </div>

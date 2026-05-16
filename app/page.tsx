@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Navigation from "@/components/landing/Navigation";
 import Features from "@/components/landing/Features";
@@ -33,13 +33,6 @@ interface GenerateResult {
 }
 
 // ─── Ticker ───────────────────────────────────────────────────────────────────
-const TICKER_ITEMS = [
-  "47+ posts generated this week",
-  "84/100 avg visibility score",
-  "18+ early users testing",
-  "Next upgrade: TikTok + AI video scripts",
-  "First 500 users get 1 free month when TikTok ships",
-];
 
 // ─── Platform Config ──────────────────────────────────────────────────────────
 const PLATFORM_CONFIG: Record<Platform, { icon: string; color: string; bg: string; border: string }> = {
@@ -138,14 +131,6 @@ const PRICING_TIERS = [
   },
 ];
 
-// ─── Roadmap ──────────────────────────────────────────────────────────────────
-const ROADMAP_ITEMS = [
-  { feature: "TikTok post generation", status: "In development", color: "#f59e0b" },
-  { feature: "AI video scripts", status: "In development", color: "#f59e0b" },
-  { feature: "Content scheduling", status: "Planned", color: "#8a88a0" },
-  { feature: "Team workspaces", status: "Planned", color: "#8a88a0" },
-];
-
 // ─── Share URL ────────────────────────────────────────────────────────────────
 function buildShareUrl(platform: string, text: string): string {
   const url = "https://teos-ai-engine.vercel.app";
@@ -238,19 +223,19 @@ function SeatsBar({ used, total, label }: { used: number; total: number; label: 
       </div>
       <div className="rounded-full overflow-hidden" style={{ height: "6px", background: "rgba(255,255,255,.06)" }}>
         <div className="h-full rounded-full transition-all duration-1000"
-          style={{ width: `${pct}%`, background: "linear-gradient(90deg,#7B4FBF,#C9A84C)" }} />
+          style={{ width: pct + "%", background: "linear-gradient(90deg,#7B4FBF,#C9A84C)" }} />
       </div>
     </div>
   );
 }
 
 // ─── Ticker Bar ───────────────────────────────────────────────────────────────
-function TickerBar() {
+function TickerBar({ items }: { items: string[] }) {
   return (
     <div className="relative overflow-hidden border-b" style={{ background: "#050505", borderColor: "rgba(201,168,76,.08)", height: "36px" }}>
       <div className="absolute inset-0 flex items-center">
         <div className="flex gap-12 whitespace-nowrap animate-ticker" style={{ willChange: "transform" }}>
-          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+          {[...items, ...items].map((item, i) => (
             <span key={i} className="text-xs" style={{ color: "rgba(255,255,255,.3)", letterSpacing: "0.06em" }}>
               <span style={{ color: "#C9A84C" }}>✦</span> {item}
             </span>
@@ -282,6 +267,24 @@ export default function Home() {
   // Pricing tab state
   const [pricingTab, setPricingTab] = useState<"monthly" | "lifetime">("monthly");
   const seats = useSeats();
+
+  // Live stats
+  const [stats, setStats] = useState<{ totalPostsThisWeek: number; totalPosts: number; totalUsers: number } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then(r => r.json())
+      .then(setStats)
+      .catch(() => {});
+  }, []);
+
+  const tickerItems = useMemo(() => [
+    (stats?.totalPostsThisWeek ?? 0) + "+ posts generated this week",
+    stats ? stats.totalPosts + " total posts generated" : "Loading stats...",
+    (stats?.totalUsers ?? 0) + "+ early users testing",
+    "Next upgrade: TikTok + AI video scripts",
+    "First 500 users get 1 free month when TikTok ships",
+  ], [stats]);
 
   async function generate() {
     if (!topic.trim() || topic.length < 5) {
@@ -322,7 +325,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-bg text-[#e8e6f0]">
       <Navigation />
-      <TickerBar />
+      <TickerBar items={tickerItems} />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-16 md:pt-40 md:pb-20 overflow-hidden">
@@ -340,31 +343,31 @@ export default function Home() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance leading-[1.1] mb-6">
-              Egypt&apos;s{" "}
-              <span className="gradient-gold">Sovereign AI</span>{" "}
-              Content Engine
+              Generate platform-optimized{" "}
+              <span className="gradient-gold">content</span>{" "}
+              before your competitors do.
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-lg md:text-xl text-[#8a88a0] leading-relaxed">
-              Generate on-brand social content across X, LinkedIn, Instagram &amp; more.
-              Powered by Egyptian sovereign infrastructure. No data leaves Egypt.
+              TEOS AI Engine creates and scores AI-powered content for X, LinkedIn,
+              Instagram, TikTok, Telegram, and more using engagement-aware optimization.
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a href="/login" className="btn-teal text-base px-8 py-4">
-                Get Started Free
+                Start Generating Free
               </a>
               <a href="#demo" className="btn-ghost text-base px-8 py-4">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                Try Live Demo
+                View Demo
               </a>
             </div>
 
             {/* Animated Counters */}
             <div className="mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto">
-              <AnimatedCounter end={47} suffix="+" label="Posts Generated" sub="This week" />
-              <AnimatedCounter end={84} suffix="/100" label="Avg Visibility Score" sub="Across all posts" color="#9B6FDF" />
-              <AnimatedCounter end={18} suffix="+" label="Early Users" sub="Testing now" />
+              <AnimatedCounter end={stats?.totalPostsThisWeek ?? 0} suffix="+" label="Posts Generated" sub="This week" />
+              <AnimatedCounter end={stats?.totalPosts ?? 0} suffix="+" label="Total Posts" sub="All time" color="#9B6FDF" />
+              <AnimatedCounter end={stats?.totalUsers ?? 0} suffix="+" label="Early Users" sub="Testing now" />
             </div>
           </div>
         </div>
@@ -401,6 +404,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Features ──────────────────────────────────────────────────────── */}
+      <Features />
+
       {/* ── Post Generator ───────────────────────────────────────────────── */}
       <section id="demo" className="section-padding relative overflow-hidden">
         <div className="hero-glow bg-teal-500/10 bottom-0 right-0" />
@@ -408,11 +414,11 @@ export default function Home() {
           <div className="mx-auto max-w-3xl text-center mb-12">
             <span className="section-label">Live Demo</span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-              Generate a Post{" "}
-              <span className="gradient-teal">Right Now</span>
+              Test Your{" "}
+              <span className="gradient-teal">Visibility Score</span>
             </h2>
             <p className="text-[#8a88a0] text-lg">
-              Select platform + tone, enter your topic, and watch AI generate optimized content instantly.
+              Pick a platform, set your tone, and see how AI generates engagement-optimized content in seconds.
             </p>
           </div>
 
@@ -426,15 +432,17 @@ export default function Home() {
                 {PLATFORMS.map(p => {
                   const c = PLATFORM_CONFIG[p];
                   const active = platform === p;
+                  const platBorder = active ? "1px solid " + c.border : "1px solid rgba(255,255,255,.07)";
+                  const platShadow = active ? "0 4px 16px " + c.bg : "none";
                   return (
                     <button key={p} onClick={() => setPlatform(p)}
                       className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-150"
                       style={{
                         background: active ? c.bg : "rgba(255,255,255,.04)",
-                        border: `1px solid ${active ? c.border : "rgba(255,255,255,.07)"}`,
+                        border: platBorder,
                         color: active ? c.color : "rgba(255,255,255,.4)",
                         transform: active ? "translateY(-1px)" : "none",
-                        boxShadow: active ? `0 4px 16px ${c.bg}` : "none",
+                        boxShadow: platShadow,
                       }}>
                       <span style={{ fontFamily: "monospace", fontSize: "1rem" }}>{c.icon}</span>
                       <span>{p}</span>
@@ -450,17 +458,20 @@ export default function Home() {
                 Tone
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {TONES.map(t => (
+                {TONES.map(t => {
+                  const toneBorder = "1px solid " + (tone === t ? "rgba(123,79,191,.4)" : "rgba(255,255,255,.07)");
+                  return (
                   <button key={t} onClick={() => setTone(t)}
                     className="px-3 py-1.5 rounded-lg text-xs transition-all duration-150"
                     style={{
                       background: tone === t ? "rgba(123,79,191,.2)" : "rgba(255,255,255,.04)",
-                      border: `1px solid ${tone === t ? "rgba(123,79,191,.4)" : "rgba(255,255,255,.07)"}`,
+                      border: toneBorder,
                       color: tone === t ? "#9B6FDF" : "rgba(255,255,255,.4)",
                     }}>
                     {t}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -473,7 +484,7 @@ export default function Home() {
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) generate(); }}
-                placeholder={`e.g. "Why most founders fail at content marketing — and what I did instead"`}
+                placeholder={'e.g. "Why most founders fail at content marketing — and what I did instead"'}
                 rows={3}
                 style={{
                   width: "100%",
@@ -547,7 +558,7 @@ export default function Home() {
             {/* ── Result ──────────────────────────────────────────────── */}
             {result && !loading && (
               <div className="space-y-4" style={{ animation: "fadeUp .5s ease both" }}>
-                <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}`}</style>
+                <style>{"@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}"}</style>
 
                 {result.fallback && (
                   <div className="px-3 py-2 rounded-lg text-xs flex items-center gap-2"
@@ -558,26 +569,29 @@ export default function Home() {
 
                 {/* Tabs */}
                 <div className="flex gap-2 mb-2">
-                  {(["post", ...(result.platform === "TikTok" ? ["video"] : []), "image"] as const).map(tab => (
+                  {(["post", ...(result.platform === "TikTok" ? ["video"] : []), "image"] as const).map(tab => {
+                    const tabBorder = "1px solid " + (activeTab === tab ? "rgba(201,168,76,.35)" : "rgba(255,255,255,.07)");
+                    return (
                     <button key={tab} onClick={() => setActiveTab(tab as "post" | "image" | "video")}
                       className="px-4 py-2 rounded-lg text-xs"
                       style={{
-                        background: activeTab === tab ? "rgba(201,168,76,.12)" : "rgba(255,255,255,.04)",
-                        border: `1px solid ${activeTab === tab ? "rgba(201,168,76,.35)" : "rgba(255,255,255,.07)"}`,
-                        color: activeTab === tab ? "#C9A84C" : "rgba(255,255,255,.4)",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase" as const,
-                      }}>
-                      {tab === "post" ? `${resultCfg.icon} Post` : tab === "video" ? "🎬 Video Script" : "🎨 Image Prompt"}
-                    </button>
-                  ))}
+                         background: activeTab === tab ? "rgba(201,168,76,.12)" : "rgba(255,255,255,.04)",
+                         border: tabBorder,
+                         color: activeTab === tab ? "#C9A84C" : "rgba(255,255,255,.4)",
+                         letterSpacing: "0.08em",
+                         textTransform: "uppercase" as const,
+                       }}>
+                       {tab === "post" ? resultCfg.icon + " Post" : tab === "video" ? "🎬 Video Script" : "🎨 Image Prompt"}
+                     </button>
+                    );
+                  })}
                 </div>
 
                 {/* Post Tab */}
                 {activeTab === "post" && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between px-4 py-2.5 rounded-xl"
-                      style={{ background: resultCfg.bg, border: `1px solid ${resultCfg.border}` }}>
+                      style={{ background: resultCfg.bg, border: "1px solid " + resultCfg.border }}>
                       <div className="flex items-center gap-2">
                         <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: resultCfg.color }}>{resultCfg.icon}</span>
                         <span className="text-xs" style={{ color: resultCfg.color, letterSpacing: "0.1em", textTransform: "uppercase" }}>
@@ -632,8 +646,8 @@ export default function Home() {
                         <div className="rounded-full overflow-hidden" style={{ height: "5px", background: "rgba(255,255,255,.06)" }}>
                           <div className="h-full rounded-full transition-all duration-1000"
                             style={{
-                              width: `${result.visibilityScore}%`,
-                              background: `linear-gradient(90deg,#7B4FBF,${scoreColor(result.visibilityScore)})`,
+                              width: result.visibilityScore + "%",
+                              background: "linear-gradient(90deg,#7B4FBF," + scoreColor(result.visibilityScore) + ")",
                             }} />
                         </div>
                         <div className="text-xs mt-2" style={{ color: "rgba(255,255,255,.3)" }}>
@@ -693,30 +707,30 @@ export default function Home() {
                       <div className="flex flex-wrap gap-2">
                         {(["X", "LinkedIn", "Facebook", "Telegram", "WhatsApp", "Threads"] as const).map(p => {
                           const c = PLATFORM_CONFIG[p as Platform] || { icon: "↗", color: "#aaa", bg: "rgba(255,255,255,.05)", border: "rgba(255,255,255,.1)" };
-                          const shareUrl = buildShareUrl(p, result.post + "\n\n" + result.hashtags.map(h => `#${h}`).join(" "));
+                          const shareUrl = buildShareUrl(p, result.post + "\n\n" + result.hashtags.map(h => "#" + h).join(" "));
                           return (
                             <a key={p} href={shareUrl} target="_blank" rel="noopener noreferrer"
                               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs transition-all hover:opacity-80"
-                              style={{ background: c.bg, border: `1px solid ${c.border}`, color: c.color }}>
+                              style={{ background: c.bg, border: "1px solid " + c.border, color: c.color }}>
                               <span style={{ fontFamily: "monospace" }}>{c.icon}</span> {p}
                             </a>
                           );
                         })}
-                        <button onClick={() => copy(result.post + "\n\n" + result.hashtags.map(h => `#${h}`).join(" "))}
+                        <button onClick={() => copy(result.post + "\n\n" + result.hashtags.map(h => "#" + h).join(" "))}
                           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs transition-all hover:opacity-80"
                           style={{ background: "rgba(225,48,108,.1)", border: "1px solid rgba(225,48,108,.25)", color: "#E1306C" }}>
                           ◎ Instagram
                         </button>
-                        <button onClick={() => copy(result.post.slice(0, 150) + " " + result.hashtags.map(h => `#${h}`).join(" "))}
+                        <button onClick={() => copy(result.post.slice(0, 150) + " " + result.hashtags.map(h => "#" + h).join(" "))}
                           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs transition-all hover:opacity-80"
                           style={{ background: "rgba(105,201,208,.1)", border: "1px solid rgba(105,201,208,.25)", color: "#69C9D0" }}>
                           ♪ TikTok
                         </button>
-                        <button onClick={() => copy(result.post + "\n\n" + result.hashtags.map(h => `#${h}`).join(" ") + "\n\n" + result.suggestedCTA)}
+                        <button onClick={() => copy(result.post + "\n\n" + result.hashtags.map(h => "#" + h).join(" ") + "\n\n" + result.suggestedCTA)}
                           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs transition-all"
                           style={{
                             background: copied ? "rgba(201,168,76,.15)" : "rgba(201,168,76,.07)",
-                            border: `1px solid ${copied ? "rgba(201,168,76,.4)" : "rgba(201,168,76,.2)"}`,
+                            border: copied ? "1px solid rgba(201,168,76,.4)" : "1px solid rgba(201,168,76,.2)",
                             color: "#C9A84C",
                           }}>
                           {copied ? "✓ Copied!" : "⎘ Copy All"}
@@ -731,17 +745,20 @@ export default function Home() {
                         { label: "⚡ Improve Hook", action: () => { setTone("Viral Hook"); generate(); } },
                         { label: "🎨 Image Prompt", action: () => setActiveTab("image") },
                         ...(result.platform === "TikTok" ? [{ label: "🎬 Video Script", action: () => setActiveTab("video") }] : []),
-                      ].map(({ label, action }) => (
+                      ].map(({ label, action }) => {
+                        const btnBorder = label.includes("Image") ? "1px solid rgba(201,168,76,.25)" : "1px solid rgba(255,255,255,.08)";
+                        return (
                         <button key={label} onClick={action}
                           className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs transition-all hover:opacity-80"
                           style={{
                             background: label.includes("Image") ? "rgba(201,168,76,.1)" : "rgba(255,255,255,.04)",
-                            border: `1px solid ${label.includes("Image") ? "rgba(201,168,76,.25)" : "rgba(255,255,255,.08)"}`,
+                            border: btnBorder,
                             color: label.includes("Image") ? "#C9A84C" : "rgba(255,255,255,.45)",
                           }}>
                           {label}
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -827,54 +844,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Features ─────────────────────────────────────────────────────── */}
-      <Features />
-
-      {/* ── Video Demo Section (Fix 1 & 3) ───────────────────────────────── */}
-      <section id="video-demo" className="section-padding relative overflow-hidden">
-        <div className="hero-glow bg-gold-500/10 top-0 right-0" />
-        <div className="section-container relative z-10">
-          <div className="mx-auto max-w-4xl">
-            <div className="text-center mb-12">
-              <span className="section-label">Watch</span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-                See Teos AI in{" "}
-                <span className="gradient-gold">Action</span>
-              </h2>
-              <p className="text-[#8a88a0] text-lg">
-                Founder preview — watch how Teos generates platform-optimized content in seconds.
-              </p>
-            </div>
-
-            {/* Founder Preview Panel */}
-            <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(201,168,76,.2)", background: "linear-gradient(135deg,#0D0D0D,#111)" }}>
-              <div className="p-8 md:p-12 text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs mb-6"
-                  style={{ background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.2)", color: "#C9A84C" }}>
-                  <span className="h-1.5 w-1.5 rounded-full bg-gold-500 animate-pulse-soft" />
-                  Founder Preview
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-3" style={{ fontFamily: "'Syne',sans-serif" }}>
-                  Full Demo Recording Coming Soon
-                </h3>
-                <p className="text-[#8a88a0] mb-8 max-w-lg mx-auto">
-                  I&apos;m recording a full walkthrough of the Teos AI Engine. Follow for the drop, or try the live generator above.
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <a href="https://x.com/king_teos" target="_blank" rel="noopener noreferrer"
-                    className="btn-primary text-sm px-6 py-3">
-                    Follow @KING_TEOS for Drop
-                  </a>
-                  <a href="#demo"
-                    className="btn-ghost text-sm px-6 py-3">
-                    Try It Live Instead →
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ── Testimonials ─────────────────────────────────────────────────── */}
+      <Testimonials />
 
       {/* ── Pricing (with SeatsBar urgency) ───────────────────────────────── */}
       <section id="pricing" className="section-padding relative overflow-hidden">
@@ -931,9 +902,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {PRICING_TIERS.filter(t => pricingTab === "lifetime" ? t.name === "Lifetime" : t.name !== "Lifetime").map(tier => (
               <div key={tier.name}
-                className={`card-hover relative flex flex-col rounded-2xl border bg-bg-card p-6 ${tier.color} ${
-                  tier.featured ? "scale-105 md:scale-105 shadow-2xl shadow-gold-500/10" : ""
-                }`}>
+                className={"card-hover relative flex flex-col rounded-2xl border bg-bg-card p-6 " + tier.color + " " + (tier.featured ? "scale-105 md:scale-105 shadow-2xl shadow-gold-500/10" : "")}>
                 {tier.featuredLabel && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-gold-500 to-gold-700 px-4 py-1 text-xs font-bold text-bg whitespace-nowrap">
                     {tier.featuredLabel}
@@ -980,124 +949,6 @@ export default function Home() {
           <p className="text-center text-xs text-[#8a88a0] mt-8">
             All prices in USD. Pi Network payments accepted. Subscriptions can be cancelled anytime.
           </p>
-        </div>
-      </section>
-
-      {/* ── Pi Launch Section ────────────────────────────────────────────── */}
-      <section className="section-padding relative overflow-hidden">
-        <div className="hero-glow bg-violet-500/15 top-0 left-0" />
-        <div className="section-container relative z-10">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="section-label">Pi Network</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-              Pay with{" "}
-              <span className="gradient-violet">Pi</span>
-            </h2>
-            <p className="text-[#8a88a0] text-lg mb-8 max-w-2xl mx-auto">
-              Teos AI Engine is the first AI content platform on Pi Network.
-              Subscribe with Pi at launch — no fiat required.
-            </p>
-            <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl"
-              style={{ background: "rgba(123,79,191,.08)", border: "1px solid rgba(123,79,191,.2)" }}>
-              <span className="text-3xl" style={{ fontFamily: "monospace" }}>π</span>
-              <div className="text-left">
-                <div className="text-sm font-semibold" style={{ color: "#9B6FDF" }}>Pi payments coming at launch</div>
-                <div className="text-xs" style={{ color: "rgba(255,255,255,.35)" }}>Get lifetime at the Pi Pioneer rate</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Roadmap Block (Fix 3) ────────────────────────────────────────── */}
-      <section id="roadmap" className="section-padding relative overflow-hidden">
-        <div className="hero-glow bg-teal-500/10 bottom-0 right-0" />
-        <div className="section-container relative z-10">
-          <div className="mx-auto max-w-4xl">
-            <div className="text-center mb-12">
-              <span className="section-label">Roadmap</span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-                What&apos;s{" "}
-                <span className="gradient-gold">Next</span>
-              </h2>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8 items-start">
-              {/* Left: Pitch */}
-              <div className="rounded-2xl p-8" style={{ background: "linear-gradient(135deg,rgba(201,168,76,.05),transparent)", border: "1px solid rgba(201,168,76,.15)" }}>
-                <h3 className="text-xl font-bold mb-4" style={{ fontFamily: "'Syne',sans-serif" }}>
-                  You&apos;re Buying Into the Roadmap
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.6)" }}>
-                  Teos AI Engine is evolving fast. Every week brings new capabilities.
-                  When you subscribe today, you lock in the current price and get every
-                  future upgrade — including TikTok generation, AI video scripts,
-                  scheduling, and team workspaces — at no extra cost.
-                </p>
-                <div className="mt-6 p-4 rounded-xl text-sm" style={{ background: "rgba(201,168,76,.06)", border: "1px solid rgba(201,168,76,.15)" }}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse-soft" />
-                    <span className="font-semibold text-gold-500 text-xs uppercase tracking-wider">Live now</span>
-                  </div>
-                  <p style={{ color: "rgba(255,255,255,.65)" }}>
-                    First 500 users get <strong style={{ color: "#C9A84C" }}>1 free month</strong> when TikTok ships.
-                  </p>
-                </div>
-                <a href="#pricing" className="btn-primary text-sm px-6 py-3 mt-6 inline-flex">
-                  Lock In Current Pricing →
-                </a>
-              </div>
-
-              {/* Right: Status Board */}
-              <div className="space-y-3">
-                {ROADMAP_ITEMS.map(item => (
-                  <div key={item.feature}
-                    className="flex items-center justify-between rounded-xl p-4"
-                    style={{ background: "#0D0D0D", border: "1px solid rgba(255,255,255,.06)" }}>
-                    <span className="text-sm" style={{ color: "rgba(255,255,255,.7)" }}>{item.feature}</span>
-                    <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full"
-                      style={{
-                        background: `${item.color}15`,
-                        border: `1px solid ${item.color}30`,
-                        color: item.color,
-                      }}>
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: item.color }} />
-                      {item.status}
-                    </span>
-                  </div>
-                ))}
-                <div className="rounded-xl p-4 text-center text-xs"
-                  style={{ background: "rgba(255,255,255,.02)", border: "1px dashed rgba(255,255,255,.08)", color: "rgba(255,255,255,.25)" }}>
-                  More features announced monthly
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ─────────────────────────────────────────────────── */}
-      <Testimonials />
-
-      {/* ── Trust Strip ──────────────────────────────────────────────────── */}
-      <section className="py-12 relative overflow-hidden">
-        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg,transparent,rgba(201,168,76,.03),transparent)" }} />
-        <div className="section-container relative z-10">
-          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 text-xs"
-            style={{ color: "rgba(255,255,255,.3)" }}>
-            <span className="flex items-center gap-2">
-              <span className="text-gold-500">🇪🇬</span> Built in Alexandria
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="text-gold-500">🦅</span> Founder-led SaaS
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="text-gold-500">π</span> Pi-enabled launch
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="text-gold-500">🟢</span> Early users live now
-            </span>
-          </div>
         </div>
       </section>
 

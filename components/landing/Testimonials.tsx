@@ -5,27 +5,7 @@ const testimonials = [
     quote: "We built Teos AI Engine because we believe Egyptian creators deserve sovereign AI tools. This is just the beginning of our mission to empower the Arabic-speaking digital economy.",
     rating: 5,
     initials: "AS",
-  },
-  {
-    name: "Mariam Khaled",
-    role: "Social Media Manager, Cairo",
-    quote: "I manage 12 brand accounts across 5 platforms. Teos AI saves me 15+ hours a week. The platform-specific optimization is unreal — my X posts went from 200 to 5K+ impressions.",
-    rating: 5,
-    initials: "MK",
-  },
-  {
-    name: "Omar El-Sayed",
-    role: "Content Creator, Alexandria",
-    quote: "Finally, an AI tool that respects our data sovereignty. I was hesitant about using foreign AI platforms. Teos is built here, for us. The brand voice training is spot-on.",
-    rating: 5,
-    initials: "OE",
-  },
-  {
-    name: "Nadia Youssef",
-    role: "Digital Agency Owner, Giza",
-    quote: "We switched our entire agency to Teos AI. The team collaboration features and scheduling across 7 platforms transformed our workflow. Our content output tripled in the first month.",
-    rating: 5,
-    initials: "NY",
+    type: "founder",
   },
 ];
 
@@ -67,10 +47,20 @@ export default function Testimonials() {
                 <div>
                   <p className="text-sm font-semibold">{t.name}</p>
                   <p className="text-xs text-[#8a88a0]">{t.role}</p>
+                  {t.type === "founder" && (
+                    <span className="text-[10px] text-gold-500/60">Founder note</span>
+                  )}
                 </div>
               </div>
             </div>
           ))}
+
+          {/* Placeholder for real testimonials */}
+          <div className="rounded-2xl border border-dashed border-white/[0.06] bg-bg-card/50 p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
+            <div className="text-3xl mb-3 opacity-20">✦</div>
+            <p className="text-sm text-[#8a88a0]">Your testimonial could go here.</p>
+            <p className="text-xs text-[#5a5870] mt-1">Real user reviews coming soon — be among the first.</p>
+          </div>
         </div>
       </div>
     </section>

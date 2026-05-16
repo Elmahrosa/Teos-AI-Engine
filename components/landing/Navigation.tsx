@@ -45,6 +45,9 @@ export default function Navigation() {
               {link.label}
             </a>
           ))}
+          <a href="/admin" className="text-[10px] text-[#5a5870] hover:text-[#8a88a0] transition-colors duration-200" title="Admin">
+            ⚙
+          </a>
           <a href="/login" className="btn-teal text-xs px-5 py-2.5">
             Get Started Free
           </a>
@@ -86,6 +89,13 @@ export default function Navigation() {
                 {link.label}
               </a>
             ))}
+            <a
+              href="/admin"
+              onClick={() => setMobileOpen(false)}
+              className="text-xs text-[#5a5870] hover:text-[#8a88a0] transition-colors py-1"
+            >
+              Admin
+            </a>
             <a
               href="/login"
               onClick={() => setMobileOpen(false)}
