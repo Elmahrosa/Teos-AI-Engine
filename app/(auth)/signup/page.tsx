@@ -4,9 +4,11 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,8 +16,8 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) { setError("Email is required."); return; }
-    if (!name.trim()) { setError("Your name is required."); return; }
+    if (!email.trim()) { setError(t("login.emailRequired")); return; }
+    if (!name.trim()) { setError(t("login.nameRequired")); return; }
     setError("");
     setLoading(true);
 
@@ -28,13 +30,17 @@ export default function SignupPage() {
       });
 
       if (res?.error) {
-        setError("Something went wrong. Please try again.");
+        if (res.error === "CredentialsSignin") {
+          setError(t("login.dbError"));
+        } else {
+          setError(res.error);
+        }
       } else if (res?.ok) {
         router.push("/dashboard");
         router.refresh();
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("login.genericError"));
     } finally {
       setLoading(false);
     }
@@ -47,8 +53,8 @@ export default function SignupPage() {
           <Link href="/" className="text-2xl font-bold">
             Teos <span className="text-gold-500">AI</span>
           </Link>
-          <h1 className="text-xl font-bold mt-6">Get started free</h1>
-          <p className="text-sm text-[#8a88a0] mt-1">No credit card required</p>
+          <h1 className="text-xl font-bold mt-6">{t("signup.freeTitle")}</h1>
+          <p className="text-sm text-[#8a88a0] mt-1">{t("signup.freeSubtitle")}</p>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-4">
@@ -56,7 +62,7 @@ export default function SignupPage() {
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("signup.namePlaceholder")}
             required
             autoComplete="name"
             className="w-full rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm text-[#e8e6f0] placeholder-[#5a5870] outline-none focus:border-gold-500/40"
@@ -78,16 +84,16 @@ export default function SignupPage() {
             disabled={loading || !email || !name}
             className="btn-teal w-full text-sm py-3 disabled:opacity-40"
           >
-            {loading ? "Creating account..." : "Start free — no card"}
+            {loading ? t("signup.creating") : t("signup.freeButton")}
           </button>
         </form>
 
         <div className="mt-8 text-center text-xs text-[#5a5870] space-y-2">
           <p>
-            Already have an account?{" "}
-            <Link href="/login" className="text-gold-500 hover:underline">Sign in</Link>
+            {t("signup.hasAccount")}{" "}
+            <Link href="/login" className="text-gold-500 hover:underline">{t("signup.signin")}</Link>
           </p>
-          <p className="text-[10px]">Free plan: 5 posts total · 1 platform · No credit card</p>
+          <p className="text-[10px]">{t("signup.freePlan")}</p>
         </div>
       </div>
     </div>

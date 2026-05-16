@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import { useLocale } from "@/components/LocaleProvider";
 
 const navLinks = [
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Demo", href: "#demo" },
-  { label: "FAQ", href: "#faq" },
+  { key: "nav.features" as const, href: "#features" },
+  { key: "nav.pricing" as const, href: "#pricing" },
+  { key: "nav.demo" as const, href: "#demo" },
+  { key: "nav.faq" as const, href: "#faq" },
 ];
 
 export default function Navigation() {
+  const { t } = useLocale();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -43,18 +45,18 @@ export default function Navigation() {
               href={link.href}
               className="text-sm text-[#8a88a0] hover:text-[#e8e6f0] transition-colors duration-200"
             >
-              {link.label}
+              {t(link.key)}
             </a>
           ))}
           <LocaleSwitcher />
-          <a href="/login" className="text-sm text-[#5a5870] hover:text-[#e8e6f0] transition-colors duration-200" title="Login">
+          <a href="/login" className="text-sm text-[#5a5870] hover:text-[#e8e6f0] transition-colors duration-200" title={t("nav.login")}>
             👤
           </a>
-          <a href="/admin" className="text-sm text-[#5a5870] hover:text-[#e8e6f0] transition-colors duration-200" title="Admin">
+          <a href="/admin" className="text-sm text-[#5a5870] hover:text-[#e8e6f0] transition-colors duration-200" title={t("nav.admin")}>
             ⚙
           </a>
           <a href="/login" className="btn-teal text-xs px-5 py-2.5">
-            Get Started Free
+            {t("nav.getStarted")}
           </a>
         </nav>
 
@@ -91,7 +93,7 @@ export default function Navigation() {
                 onClick={() => setMobileOpen(false)}
                 className="text-sm text-[#8a88a0] hover:text-[#e8e6f0] transition-colors py-2"
               >
-                {link.label}
+                {t(link.key)}
               </a>
             ))}
             <LocaleSwitcher />
@@ -100,21 +102,21 @@ export default function Navigation() {
               onClick={() => setMobileOpen(false)}
               className="text-sm text-[#8a88a0] hover:text-[#e8e6f0] transition-colors py-2"
             >
-              👤 Login
+              👤 {t("nav.login")}
             </a>
             <a
               href="/admin"
               onClick={() => setMobileOpen(false)}
               className="text-sm text-[#8a88a0] hover:text-[#e8e6f0] transition-colors py-2"
             >
-              ⚙ Admin
+              ⚙ {t("nav.admin")}
             </a>
             <a
               href="/login"
               onClick={() => setMobileOpen(false)}
               className="btn-teal text-center text-xs py-3"
             >
-              Get Started Free
+              {t("nav.getStarted")}
             </a>
           </div>
         </div>

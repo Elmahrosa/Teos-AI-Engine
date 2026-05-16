@@ -1,30 +1,35 @@
-const footerLinks = {
-  Product: [
-    { label: "Features", href: "#features" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "Demo", href: "#demo" },
-    { label: "FAQ", href: "#faq" },
-  ],
-  Company: [
-    { label: "About", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Contact", href: "mailto:support@teosegypt.com" },
-  ],
-  Legal: [
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
-    { label: "Cookie Policy", href: "/privacy" },
-  ],
-  Resources: [
-    { label: "Documentation", href: "#" },
-    { label: "API Reference", href: "#" },
-    { label: "Status", href: "#" },
-    { label: "Community", href: "https://x.com/king_teos" },
-  ],
-};
+"use client";
+
+import { useLocale } from "@/components/LocaleProvider";
+
+const footerSections: [string, { labelKey: string; href: string }[]][] = [
+  ["footer.product", [
+    { labelKey: "nav.features", href: "#features" },
+    { labelKey: "nav.pricing", href: "#pricing" },
+    { labelKey: "nav.demo", href: "#demo" },
+    { labelKey: "nav.faq", href: "#faq" },
+  ]],
+  ["footer.company", [
+    { labelKey: "footer.about", href: "#" },
+    { labelKey: "footer.blog", href: "#" },
+    { labelKey: "footer.careers", href: "#" },
+    { labelKey: "footer.contact", href: "mailto:support@teosegypt.com" },
+  ]],
+  ["footer.legal", [
+    { labelKey: "footer.privacy", href: "/privacy" },
+    { labelKey: "footer.terms", href: "/terms" },
+    { labelKey: "footer.cookie", href: "/privacy" },
+  ]],
+  ["footer.resources", [
+    { labelKey: "footer.docs", href: "#" },
+    { labelKey: "footer.api", href: "#" },
+    { labelKey: "footer.status", href: "#" },
+    { labelKey: "footer.community", href: "https://x.com/king_teos" },
+  ]],
+];
 
 export default function Footer() {
+  const { t } = useLocale();
   return (
     <footer className="border-t border-white/[0.06] bg-bg-surface">
       <div className="section-container py-16">
@@ -39,8 +44,7 @@ export default function Footer() {
               </span>
             </a>
             <p className="text-xs text-[#5a5870] leading-relaxed mb-4">
-              Egypt&apos;s first sovereign AI content engine. Built in Alexandria,
-              powered by Egyptian infrastructure.
+              {t("footer.tagline")}
             </p>
             <div className="flex items-center gap-3">
               <a href="https://x.com/king_teos" target="_blank" rel="noopener noreferrer" className="text-[#5a5870] hover:text-[#e8e6f0] transition-colors">
@@ -61,21 +65,21 @@ export default function Footer() {
             </div>
           </div>
 
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
+          {footerSections.map(([titleKey, links]) => (
+            <div key={titleKey}>
               <h4 className="text-xs font-semibold uppercase tracking-widest text-[#8a88a0] mb-4">
-                {title}
+                {t(titleKey)}
               </h4>
               <ul className="space-y-2.5">
                 {links.map((link) => (
-                  <li key={link.label}>
+                  <li key={link.labelKey}>
                     <a
                       href={link.href}
                       target={link.href.startsWith("http") || link.href.startsWith("mailto") ? "_blank" : undefined}
                       rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                       className="text-sm text-[#5a5870] hover:text-[#e8e6f0] transition-colors"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </a>
                   </li>
                 ))}
@@ -86,12 +90,12 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[#5a5870]">
-            &copy; {new Date().getFullYear()} Teos Network. All rights reserved.
-            Licensed under <a href="/LICENSE" className="hover:text-[#e8e6f0] transition-colors">TESL v2.0</a>.
+            &copy; {new Date().getFullYear()} Teos Network. {t("footer.copyright")}{" "}
+            {t("footer.license")}
           </p>
           <div className="flex items-center gap-2 text-xs text-[#5a5870]">
             <span className="text-gold-500">✦</span>
-            <span>Built in Alexandria, Egypt</span>
+            <span>{t("footer.builtPrefix")}</span>
             <span className="text-gold-500">✦</span>
           </div>
         </div>

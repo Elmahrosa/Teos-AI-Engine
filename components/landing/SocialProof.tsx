@@ -1,3 +1,7 @@
+"use client";
+
+import { useLocale } from "@/components/LocaleProvider";
+
 const platforms = [
   { name: "X (Twitter)", icon: "𝕏" },
   { name: "LinkedIn", icon: "in" },
@@ -8,21 +12,16 @@ const platforms = [
   { name: "Telegram", icon: "✈" },
 ];
 
-const badges = [
-  "Egyptian Sovereign",
-  "GDPR Compliant",
-  "Dodo Payments",
-  "SSL Encrypted",
-  "24/7 Support",
-];
+const badges = ["socialproof.badge0", "socialproof.badge1", "socialproof.badge2", "socialproof.badge3", "socialproof.badge4"] as const;
 
 export default function SocialProof() {
+  const { t } = useLocale();
   return (
     <section className="section-padding pt-0">
       <div className="section-container">
         <div className="mx-auto max-w-3xl text-center mb-10">
           <p className="text-sm font-semibold uppercase tracking-widest text-[#8a88a0] mb-4">
-            Supported Platforms
+            {t("socialproof.title")}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
             {platforms.map((p) => (
@@ -38,12 +37,12 @@ export default function SocialProof() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {badges.map((badge) => (
+          {badges.map((key) => (
             <span
-              key={badge}
+              key={key}
               className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-[#8a88a0]"
             >
-              {badge}
+              {t(key)}
             </span>
           ))}
         </div>
