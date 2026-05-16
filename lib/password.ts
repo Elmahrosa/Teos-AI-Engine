@@ -1,15 +1,23 @@
-import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
-
-const KEY_LEN = 64;
+import bcrypt from "bcryptjs";
+import { scryptSync, timingSafeEqual } from "crypto";
 
 export async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString("hex");
-  const key = scryptSync(password, salt, KEY_LEN).toString("hex");
-  return `${salt}:${key}`;
+  return bcrypt.hash(password, 10);
 }
 
-export async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const [salt, key] = stored.split(":");
-  const derivedKey = scryptSync(password, salt, KEY_LEN).toString("hex");
-  return timingSafeEqual(Buffer.from(key), Buffer.from(derivedKey));
+export async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
+  if (hash.includes(":")) {
+    const [salt, key] = hash.split(":");
+    const derived = scryptSync(password, salt, 64).toString("hex");
+    const valid = timingSafeEqual(Buffer.from(key), Buffer.from(derived));
+    return valid;
+  }
+  return bcrypt.compare(password, hash);
+}
+
+export function isLegacyHash(hash: string): boolean {
+  return hash.includes(":");
 }

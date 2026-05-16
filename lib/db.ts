@@ -10,6 +10,7 @@ export async function ensureUserExists(email: string, name?: string) {
       data: {
         email: email.toLowerCase(),
         name: name || email.split("@")[0],
+        role: "user",
         plan: "free",
         status: "trial",
         totalPostsUsed: 0,
@@ -24,12 +25,10 @@ export async function canUserPost(userId: string, plan: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { allowed: false, reason: "User not found" };
 
-  // Starter: 5 posts total lifetime
   if (user.plan === "free" && user.totalPostsUsed >= 5) {
     return { allowed: false, reason: "Starter limit reached. Upgrade to continue." };
   }
 
-  // Daily limits
   const today = new Date().toISOString().split('T')[0];
   if (user.lastResetDate.toISOString().split('T')[0] !== today) {
     await prisma.user.update({
@@ -49,7 +48,7 @@ export async function canUserPost(userId: string, plan: string) {
 export async function recordPost(userId: string) {
   await prisma.user.update({
     where: { id: userId },
-    data: { 
+    data: {
       totalPostsUsed: { increment: 1 },
       dailyPostsUsed: { increment: 1 }
     }

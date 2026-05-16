@@ -10,6 +10,7 @@ model User {
   id              String   @id @default(cuid())
   email           String   @unique
   name            String?
+  role            String   @default("user")
   plan            String   @default("free")
   status          String   @default("trial")
   trialEndsAt     DateTime?
@@ -17,13 +18,17 @@ model User {
   totalPostsUsed  Int      @default(0)
   dailyPostsUsed  Int      @default(0)
   passwordHash    String?
+  lastActiveAt    DateTime?
   lastResetDate   DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  accounts        Account[]
-  sessions        Session[]
-  posts           Post[]
+  accounts       Account[]
+  sessions       Session[]
+  posts          Post[]
+  resetTokens    ResetToken[]
+  refreshTokens  RefreshToken[]
+  auditLogs      AuditLog[]
 }
 
 model Account {
@@ -48,6 +53,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  lastActiveAt DateTime?
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -60,4 +66,37 @@ model Post {
   createdAt   DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  usedAt    DateTime?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  metadata  Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

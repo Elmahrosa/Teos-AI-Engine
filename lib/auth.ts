@@ -3,7 +3,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
+import { hashPassword, verifyPassword, isLegacyHash } from "@/lib/password";
+import { createAuditLog } from "@/lib/session";
 
 const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
@@ -16,7 +17,7 @@ function makeid(): string {
 export const authOptions: NextAuthOptions = {
   secret: secret || makeid(),
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 60 * 60 },
   providers: [
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
@@ -44,14 +45,21 @@ export const authOptions: NextAuthOptions = {
 
           if (user) {
             if (user.passwordHash) {
-              const valid = await bcrypt.compare(password, user.passwordHash);
+              const valid = await verifyPassword(password, user.passwordHash);
               if (!valid) return null;
+
+              if (isLegacyHash(user.passwordHash)) {
+                user = await prisma.user.update({
+                  where: { email },
+                  data: { passwordHash: await hashPassword(password) },
+                });
+              }
             } else if (!password) {
               return null;
             } else {
               user = await prisma.user.update({
                 where: { email },
-                data: { passwordHash: await bcrypt.hash(password, 10) },
+                data: { passwordHash: await hashPassword(password) },
               });
             }
           } else {
@@ -60,16 +68,25 @@ export const authOptions: NextAuthOptions = {
               data: {
                 email,
                 name,
+                role: "user",
                 plan: "free",
-                passwordHash: await bcrypt.hash(password, 10),
+                passwordHash: await hashPassword(password),
               },
             });
           }
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastActiveAt: new Date() },
+          });
+
+          await createAuditLog(user.id, "login", { email, method: "credentials" });
 
           return {
             id: user.id,
             email: user.email,
             name: user.name,
+            role: user.role,
             plan: user.plan,
             trialEndsAt: user.trialEndsAt ? user.trialEndsAt.toISOString() : null,
             isAdmin: user.isAdmin,
@@ -84,6 +101,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        token.role = (user as any).role ?? "user";
         token.plan = (user as any).plan;
         token.trialEndsAt = (user as any).trialEndsAt;
         token.isAdmin = (user as any).isAdmin;
@@ -91,11 +109,17 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google" && account?.access_token) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email! },
+          select: { id: true, role: true, plan: true, isAdmin: true },
         });
         if (dbUser) {
           token.id = dbUser.id;
+          token.role = dbUser.role ?? "user";
           token.plan = dbUser.plan;
           token.isAdmin = dbUser.isAdmin;
+
+          if (account?.type === "oauth") {
+            await createAuditLog(dbUser.id, "login", { email: token.email, method: "google" }).catch(() => {});
+          }
         }
       }
       return token;
@@ -103,6 +127,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
+        (session.user as any).role = token.role;
         (session.user as any).plan = token.plan;
         (session.user as any).trialEndsAt = token.trialEndsAt;
         (session.user as any).isAdmin = token.isAdmin;

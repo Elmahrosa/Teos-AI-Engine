@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[/api/auth/reset-password]", error);
+    console.error("[/api/auth/reset-confirm]", error);
     return NextResponse.json({ error: "Password reset failed" }, { status: 500 });
   }
 }
