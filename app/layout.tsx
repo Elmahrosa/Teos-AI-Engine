@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import LocaleProvider from "@/components/LocaleProvider";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://teos-ai-engine.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ai.teosegypt.com";
 
 export const metadata: Metadata = {
   title: {
