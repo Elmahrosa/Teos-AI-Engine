@@ -8,7 +8,6 @@ import Link from "next/link";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -25,19 +24,19 @@ export default function LoginPage() {
       });
 
       if (res?.error) {
-        setError("Login failed. Check your credentials.");
+        setError(res.error);
       } else {
         router.push("/dashboard");
       }
     } catch {
-      setError("An unexpected error occurred.");
+      setError("Connection error. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4" dir="ltr">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
@@ -55,14 +54,7 @@ export default function LoginPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
-            className="w-full rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm text-[#e8e6f0] placeholder-[#5a5870] outline-none focus:border-gold-500/40"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
+            autoFocus
             className="w-full rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm text-[#e8e6f0] placeholder-[#5a5870] outline-none focus:border-gold-500/40"
           />
 
@@ -70,9 +62,9 @@ export default function LoginPage() {
             <div className="p-3 rounded-xl text-sm bg-red-500/10 border border-red-500/20 text-red-400">{error}</div>
           )}
 
-          <button type="submit" disabled={loading}
+          <button type="submit" disabled={loading || !email.trim()}
             className="btn-primary w-full text-sm py-3 disabled:opacity-40">
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Signing in..." : "Sign in with email"}
           </button>
         </form>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -35,7 +36,7 @@ export default function Navigation() {
           </span>
         </a>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -45,7 +46,8 @@ export default function Navigation() {
               {link.label}
             </a>
           ))}
-          <a href="/admin" className="text-[10px] text-[#5a5870] hover:text-[#8a88a0] transition-colors duration-200" title="Admin">
+          <LocaleSwitcher />
+          <a href="/admin" className="text-xs text-[#5a5870] hover:text-[#8a88a0] transition-colors duration-200" title="Admin">
             ⚙
           </a>
           <a href="/login" className="btn-teal text-xs px-5 py-2.5">
@@ -89,6 +91,7 @@ export default function Navigation() {
                 {link.label}
               </a>
             ))}
+            <LocaleSwitcher />
             <a
               href="/admin"
               onClick={() => setMobileOpen(false)}
