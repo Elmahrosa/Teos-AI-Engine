@@ -61,9 +61,7 @@ export default function LoginPage() {
             className="w-full rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm text-[#e8e6f0] placeholder-[#5a5870] outline-none focus:border-gold-500/40"
           />
 
-          {error && (
-            <p className="text-xs text-red-400 px-1">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-400 px-1">{error}</p>}
 
           <button
             type="submit"
@@ -74,12 +72,10 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center text-xs text-[#5a5870] space-y-2">
+        <div className="mt-8 text-center text-xs text-[#5a5870]">
           <p>
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-gold-500 hover:underline">
-              Sign up
-            </Link>
+            <Link href="/signup" className="text-gold-500 hover:underline">Sign up</Link>
           </p>
         </div>
       </div>
