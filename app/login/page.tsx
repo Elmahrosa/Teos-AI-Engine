@@ -3,11 +3,9 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { t } = useLocale();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,8 +32,7 @@ export default function LoginPage() {
           setError(res.error);
         }
       } else if (res?.ok) {
-        router.push("/dashboard");
-        router.refresh();
+        window.location.href = "/dashboard";
       }
     } catch {
       setError(t("login.genericError"));
