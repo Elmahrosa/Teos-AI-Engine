@@ -3,6 +3,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import TwitterProvider from "next-auth/providers/twitter";
+import LinkedInProvider from "next-auth/providers/linkedin";
 import { hashPassword, verifyPassword, isLegacyHash } from "@/lib/password";
 import { createAuditLog } from "@/lib/session";
 
@@ -24,6 +26,22 @@ export const authOptions: NextAuthOptions = {
           GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+    ...(process.env.X_TWITTER_CLIENT_ID && process.env.X_TWITTER_CLIENT_SECRET
+      ? [
+          TwitterProvider({
+            clientId: process.env.X_TWITTER_CLIENT_ID,
+            clientSecret: process.env.X_TWITTER_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+    ...(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET
+      ? [
+          LinkedInProvider({
+            clientId: process.env.LINKEDIN_CLIENT_ID,
+            clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
           }),
         ]
       : []),
@@ -106,7 +124,7 @@ export const authOptions: NextAuthOptions = {
         token.trialEndsAt = (user as any).trialEndsAt;
         token.isAdmin = (user as any).isAdmin;
       }
-      if (account?.provider === "google" && account?.access_token) {
+      if (account?.type === "oauth") {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email! },
           select: { id: true, role: true, plan: true, isAdmin: true },
@@ -117,9 +135,7 @@ export const authOptions: NextAuthOptions = {
           token.plan = dbUser.plan;
           token.isAdmin = dbUser.isAdmin;
 
-          if (account?.type === "oauth") {
-            await createAuditLog(dbUser.id, "login", { email: token.email, method: "google" }).catch(() => {});
-          }
+          await createAuditLog(dbUser.id, "login", { email: token.email, method: account.provider }).catch(() => {});
         }
       }
       return token;

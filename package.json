@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.78",
+    "@ai-sdk/google": "^3.0.75",
     "@anthropic-ai/sdk": "^0.27.0",
+    "@auth/core": "^0.34.3",
     "@auth/prisma-adapter": "^2.11.1",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.8.0",

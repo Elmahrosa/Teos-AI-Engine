@@ -2,15 +2,32 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/session";
+import { isAllowedOrigin } from "@/lib/origin";
+import { resetRequestSchema } from "@/lib/validation";
+import { rateLimitMiddleware } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const email = String(body?.email || "").trim().toLowerCase();
-
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    if (!isAllowedOrigin(req)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+
+    const rl = rateLimitMiddleware(req, "reset-request", 5, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+      );
+    }
+
+    const body = await req.json();
+    const parsed = resetRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+    }
+
+    const { email } = parsed.data;
+    const ip = req.headers.get("x-forwarded-for") ?? undefined;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -29,7 +46,7 @@ export async function POST(req: Request) {
       data: { userId: user.id, token, expiresAt },
     });
 
-    await createAuditLog(user.id, "password-reset-requested", { email }, req.headers.get("x-forwarded-for") ?? undefined);
+    await createAuditLog(user.id, "password-reset-requested", { email }, ip);
 
     const resetUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
