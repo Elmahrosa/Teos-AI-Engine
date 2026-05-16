@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { setSession } from "@/lib/session";
-import bcrypt from "bcryptjs";
+import { verifyPassword } from "@/lib/password";
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const valid = await bcrypt.compare(
+    const valid = await verifyPassword(
       String(password),
       user.passwordHash
     );

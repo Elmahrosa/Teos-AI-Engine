@@ -106,8 +106,9 @@ export default function DashboardPage() {
     );
   }
 
-  const remaining = isWithinDailyLimit(plan, session.user?.dailyPostsUsed ?? 0)
-    ? (plan.dailyPostLimit === -1 ? Infinity : plan.dailyPostLimit - (session.user?.dailyPostsUsed ?? 0))
+  const dailyUsed = (session.user as any)?.dailyPostsUsed ?? 0;
+  const remaining = isWithinDailyLimit(plan, dailyUsed)
+    ? (plan.dailyPostLimit === -1 ? Infinity : plan.dailyPostLimit - dailyUsed)
     : 0;
 
   return (

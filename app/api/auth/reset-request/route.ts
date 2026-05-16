@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -11,7 +11,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const db = prisma as any;
+    const user = await db.user.findUnique({ where: { email } });
     if (!user) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenExpiry = new Date(Date.now() + 3600_000);
 
-    await prisma.user.update({
+    await db.user.update({
       where: { email },
       data: { resetToken, resetTokenExpiry },
     });

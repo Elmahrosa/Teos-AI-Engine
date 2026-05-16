@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { isAdminEmail } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/access";
 import { getSessionEmail } from "@/lib/session";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const actorEmail = await getSessionEmail();

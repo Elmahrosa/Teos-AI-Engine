@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { setSession } from "@/lib/session";
 import { sendWelcomeEmail } from "@/lib/email";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "@/lib/password";
 
 export async function POST(req: Request) {
   try {
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const passwordHash = await bcrypt.hash(password,10);
+    const passwordHash = await hashPassword(password);
 
     const user = await db.user.create({
       data:{
@@ -57,7 +57,8 @@ export async function POST(req: Request) {
       try {
         await sendWelcomeEmail(
           user.email,
-          user.name
+          user.name,
+          user.plan
         );
       } catch (emailError) {
         console.error(

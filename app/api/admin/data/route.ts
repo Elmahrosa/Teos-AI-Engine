@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getCurrentUser, isAdminEmail } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { isAdminEmail } from '@/lib/access';
+import { getSessionEmail } from '@/lib/session';
 
 export async function GET() {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isAdminEmail(currentUser.email)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const currentUserEmail = await getSessionEmail();
+  if (!currentUserEmail) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!isAdminEmail(currentUserEmail)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const [users, billing] = await Promise.all([
     prisma.user.findMany({
@@ -20,7 +21,7 @@ export async function GET() {
         posts: { select: { id: true } },
       },
     }),
-    prisma.billingEvent.findMany({
+    (prisma as any).billingEvent.findMany({
       orderBy: { createdAt: 'desc' },
       take: 100,
       include: { user: { select: { email: true } } },

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { getPlan, postsRemainingToday, usagePct, upgradeTarget, isUnlimited } from "@/lib/plans";
+import { getPlan, postsRemainingToday, usagePct, upgradeTarget } from "@/landpage/plans";
 import DashboardClient from "./DashboardClient";
 
 // ─── Server component — fetches all real data before render ──────────────────

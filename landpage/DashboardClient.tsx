@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import type { Plan } from "@/lib/plans";
+import type { Plan } from "@/landpage/plans";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Post {

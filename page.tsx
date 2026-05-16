@@ -2,9 +2,21 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
-import { PLANS, PLATFORM_LABELS, getPlan, trialExpired } from "@/lib/plans";
+import { PLANS, getPlan } from "@/landpage/plans";
 
 type Platform = "x" | "facebook" | "instagram" | "linkedin";
+
+const PLATFORM_LABELS: Record<Platform, string> = {
+  x: "X (Twitter)",
+  facebook: "Facebook",
+  instagram: "Instagram",
+  linkedin: "LinkedIn",
+};
+
+function trialExpired(trialEnd: Date | null): boolean {
+  if (!trialEnd) return true;
+  return new Date() > trialEnd;
+}
 type PostStatus = "draft" | "published";
 
 interface Post {
@@ -57,7 +69,7 @@ export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState<PostStatus | "all">("all");
 
   const plan = getPlan(session?.user?.plan ?? "starter");
-  const planConfig = PLANS[plan];
+  const planConfig = PLANS[plan.id];
   
   const trialEnd = session?.user?.trialEndsAt
     ? new Date(session.user.trialEndsAt)
@@ -68,7 +80,10 @@ export default function DashboardPage() {
     : null;
 
   const lockedPlatforms: Platform[] = (["x", "facebook", "instagram", "linkedin"] as Platform[]).filter(
-    (p) => !planConfig.platforms.includes(p)
+    (p) => {
+      if (planConfig.platforms >= 4) return false;
+      return p !== "x" && p !== "linkedin";
+    }
   );
 
   const fetchPosts = useCallback(async () => {
@@ -165,7 +180,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           {/* Plan badge */}
           <span className="hidden sm:inline text-xs px-3 py-1 rounded-full border border-white/10 text-gray-400 capitalize">
-            {planConfig.label} plan
+            {planConfig.name} plan
           </span>
 
           {/* Admin link — hidden for launch */}
@@ -189,7 +204,7 @@ export default function DashboardPage() {
       </header>
 
       {/* ── Trial / upgrade banners ─────────────────────────────── */}
-      {trialIsExpired && plan === "starter" && (
+      {trialIsExpired && plan.id === "free" && (
         <div className="bg-red-900/30 border-b border-red-700/40 px-4 sm:px-8 py-3 flex items-center justify-between gap-4">
           <p className="text-sm text-red-300">
             Your trial has expired. Upgrade to keep generating.
@@ -244,7 +259,7 @@ export default function DashboardPage() {
                         disabled={locked}
                         title={
                           locked
-                            ? `Upgrade to ${plan === "starter" ? "Pro" : "Agency"} to unlock`
+                            ? `Upgrade to ${plan.id === "free" ? "Pro" : "Agency"} to unlock`
                             : undefined
                         }
                         className={`relative flex flex-col items-center gap-2 py-4 px-3 rounded-xl border transition-all text-sm font-medium
@@ -435,7 +450,7 @@ export default function DashboardPage() {
         )}
 
         {/* ── Plan upgrade section (bottom of page for starter) ── */}
-        {plan === "starter" && (
+        {plan.id === "free" && (
           <div className="mt-12 border border-white/6 rounded-2xl p-6 bg-gradient-to-br from-violet-900/10 to-transparent">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { getSessionEmail, isAdminEmail } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { getSessionEmail } from "@/lib/session";
+import { isAdminEmail } from "@/lib/access";
 
 export async function POST(req: Request) {
   const actorEmail = await getSessionEmail();
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
 
-  await prisma.user.update({
+  await (prisma as any).user.update({
     where: { email },
     data: {
       plan: "agency",
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
     },
   });
 
-  await prisma.billingEvent.create({
+  await (prisma as any).billingEvent.create({
     data: {
       email,
       provider: "admin-lifetime",

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { hashPassword } from "@/lib/password";
 
 export async function POST(req: Request) {
   try {
@@ -15,7 +15,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+    const db = prisma as any;
+    const user = await db.user.findUnique({ where: { email: email.trim().toLowerCase() } });
     if (!user || !user.resetToken || !user.resetTokenExpiry) {
       return NextResponse.json({ error: "Invalid or expired reset link" }, { status: 400 });
     }
@@ -28,9 +29,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Reset link has expired" }, { status: 400 });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await hashPassword(password);
 
-    await prisma.user.update({
+    await db.user.update({
       where: { email: user.email },
       data: { passwordHash, resetToken: null, resetTokenExpiry: null },
     });
