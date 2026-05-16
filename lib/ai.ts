@@ -33,11 +33,19 @@ export async function generatePost({ prompt, platform }: AIConfig) {
     };
   }
 
-  const { object } = await generateObject({
-    model,
-    schema: postSchema,
-    prompt: `Write a concise ${platform} post about: ${prompt}. Keep it sharp and useful.`,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
-  return object;
+  try {
+    const { object } = await generateObject({
+      model,
+      schema: postSchema,
+      prompt: `Write a concise ${platform} post about: ${prompt}. Keep it sharp and useful.`,
+      abortSignal: controller.signal,
+    });
+
+    return object;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
