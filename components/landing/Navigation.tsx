@@ -36,7 +36,7 @@ export default function Navigation() {
           </span>
         </a>
 
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-5">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -47,7 +47,10 @@ export default function Navigation() {
             </a>
           ))}
           <LocaleSwitcher />
-          <a href="/admin" className="text-xs text-[#5a5870] hover:text-[#8a88a0] transition-colors duration-200" title="Admin">
+          <a href="/login" className="text-sm text-[#5a5870] hover:text-[#e8e6f0] transition-colors duration-200" title="Login">
+            👤
+          </a>
+          <a href="/admin" className="text-sm text-[#5a5870] hover:text-[#e8e6f0] transition-colors duration-200" title="Admin">
             ⚙
           </a>
           <a href="/login" className="btn-teal text-xs px-5 py-2.5">
@@ -93,11 +96,18 @@ export default function Navigation() {
             ))}
             <LocaleSwitcher />
             <a
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="text-sm text-[#8a88a0] hover:text-[#e8e6f0] transition-colors py-2"
+            >
+              👤 Login
+            </a>
+            <a
               href="/admin"
               onClick={() => setMobileOpen(false)}
-              className="text-xs text-[#5a5870] hover:text-[#8a88a0] transition-colors py-1"
+              className="text-sm text-[#8a88a0] hover:text-[#e8e6f0] transition-colors py-2"
             >
-              Admin
+              ⚙ Admin
             </a>
             <a
               href="/login"
