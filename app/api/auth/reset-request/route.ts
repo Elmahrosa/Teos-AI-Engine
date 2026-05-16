@@ -5,15 +5,22 @@ import { createAuditLog } from "@/lib/session";
 import { isAllowedOrigin } from "@/lib/origin";
 import { resetRequestSchema } from "@/lib/validation";
 import { rateLimitMiddleware } from "@/lib/rateLimit";
+import { log, logError, getRequestId } from "@/lib/logger";
+import { AUTH_RATE_LIMIT, AUTH_RATE_WINDOW_MS } from "@/lib/constants";
 
 export async function POST(req: Request) {
+  const reqId = getRequestId(req);
+  log(req, "reset-request.start", { reqId });
+
   try {
     if (!isAllowedOrigin(req)) {
+      log(req, "reset-request.origin_blocked", { reqId });
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const rl = rateLimitMiddleware(req, "reset-request", 5, 60_000);
+    const rl = await rateLimitMiddleware(req, "reset-request", AUTH_RATE_LIMIT, AUTH_RATE_WINDOW_MS);
     if (!rl.allowed) {
+      log(req, "reset-request.rate_limited", { reqId });
       return NextResponse.json(
         { error: "Too many requests. Try again later." },
         { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
@@ -23,6 +30,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = resetRequestSchema.safeParse(body);
     if (!parsed.success) {
+      log(req, "reset-request.validation_failed", { reqId });
       return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
@@ -31,8 +39,11 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      log(req, "reset-request.user_not_found", { reqId, email });
       return NextResponse.json({ ok: true });
     }
+
+    log(req, "reset-request.token_generating", { reqId, userId: user.id });
 
     await prisma.resetToken.updateMany({
       where: { userId: user.id, usedAt: null, expiresAt: { gt: new Date() } },
@@ -65,15 +76,16 @@ export async function POST(req: Request) {
             <p>If you didn't request this, ignore this email.</p>
           `,
         });
+        log(req, "reset-request.email_sent", { reqId, userId: user.id });
         return NextResponse.json({ ok: true, emailSent: true });
       } catch {
-        console.warn("Resend not configured, showing token on screen");
+        log(req, "reset-request.email_fallback", { reqId, userId: user.id });
       }
     }
 
     return NextResponse.json({ ok: true, emailSent: false, token, resetUrl });
   } catch (error) {
-    console.error("[/api/auth/reset-request]", error);
+    logError(req, "reset-request.failed", error, { reqId });
     return NextResponse.json({ error: "Reset request failed" }, { status: 500 });
   }
 }

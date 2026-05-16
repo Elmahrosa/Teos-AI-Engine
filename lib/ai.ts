@@ -1,6 +1,5 @@
 import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
-import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 
 const postSchema = z.object({
@@ -13,39 +12,66 @@ type AIConfig = {
   platform: "x" | "instagram" | "linkedin";
 };
 
-function getModel() {
+type AIProvider = "gemini" | "claude" | "demo";
+
+function getProvider(): { model: any; provider: AIProvider } | { model: null; provider: "demo" } {
   if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    return google("gemini-2.0-flash");
+    return { model: google("gemini-2.0-flash"), provider: "gemini" };
   }
   if (process.env.ANTHROPIC_API_KEY) {
-    return anthropic("claude-3-5-sonnet-20241022");
+    const { anthropic } = require("@ai-sdk/anthropic") as typeof import("@ai-sdk/anthropic");
+    return { model: anthropic("claude-3-5-sonnet-20241022"), provider: "claude" };
   }
-  return null;
+  return { model: null, provider: "demo" };
+}
+
+async function generateWithRetry(
+  model: any,
+  prompt: string,
+  platform: string,
+  retries = 2,
+): Promise<{ post: string; hashtags: string[] }> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+    try {
+      const result = await generateObject({
+        model,
+        schema: postSchema,
+        prompt: `Write a concise ${platform} post about: ${prompt}. Keep it sharp and useful.`,
+        abortSignal: controller.signal,
+      });
+      const { post, hashtags } = result.object;
+      if (!post || !hashtags) throw new Error("AI returned incomplete result");
+      return { post, hashtags };
+    } catch (err) {
+      clearTimeout(timeoutId);
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      if (attempt < retries && !isAbort) {
+        continue;
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+  throw new Error("generateWithRetry exhausted");
 }
 
 export async function generatePost({ prompt, platform }: AIConfig) {
-  const model = getModel();
+  const result = getProvider();
 
-  if (!model) {
+  if (result.provider === "demo") {
     return {
       post: `Demo ${platform} post about: ${prompt}`,
       hashtags: ["#demo", "#xteospro", "#growth"],
     };
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+  return generateWithRetry(result.model, prompt, platform);
+}
 
-  try {
-    const { object } = await generateObject({
-      model,
-      schema: postSchema,
-      prompt: `Write a concise ${platform} post about: ${prompt}. Keep it sharp and useful.`,
-      abortSignal: controller.signal,
-    });
-
-    return object;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+export function getActiveProvider(): AIProvider {
+  return getProvider().provider;
 }

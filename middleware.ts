@@ -8,33 +8,30 @@ export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
+    const url = req.nextUrl.clone();
 
     if (!token) {
       if (authRoutes.some((r) => pathname.startsWith(r))) {
-        return NextResponse.next();
+        return addSecurityHeaders(NextResponse.next());
       }
-      return NextResponse.redirect(new URL("/login", req.url));
+      url.pathname = "/login";
+      url.searchParams.set("callbackUrl", pathname);
+      return addSecurityHeaders(NextResponse.redirect(url));
     }
 
     const role = (token as any).role ?? "user";
 
     if (adminRoutes.some((r) => pathname.startsWith(r))) {
       if (role !== "admin" && role !== "founder") {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
+        return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)));
       }
     }
 
     if (authRoutes.some((r) => pathname.startsWith(r))) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)));
     }
 
-    const response = NextResponse.next();
-
-    response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-
-    return response;
+    return addSecurityHeaders(NextResponse.next());
   },
   {
     callbacks: {
@@ -55,6 +52,14 @@ export default withAuth(
     },
   },
 );
+
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-DNS-Prefetch-Control", "off");
+  return response;
+}
 
 export const config = {
   matcher: [
