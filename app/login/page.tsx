@@ -110,6 +110,12 @@ export default function LoginPage() {
             className="w-full rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm text-[#e8e6f0] placeholder-[#5a5870] outline-none focus:border-gold-500/40"
           />
 
+          <div className="text-right">
+            <Link href="/reset-password" className="text-xs text-gold-500 hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+
           {error && <p className="text-xs text-red-400 px-1">{error}</p>}
 
           <button
