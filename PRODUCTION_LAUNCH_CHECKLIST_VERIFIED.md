@@ -1,21 +1,21 @@
 # Production Launch Checklist — Verified Results
 
 **Project:** Teos AI Engine  
-**Date:** 2026-05-17  
-**Commit:** 4a463fc  
+**Re-verified:** 2026-05-17  
+**Current Commit:** 709e385  
 **Verdict:** ✅ **GO for production deploy**
 
 ---
 
 ## 0. Deployment Readiness Gate
 
-- [x] `npm run build` passes with 0 errors — **PASS**
+- [x] `npm run build` passes with 0 errors — **PASS** (23 routes + proxy middleware + 3 new API routes)
 - [x] `npx prisma validate` passes — **PASS**
-- [x] No critical or high-severity auth vulnerabilities remain — **PASS** (9 pre-existing Dependabot alerts in dependency tree, none introduced by our code)
+- [x] No critical or high-severity auth vulnerabilities remain — **PASS** (5 moderate transitive dev deps only — PostCSS in Next.js, Hono in @prisma/dev)
 - [x] No broken OAuth callback flows — **PASS** (conditional providers, production domain via NEXTAUTH_URL)
-- [x] No unhandled runtime errors in AI layer — **PASS** (AbortController 30s timeout, max 2 retries, try/catch with sanitized responses)
-- [x] Rate limiting does not block legitimate usage — **PASS** (5/min auth, 20/min generate, OAuth callbacks bypass rate limiting)
-- [ ] All environment variables configured in Vercel — **⚠️ WARN** (GOOGLE_GENERATIVE_AI_API_KEY empty, X/Twitter + LinkedIn credentials empty — but all are optional with graceful fallback)
+- [x] No unhandled runtime errors in AI layer — **PASS** (SDK retry 2x, 30s timeout, sanitized errors, demo fallback)
+- [x] Rate limiting does not block legitimate usage — **PASS** (5/min auth, 30/min generate, OAuth callbacks bypass, Upstash + in-memory fallback)
+- [ ] All environment variables configured in Vercel — **⚠️ WARN** (GOOGLE_GENERATIVE_AI_API_KEY optional — graceful fallback)
 
 ## 1. Authentication & Identity System
 
@@ -45,21 +45,27 @@
 
 ## 3. AI System
 
-- [x] lib/ai.ts is single source of truth — **PASS** (all AI generation routes through generatePost)
-- [x] No direct anthropic() calls remain — **PASS** (only via dynamic require fallback)
+- [x] lib/ai.ts is single source of truth — **PASS** (generic `ai.generate<T>()` + `ai.stream()` gateway)
+- [x] No direct anthropic() calls remain — **PASS** (Claude only via fallback in selectProvider)
 - [x] Gemini 2.0 Flash active provider — **PASS** (primary when GOOGLE_GENERATIVE_AI_API_KEY set)
-- [x] Timeout handling active — **PASS** (AbortController 30s, ai.ts:35-36)
-- [x] Retry logic works — **PASS** (max 2 retries, non-abort errors retry)
+- [x] Claude fallback works — **PASS** (auto-failover when Gemini key missing, Anthropic key present)
+- [x] Timeout handling active — **PASS** (SDK timeout 30s, Promise.race protection)
+- [x] Retry logic works — **PASS** (SDK built-in maxRetries: 2)
+- [x] Streaming endpoint active — **PASS** (`POST /api/generate/stream` — SSE, rate-limited, auth-gated)
+- [x] Deprecation wrapper works — **PASS** (lib/claude.ts delegates to lib/ai.ts with trace warning)
 - [x] Graceful failure responses — **PASS** (sanitized errors, demo mode when no keys)
 - [x] AI requests do not block server threads — **PASS** (async/await throughout)
 - [x] API errors normalized — **PASS** (all errors return `{ error: "..." }` format)
+- [x] AI events traced with correlation IDs — **PASS** (lib/ai.ts + lib/trace.ts)
 
 ## 4. Rate Limiting & Abuse Protection
 
-- [x] Auth endpoints rate-limited — **PASS** (5/min, reset-request/reset-confirm/reset-password)
-- [x] AI endpoints rate-limited — **PASS** (20/min, generate route)
+- [x] Auth endpoints rate-limited — **PASS** (5/min, reset-request/reset-confirm/reset-password via lib/rateLimit.ts)
+- [x] AI endpoints rate-limited — **PASS** (30/min, generate route via lib/rate-limit.ts withRateLimit wrapper)
+- [x] Streaming endpoint rate-limited — **PASS** (same 30/min policy as generate)
 - [x] Reset password endpoints protected — **PASS** (AUTH_RATE_LIMIT = 5/min)
-- [x] Admin endpoints protected — **PASS** (middleware RBAC)
+- [x] Admin endpoints protected — **PASS** (middleware RBAC + rate-limit wrapper)
+- [x] Dual rate-limit system — **PASS** (Upstash distributed + in-memory fallback)
 - [x] Rate limits do NOT block OAuth callbacks — **PASS** (OAuth handled by NextAuth's [...nextauth] route, not rate-limited)
 - [x] Failures return safe HTTP responses — **PASS** (429 with Retry-After header)
 - [x] No infinite retry loops — **PASS** (frontend does not auto-retry on 429)
@@ -67,24 +73,30 @@
 
 ## 5. Security Hardening
 
-- [x] Content-Security-Policy enabled — **PASS** (next.config.mjs:14-24)
+- [x] Content-Security-Policy enabled — **PASS** (dual-layer: next.config.mjs + middleware.ts)
+- [x] CSP connect-src tightened — **PASS** (restricted to self, Vercel Analytics, Gemini, Anthropic, Resend, Google Fonts)
 - [x] X-Frame-Options = DENY — **PASS** (next.config.mjs + middleware.ts)
 - [x] X-Content-Type-Options = nosniff — **PASS**
 - [x] Referrer-Policy set — **PASS** (strict-origin-when-cross-origin)
+- [x] Strict-Transport-Security active — **PASS** (max-age=63072000; includeSubDomains; preload)
+- [x] Permissions-Policy active — **PASS** (no camera/microphone/geolocation)
+- [x] X-Request-ID correlation header — **PASS** (middleware.ts sets on all responses)
 - [x] All auth inputs validated (Zod) — **PASS** (loginSchema, signupSchema, resetRequestSchema, resetConfirmSchema)
 - [x] API payload sanitization active — **PASS** (Zod .trim() on strings)
-- [x] No open redirect vulnerabilities — **PASS** (isAllowedOrigin on POST routes)
+- [x] No open redirect vulnerabilities — **PASS** (isAllowedOrigin on POST routes + validateRedirectUrl)
 - [x] HttpOnly cookies enabled — **PASS** (NextAuth defaults)
 - [x] Secure flag enabled in production — **PASS** (NextAuth defaults, NEXTAUTH_URL=https://)
 - [x] SameSite policy enforced — **PASS** (NextAuth defaults)
+- [x] poweredByHeader disabled — **PASS** (next.config.mjs)
 
 ## 6. Observability & Logging
 
-- [x] Structured JSON logs enabled — **PASS** (console.log(JSON.stringify(...)), lib/logger.ts)
-- [x] Request correlation IDs implemented — **PASS** (getRequestId(), WeakMap-based)
+- [x] Structured JSON logs enabled — **PASS** (lib/trace.ts + lib/logger.ts dual system)
+- [x] Request correlation IDs implemented — **PASS** (X-Request-ID header on all responses, lib/trace.ts)
+- [x] Log ingestion endpoint — **PASS** (`POST /api/log` — structured JSON, forwards to LOG_WEBHOOK_URL)
 - [x] Auth events logged — **PASS** (login, logout, reset-requested, reset-completed, token-rotated, tokens-revoked)
-- [x] AI requests logged — **PASS** (generate.start, generate.completed, generate.failed)
-- [x] Rate limit events logged — **PASS** (generate.rate_limited, reset-request.rate_limited)
+- [x] AI requests logged — **PASS** (generate.start, generate.completed, generate.failed, stream.start, stream.error)
+- [x] Rate limit events logged — **PASS** (rateLimit.blocked with policy + IP)
 - [x] No passwords logged — **PASS**
 - [x] No tokens logged — **PASS**
 - [x] No secrets exposed in logs — **PASS**
@@ -152,7 +164,17 @@
 ## 🚀 Final Verdict: **GO for production deploy**
 
 **Pre-deploy reminders:**
-1. Set `GOOGLE_GENERATIVE_AI_API_KEY` in Vercel (currently empty, falls back to Claude → demo)
-2. Register X/Twitter + LinkedIn OAuth credentials and set env vars if desired
-3. Migrate `middleware.ts` → `proxy.ts` when ready (Next.js 16 deprecation)
-4. Run `npm audit fix` in production CI (pre-existing alerts, build-env may not hang like Windows)
+1. Set `GOOGLE_GENERATIVE_AI_API_KEY` in Vercel (optional — falls back to Claude → demo)
+2. Set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` in Vercel for distributed rate limiting (falls back to in-memory if missing)
+3. Set `LOG_WEBHOOK_URL` in Vercel to forward structured logs to Datadog/Logtail/CloudWatch
+4. Register X/Twitter + LinkedIn OAuth credentials if desired
+5. Migrate `middleware.ts` → `proxy.ts` when ready (Next.js 16 deprecation)
+
+**Deploy command:**
+```bash
+# Vercel CLI (requires login)
+npx vercel --prod
+
+# Or push to trigger auto-deploy
+git push
+```
