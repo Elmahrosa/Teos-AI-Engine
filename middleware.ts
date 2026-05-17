@@ -16,7 +16,8 @@ export default withAuth(
     if (!token) {
       if (
         authRoutes.some((r) => pathname.startsWith(r)) ||
-        pathname.startsWith("/api/health")
+        pathname.startsWith("/api/health") ||
+        pathname.startsWith("/reset-password")
       ) {
         return addSecurityHeaders(NextResponse.next(), requestId);
       }
@@ -33,7 +34,7 @@ export default withAuth(
       }
     }
 
-    if (authRoutes.some((r) => pathname.startsWith(r))) {
+    if (authRoutes.some((r) => pathname.startsWith(r)) || pathname.startsWith("/reset-password")) {
       return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)), requestId);
     }
 
@@ -50,7 +51,8 @@ export default withAuth(
           pathname.startsWith("/_next") ||
           pathname === "/" ||
           pathname === "/login" ||
-          pathname === "/signup"
+          pathname === "/signup" ||
+          pathname.startsWith("/reset-password")
         ) {
           return true;
         }
