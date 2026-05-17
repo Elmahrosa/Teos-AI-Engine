@@ -1,37 +1,40 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { SECURITY_HEADERS, getCSPHeader } from "@/lib/security";
+import { generateRequestId, trace } from "@/lib/trace";
 
 const adminRoutes = ["/admin", "/api/admin"];
 const authRoutes = ["/login", "/signup"];
 
 export default withAuth(
   function middleware(req) {
+    const requestId = generateRequestId();
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
     const url = req.nextUrl.clone();
 
     if (!token) {
       if (authRoutes.some((r) => pathname.startsWith(r))) {
-        return addSecurityHeaders(NextResponse.next());
+        return addSecurityHeaders(NextResponse.next(), requestId);
       }
       url.pathname = "/login";
       url.searchParams.set("callbackUrl", pathname);
-      return addSecurityHeaders(NextResponse.redirect(url));
+      return addSecurityHeaders(NextResponse.redirect(url), requestId);
     }
 
     const role = (token as any).role ?? "user";
 
     if (adminRoutes.some((r) => pathname.startsWith(r))) {
       if (role !== "admin" && role !== "founder") {
-        return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)));
+        return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)), requestId);
       }
     }
 
     if (authRoutes.some((r) => pathname.startsWith(r))) {
-      return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)));
+      return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)), requestId);
     }
 
-    return addSecurityHeaders(NextResponse.next());
+    return addSecurityHeaders(NextResponse.next(), requestId);
   },
   {
     callbacks: {
@@ -53,11 +56,12 @@ export default withAuth(
   },
 );
 
-function addSecurityHeaders(response: NextResponse): NextResponse {
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("X-DNS-Prefetch-Control", "off");
+function addSecurityHeaders(response: NextResponse, requestId?: string): NextResponse {
+  if (requestId) response.headers.set("X-Request-ID", requestId);
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  response.headers.set("Content-Security-Policy", getCSPHeader());
   return response;
 }
 
