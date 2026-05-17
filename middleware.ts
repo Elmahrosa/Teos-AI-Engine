@@ -14,7 +14,10 @@ export default withAuth(
     const url = req.nextUrl.clone();
 
     if (!token) {
-      if (authRoutes.some((r) => pathname.startsWith(r))) {
+      if (
+        authRoutes.some((r) => pathname.startsWith(r)) ||
+        pathname.startsWith("/api/health")
+      ) {
         return addSecurityHeaders(NextResponse.next(), requestId);
       }
       url.pathname = "/login";
