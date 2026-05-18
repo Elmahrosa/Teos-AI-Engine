@@ -20,7 +20,7 @@ function makeid(): string {
 export const authOptions: NextAuthOptions = {
   secret: secret || makeid(),
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt", maxAge: 60 * 60 },
+  session: { strategy: "database" },
   providers: [
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
@@ -126,37 +126,22 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role ?? "user";
-        token.plan = (user as any).plan;
-        token.trialEndsAt = (user as any).trialEndsAt;
-        token.isAdmin = (user as any).isAdmin;
+    async signIn({ user, account }) {
+      if (account?.type === "oauth" && user.id) {
+        await createAuditLog(user.id, "login", {
+          email: user.email,
+          method: account.provider,
+        }).catch(() => {});
       }
-      if (account?.type === "oauth") {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email! },
-          select: { id: true, role: true, plan: true, isAdmin: true },
-        });
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.role = dbUser.role ?? "user";
-          token.plan = dbUser.plan;
-          token.isAdmin = dbUser.isAdmin;
-
-          await createAuditLog(dbUser.id, "login", { email: token.email, method: account.provider }).catch(() => {});
-        }
-      }
-      return token;
+      return true;
     },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
-        (session.user as any).plan = token.plan;
-        (session.user as any).trialEndsAt = token.trialEndsAt;
-        (session.user as any).isAdmin = token.isAdmin;
+    async session({ session, user }) {
+      if (session.user && user) {
+        (session.user as any).id = user.id;
+        (session.user as any).role = (user as any).role ?? "user";
+        (session.user as any).plan = (user as any).plan;
+        (session.user as any).trialEndsAt = (user as any).trialEndsAt;
+        (session.user as any).isAdmin = (user as any).isAdmin;
       }
       return session;
     },
