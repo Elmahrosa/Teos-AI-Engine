@@ -201,7 +201,7 @@ function AnimatedCounter({ end, suffix = "", label, sub, color = "#C9A84C" }: { 
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-3xl md:text-4xl font-bold" style={{ color, fontFamily: "'Syne',sans-serif" }}>
+      <div className="text-3xl md:text-4xl font-bold" style={{ color, fontFamily: "'Space Mono',monospace" }}>
         {count}{suffix}
       </div>
       <div className="text-sm mt-1" style={{ color: "rgba(255,255,255,.55)" }}>
@@ -328,43 +328,103 @@ export default function Home() {
       <TickerBar items={tickerItems} />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-16 md:pt-40 md:pb-20 overflow-hidden">
-        <div className="hero-glow bg-gold-500/20 -top-40 -right-40" />
-        <div className="hero-glow bg-violet-500/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute inset-0 grid-bg opacity-40" />
+      <section className="relative pt-32 pb-16 md:pt-44 md:pb-24 overflow-hidden">
+        {/* Atmospheric glows */}
+        <div
+          className="hero-glow"
+          style={{ background: "rgba(201,168,76,0.15)", top: "-200px", right: "-100px" }}
+        />
+        <div
+          className="hero-glow"
+          style={{ background: "rgba(139,92,246,0.08)", top: "40%", left: "10%", width: "500px", height: "500px" }}
+        />
+        <div
+          className="hero-glow"
+          style={{ background: "rgba(0,191,165,0.06)", bottom: "-100px", left: "50%", transform: "translateX(-50%)" }}
+        />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 grid-bg opacity-30" />
+        {/* Noise texture */}
+        <div className="noise-overlay" />
 
         <div className="section-container relative z-10">
           <div className="mx-auto max-w-4xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold-500/20 bg-gold-500/5 px-4 py-1.5">
-              <span className="h-2 w-2 rounded-full bg-gold-500 animate-pulse-soft" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold-500">
+            {/* Badge */}
+            <div
+              className="mb-8 inline-flex items-center gap-2.5 rounded-full px-5 py-2"
+              style={{
+                border: "1px solid rgba(201,168,76,0.25)",
+                background: "rgba(201,168,76,0.04)",
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full animate-pulse-soft"
+                style={{ background: "#C9A84C" }}
+              />
+              <span
+                className="text-xs font-bold uppercase tracking-[0.14em]"
+                style={{ color: "#C9A84C", fontFamily: "'Space Mono', monospace" }}
+              >
                 Built in Alexandria, Egypt
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance leading-[1.1] mb-6">
+            {/* Headline — Crimson Pro serif for premium editorial feel */}
+            <h1
+              className="text-balance mb-6 leading-[1.08]"
+              style={{
+                fontFamily: "'Crimson Pro', Georgia, serif",
+                fontWeight: 600,
+                fontSize: "clamp(2.8rem, 8vw, 5.5rem)",
+                color: "#e8e6f0",
+              }}
+            >
               Generate platform-optimized{" "}
               <span className="gradient-gold">content</span>{" "}
               before your competitors do.
             </h1>
 
-            <p className="mx-auto mt-6 max-w-2xl text-lg md:text-xl text-[#8a88a0] leading-relaxed">
+            <p
+              className="mx-auto mt-6 max-w-2xl text-lg md:text-xl leading-relaxed"
+              style={{ color: "#8a88a0" }}
+            >
               TEOS AI Engine creates and scores AI-powered content for X, LinkedIn,
               Instagram, TikTok, Telegram, and more using engagement-aware optimization.
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="/login" className="btn-teal text-base px-8 py-4">
+              <a
+                href="/login"
+                className="text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  background: "linear-gradient(135deg, #00bfa5 0%, #009988 100%)",
+                  color: "#fff",
+                  boxShadow: "0 6px 24px rgba(0,191,165,0.3)",
+                }}
+              >
                 Start Generating Free
               </a>
-              <a href="#demo" className="btn-ghost text-base px-8 py-4">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              <a
+                href="#demo"
+                className="inline-flex items-center gap-2 text-sm font-semibold px-8 py-4 rounded-xl transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  color: "#C9A84C",
+                  background: "rgba(201,168,76,0.03)",
+                }}
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
                 View Demo
               </a>
             </div>
 
             {/* Animated Counters */}
-            <div className="mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto">
+            <div
+              className="mt-16 grid grid-cols-3 gap-6 max-w-md mx-auto pb-2 pt-2 px-6 rounded-2xl"
+              style={{ border: "1px solid rgba(255,255,255,0.04)", background: "rgba(17,17,24,0.6)" }}
+            >
               <AnimatedCounter end={stats?.totalPostsThisWeek ?? 0} suffix="+" label="Posts Generated" sub="This week" />
               <AnimatedCounter end={stats?.totalPosts ?? 0} suffix="+" label="Total Posts" sub="All time" color="#9B6FDF" />
               <AnimatedCounter end={stats?.totalUsers ?? 0} suffix="+" label="Early Users" sub="Testing now" />
@@ -374,33 +434,53 @@ export default function Home() {
       </section>
 
       {/* ── Social Proof ─────────────────────────────────────────────────── */}
-      <section className="section-padding pt-0">
+      <section className="py-12">
         <div className="section-container">
-          <div className="mx-auto max-w-3xl text-center mb-10">
-            <p className="text-sm font-semibold uppercase tracking-widest text-[#8a88a0] mb-4">
+          <div className="gold-rule mb-10" />
+          <div className="mx-auto max-w-3xl text-center mb-8">
+            <p
+              className="text-xs mb-6 uppercase tracking-widest"
+              style={{ fontFamily: "'Space Mono', monospace", color: "rgba(255,255,255,0.2)" }}
+            >
               Supported Platforms
             </p>
             <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
               {(["X", "LinkedIn", "Instagram", "Facebook", "TikTok", "Threads", "Telegram"] as const).map(p => {
                 const c = PLATFORM_CONFIG[p];
                 return (
-                  <div key={p} className="flex items-center gap-2 text-[#8a88a0] hover:text-[#e8e6f0] transition-colors">
-                    <span className="text-xl font-bold" style={{ color: c.color }}>{c.icon}</span>
-                    <span className="text-sm hidden sm:inline">{p}</span>
+                  <div key={p} className="group flex items-center gap-2 transition-all duration-200">
+                    <span
+                      className="text-lg font-bold transition-all duration-200"
+                      style={{ color: c.color, opacity: 0.5 }}
+                      onMouseEnter={e => { (e.target as HTMLElement).style.opacity = "1"; }}
+                      onMouseLeave={e => { (e.target as HTMLElement).style.opacity = "0.5"; }}
+                    >
+                      {c.icon}
+                    </span>
+                    <span className="text-sm hidden sm:inline" style={{ color: "rgba(255,255,255,0.3)" }}>{p}</span>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {["Egyptian Sovereign", "GDPR Compliant", "Dodo Payments", "SSL Encrypted", "24/7 Support"].map(badge => (
-              <span key={badge}
-                className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-[#8a88a0]">
+              <span
+                key={badge}
+                className="inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium"
+                style={{
+                  border: "1px solid rgba(201,168,76,0.1)",
+                  background: "rgba(201,168,76,0.03)",
+                  color: "rgba(201,168,76,0.5)",
+                  fontFamily: "'Space Mono', monospace",
+                }}
+              >
                 {badge}
               </span>
             ))}
           </div>
+          <div className="gold-rule mt-10" />
         </div>
       </section>
 
@@ -413,7 +493,10 @@ export default function Home() {
         <div className="section-container relative z-10">
           <div className="mx-auto max-w-3xl text-center mb-12">
             <span className="section-label">Live Demo</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            <h2
+              className="text-4xl md:text-5xl lg:text-6xl mb-5 leading-tight"
+              style={{ fontFamily: "'Crimson Pro', Georgia, serif", fontWeight: 600 }}
+            >
               Test Your{" "}
               <span className="gradient-teal">Visibility Score</span>
             </h2>
@@ -422,7 +505,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="w-full max-w-3xl mx-auto" style={{ fontFamily: "'Inter','Syne',sans-serif" }}>
+          <div className="w-full max-w-3xl mx-auto" style={{ fontFamily: "'Inter','Space Mono',monospace" }}>
             {/* Platform Selector */}
             <div className="mb-4">
               <div className="text-xs mb-2.5" style={{ color: "rgba(255,255,255,.35)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
@@ -530,7 +613,7 @@ export default function Home() {
                   ? "rgba(255,255,255,.06)"
                   : "linear-gradient(135deg,#C9A84C,#A07030)",
                 color: loading || topic.length < 5 ? "rgba(255,255,255,.3)" : "#050505",
-                fontFamily: "'Syne',sans-serif",
+                fontFamily: "'Space Mono',monospace",
                 fontWeight: 700,
                 fontSize: "0.875rem",
                 letterSpacing: "0.1em",
@@ -638,7 +721,7 @@ export default function Home() {
                           Visibility Score
                         </div>
                         <div className="flex items-end gap-1.5 mb-2">
-                          <span className="gradient-gold" style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "2.4rem", lineHeight: 1 }}>
+                          <span className="gradient-gold" style={{ fontFamily: "'Space Mono',monospace", fontWeight: 800, fontSize: "2.4rem", lineHeight: 1 }}>
                             {result.visibilityScore}
                           </span>
                           <span style={{ color: "rgba(255,255,255,.25)", marginBottom: "4px" }}>/100</span>
@@ -660,7 +743,7 @@ export default function Home() {
                         <div className="text-xs mb-2" style={{ color: "rgba(255,255,255,.3)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                           Best Time to Post
                         </div>
-                        <div className="text-base font-bold" style={{ color: "#9B6FDF", fontFamily: "'Syne',sans-serif" }}>
+                        <div className="text-base font-bold" style={{ color: "#9B6FDF", fontFamily: "'Space Mono',monospace" }}>
                           {result.bestTime}
                         </div>
                         <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,.3)" }}>
@@ -868,7 +951,10 @@ export default function Home() {
         <div className="section-container relative z-10">
           <div className="mx-auto max-w-3xl text-center mb-12">
             <span className="section-label">Pricing</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            <h2
+              className="text-4xl md:text-5xl lg:text-6xl mb-5 leading-tight"
+              style={{ fontFamily: "'Crimson Pro', Georgia, serif", fontWeight: 600 }}
+            >
               Simple, Transparent
               <br />
               <span className="gradient-gold">Egyptian Pricing</span>
@@ -960,7 +1046,10 @@ export default function Home() {
         <div className="section-container relative z-10">
           <div className="mx-auto max-w-3xl text-center">
             <span className="section-label">Get Started</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            <h2
+              className="text-4xl md:text-5xl lg:text-6xl mb-5 leading-tight"
+              style={{ fontFamily: "'Crimson Pro', Georgia, serif", fontWeight: 600 }}
+            >
               Ready to Transform Your{" "}
               <span className="gradient-gold">Content Strategy?</span>
             </h2>
