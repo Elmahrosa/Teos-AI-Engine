@@ -25,7 +25,8 @@ export async function canUserPost(userId: string, plan: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { allowed: false, reason: "User not found" };
 
-  if (user.plan === "free" && user.totalPostsUsed >= 5) {
+  const p = user.plan?.toUpperCase() ?? "";
+  if (p === "FREE" && user.totalPostsUsed >= 5) {
     return { allowed: false, reason: "Starter limit reached. Upgrade to continue." };
   }
 
@@ -37,7 +38,7 @@ export async function canUserPost(userId: string, plan: string) {
     });
   }
 
-  const limit = user.plan === "agency" || user.plan === "Founder" ? 200 : user.plan === "pro" || user.plan === "lifetime" ? 50 : 5;
+  const limit = p === "AGENCY" || p === "FOUNDER" || p === "ADMIN" ? 200 : p === "PRO" || p === "LIFETIME" ? 50 : 5;
   if (user.dailyPostsUsed >= limit) {
     return { allowed: false, reason: `Daily limit reached (${limit} posts).` };
   }

@@ -72,11 +72,12 @@ export const PLANS: Record<PlanId, Plan> = {
 
 export function getPlan(id: string | null | undefined): Plan {
   if (!id) return PLANS.free;
-  const normalized = id.toLowerCase().trim();
-  if (normalized === "founder" || normalized === "admin" || normalized === "founder lifetime") {
+  const normalized = id.toUpperCase().trim();
+  if (normalized === "FOUNDER" || normalized === "ADMIN" || normalized === "AGENCY_LIFETIME") {
     return PLANS.agency_lifetime;
   }
-  if (id in PLANS) return PLANS[id as PlanId];
+  const lowerId = id.toLowerCase();
+  if (lowerId in PLANS) return PLANS[lowerId as PlanId];
   return PLANS.free;
 }
 
