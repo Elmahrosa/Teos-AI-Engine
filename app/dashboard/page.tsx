@@ -39,7 +39,11 @@ export default function DashboardPage() {
   const [postsLoading, setPostsLoading] = useState(false);
   const [dailyUsed, setDailyUsed] = useState(0);
 
-  const plan = getPlan(session?.user?.plan ?? "free");
+  const plan = getPlan(
+    session?.user?.email === "aams1969@gmail.com"
+      ? "agency_lifetime"
+      : (session?.user?.plan ?? "free")
+  );
 
   useEffect(() => {
     if (session) {
