@@ -1,156 +1,451 @@
-# 𓂀 TEOS AI Engine
+# 🏺 Teos AI Engine
 
-**Know your post will perform — before you publish.**
+> **Egypt's Sovereign AI Content Engine** — Generate platform-optimized social media content for X, LinkedIn, Instagram, Facebook, TikTok, Threads, and Telegram. Built in Alexandria. Powered by Elmahrosa International.
 
-TEOS AI Engine generates platform-optimized content across X, LinkedIn, Instagram, TikTok, Threads, Facebook, and Telegram — then scores it with the TEOS Signal Score™ (0–100) so you publish with confidence, not hope. Built in Alexandria, Egypt. Arabic-native.
-
-[![Live App](https://img.shields.io/badge/Live%20App-teos--ai--engine.vercel.app-C9A84C?style=for-the-badge&logo=vercel&logoColor=black)](https://teos-ai-engine.vercel.app)
-[![AI](https://img.shields.io/badge/AI-Claude%20Haiku-7B4FBF?style=for-the-badge)](https://anthropic.com)
-[![Payments](https://img.shields.io/badge/Payments-Dodo%20%2B%20Pi%20%2B%20USDC%20on%20Base-C9A84C?style=for-the-badge)](https://dodo.pe)
-[![Origin](https://img.shields.io/badge/Built%20In-Alexandria%20🇪🇬-green?style=for-the-badge)](https://www.linkedin.com/company/teos-pharaoh-portal)
+[![Live App](https://img.shields.io/badge/Live%20App-teos--ai--engine.vercel.app-black?style=flat-square&logo=vercel)](https://teos-ai-engine.vercel.app)
+[![License](https://img.shields.io/badge/License-TESL%20v2.0-blue?style=flat-square)](./LICENSE)
+[![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org)
+[![Powered by Claude](https://img.shields.io/badge/AI-Claude%20%2F%20OpenAI-orange?style=flat-square)](https://anthropic.com)
+[![Payments](https://img.shields.io/badge/Payments-Dodo%20%7C%20USDC%20%7C%20Pi-green?style=flat-square)](https://dodo.pe)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com)
 
 ---
 
-## What makes TEOS different
+## 📋 Table of Contents
 
-Every AI content tool generates posts. TEOS generates posts and tells you if they'll land — before you publish. The TEOS Signal Score™ evaluates 10 signals (hook strength, specificity, platform fit, CTA clarity, hashtag quality, emotional trigger, novelty, length, engagement trigger, value proposition) and returns a score from 55–98 with ±3 variance across repeated prompts.
+- [Overview](#overview)
+- [Live Demo](#live-demo)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Pricing](#pricing)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [API Reference](#api-reference)
+- [Payments](#payments)
+- [Security](#security)
+- [License](#license)
 
-It also generates native Arabic content — not translated English — with MENA-specific hooks, hashtag pools, and posting times calibrated for GST/EGT.
+---
+
+## Overview
+
+**Teos AI Engine** is a production-grade AI SaaS platform that turns raw ideas into high-impact, platform-optimized social media posts across 7 platforms — in seconds.
+
+Built for **founders, creators, and agencies** who need to produce consistent, on-brand content at scale without hiring a content team.
+
+Key differentiator: **Egyptian sovereign infrastructure.** All data processing, AI inference, and storage operates within Egyptian jurisdiction. No third-party data leakage. No foreign cloud exposure. Your content stays yours.
+
+```
+Prompt → AI Engine → Platform-Optimized Post → Scheduled → Published
+```
+
+### Who It's For
+
+| User | Use Case |
+|---|---|
+| Solo founders | Generate 30+ posts/week in under an hour |
+| Content agencies | Manage 10+ brand accounts from a single dashboard |
+| Marketing teams | Scale content output without scaling headcount |
+| MENA startups | Sovereign AI infrastructure — GDPR & Egyptian law compliant |
+
+---
+
+## Live Demo
+
+🌐 **Production:** [https://teos-ai-engine.vercel.app](https://teos-ai-engine.vercel.app)  
+🔗 **Canonical domain:** [https://ai.teosegypt.com](https://ai.teosegypt.com)
+
+No sign-up required to test content generation on the landing page demo.
+
+---
+
+## Features
+
+### Core Engine
+
+- **Multi-platform generation** — X, LinkedIn, Instagram, Facebook, TikTok, Threads, Telegram
+- **Tone selection** — Professional, Viral Hook, Founder Story, Authority, Contrarian, Sales CTA, Educational, and more
+- **Visibility scoring** — Engagement-aware AI output ranked before it reaches you
+- **Brand voice training** — Feed the engine your existing content; it matches your style across platforms
+- **Platform-specific optimization** — Character limits, hashtag strategy, format, and audience behavior per platform
+
+### SaaS Infrastructure
+
+- **Plan-based feature gating** — Starter / Pro / Agency / Lifetime
+- **Daily usage tracking** with automatic reset
+- **Lifetime post counter** per user
+- **Admin dashboard** — manual activation, plan upgrades, billing validation
+- **Persistent post history** — Prisma + PostgreSQL
+
+### Platform Coverage
+
+| Platform | Starter | Pro | Agency | Lifetime |
+|---|---|---|---|---|
+| X (Twitter) | ✅ | ✅ | ✅ | ✅ |
+| Instagram | ✅ | ✅ | ✅ | ✅ |
+| LinkedIn | ❌ | ✅ | ✅ | ✅ |
+| Facebook | ❌ | ✅ | ✅ | ✅ |
+| TikTok | ❌ | ❌ | ✅ | ✅ |
+| Threads | ❌ | ❌ | ✅ | ✅ |
+| Telegram | ❌ | ❌ | ✅ | ✅ |
+
+---
+
+## Architecture
+
+```
+teos-ai-engine/
+├── app/                        # Next.js App Router
+│   ├── (auth)/                 # Auth routes (login, register)
+│   ├── (dashboard)/            # Protected dashboard routes
+│   ├── api/                    # API route handlers
+│   │   ├── ai/generate/        # AI content generation endpoint
+│   │   ├── auth/               # NextAuth handlers
+│   │   ├── usage/              # Usage tracking
+│   │   └── webhooks/           # Dodo Payments webhooks
+│   ├── layout.tsx              # Root layout
+│   └── page.tsx                # Landing page
+├── components/
+│   ├── ui/                     # shadcn/ui base components
+│   ├── landing/                # Landing page sections
+│   ├── dashboard/              # Dashboard components
+│   └── shared/                 # Shared components
+├── lib/
+│   ├── ai/                     # AI provider abstraction layer
+│   │   ├── client.ts           # Provider selector (Claude / OpenAI)
+│   │   ├── prompts.ts          # Platform-specific prompt templates
+│   │   └── rate-limit.ts       # AI request rate limiting
+│   ├── auth/                   # Auth configuration
+│   ├── db/                     # Prisma client
+│   └── payments/               # Dodo Payments integration
+├── prisma/
+│   └── schema.prisma           # Database schema
+├── .github/workflows/          # CI/CD pipelines
+├── .env.example                # Environment variable template
+└── vercel.json                 # Vercel deployment config
+```
+
+### Data Flow
+
+```
+User Prompt
+    │
+    ▼
+API Route (/api/ai/generate)
+    │
+    ├── Auth check (NextAuth session)
+    ├── Usage limit check (Prisma)
+    ├── Rate limit check (edge)
+    │
+    ▼
+AI Service Layer
+    │
+    ├── Platform prompt template
+    ├── Brand voice context
+    ├── Tone configuration
+    │
+    ▼
+Claude / OpenAI (with fallback)
+    │
+    ▼
+Visibility Score → Response
+    │
+    ▼
+Persist to DB → Return to client
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript (strict) |
+| Styling | Tailwind CSS + shadcn/ui |
+| Animation | Framer Motion |
+| Database | PostgreSQL (Neon) via Prisma ORM |
+| Auth | NextAuth.js v5 |
+| AI — Primary | Anthropic Claude (claude-sonnet) |
+| AI — Fallback | OpenAI GPT-4o |
+| Payments | Dodo Payments + USDC (Solana) + Pi Network |
+| Deployment | Vercel (edge-optimized) |
+| CI/CD | GitHub Actions |
+| Email | Resend |
+| Monitoring | Vercel Analytics |
 
 ---
 
 ## Pricing
 
-All prices USD. Payments via Dodo (card) · Pi Network · USDC on Base (`0xd9CA11Dde3810a1BA9B5E1a4b6b76F5a419FAb41`).
+| Plan | Price | Daily Limit | Platforms | Team Seats |
+|---|---|---|---|---|
+| **Starter** | Free | 5 posts total | X, Instagram | 1 |
+| **Pro** | $29/month | 50 posts/day | X, Instagram, LinkedIn, Facebook | 1 |
+| **Agency** | $69/month | 200 posts/day | All 7 platforms | 3 |
+| **Lifetime** | $149 one-time | 100 posts/day | All 7 platforms | 10 |
 
-| Plan | Price | Posts/day | Platforms | Link |
-|------|-------|-----------|-----------|------|
-| Starter | Free | 5 total | X + Instagram | [Sign up](https://teos-ai-engine.vercel.app/login) |
-| Pro Monthly | $29/mo | 50 | 4 platforms | [Subscribe](https://dodo.pe/ljkagv2ixcr) |
-| Pro Yearly | $290/yr | 50 | 4 platforms | [Subscribe](https://dodo.pe/ep9cgmojbua) |
-| Agency Monthly | $69/mo | 200 | All 7 + 3 seats | [Subscribe](https://dodo.pe/dbvnd9a4pp) |
-| Agency Yearly | $690/yr | 200 | All 7 + 3 seats | [Subscribe](https://dodo.pe/79q4irl1347) |
-| **Pro Lifetime** | **$149 once** | Unlimited | All 7 + all upgrades | [Claim](https://dodo.pe/relh2gradr9) |
-| **Agency Lifetime** | **$349 once** | Unlimited | All 7 + 5 seats + white-label | [Claim](https://dodo.pe/91zcmc4xi27) |
+> 🔥 **First 500 users** receive 1 free month when TikTok + AI video scripts ship.  
+> ⚡ **Lifetime plan** is limited. Price increases after the TikTok upgrade.
 
-*Lifetime seat count is live on the app. Price rises after TikTok video generation ships.*
+Payments accepted via card (Visa/Mastercard), USDC on Solana, and Pi Network through [Dodo Payments](https://dodo.pe).
 
 ---
 
-## Stack
+## Getting Started
 
-```
-Frontend   Next.js 14 App Router · React · Tailwind CSS
-AI         Anthropic Claude Haiku (fast, cost-efficient)
-Database   Prisma ORM · Neon PostgreSQL (serverless)
-Auth       NextAuth.js
-Payments   Dodo Payments · Pi Network · USDC on Base
-Hosting    Vercel (edge + KV for seat counter)
-Analytics  Vercel Analytics
-```
+### Prerequisites
 
----
+- Node.js 20+
+- PostgreSQL database (Neon recommended)
+- Anthropic API key
+- Dodo Payments account
 
-## Repo structure
-
-```
-app/
-├── page.tsx                     Landing page
-├── dashboard/                   Generator dashboard
-├── (auth)/                      Login + signup flows
-├── pay/pi/                      Pi Network checkout
-└── api/
-    ├── generate/route.ts        AI generation endpoint
-    ├── seats/route.ts           KV seat counter
-    └── webhooks/dodo/           Payment webhook
-
-components/
-├── PostGenerator.tsx            Main generator (bilingual)
-├── payments/                    PaymentBlock + PricingCards
-├── StickyCTA.tsx                Mobile conversion bar
-├── ExitPopup.tsx                Exit intent popup
-└── landing/                     Landing page sections
-
-lib/
-├── ai/platforms.ts              Platform configs + signal scoring
-├── arabic-prompts.ts            Arabic content system
-├── payments.ts                  Dodo + Pi payment helpers
-├── auth.ts                      NextAuth config
-└── limits.ts                    Usage limits per plan
-```
-
----
-
-## Self-deploy
+### Local Development
 
 ```bash
-git clone https://github.com/Elmahrosa/Teos-AI-Engine
+# Clone the repo
+git clone https://github.com/Elmahrosa/Teos-AI-Engine.git
 cd Teos-AI-Engine
+
+# Install dependencies
 npm install
+
+# Set up environment variables
 cp .env.example .env.local
+# Fill in your values — see Environment Variables section below
+
+# Generate Prisma client and run migrations
+npx prisma generate
+npx prisma migrate dev --name init
+
+# Start the dev server
 npm run dev
 ```
 
-### Environment variables
+App runs at `http://localhost:3000`.
+
+### Build Verification
 
 ```bash
-# AI
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Database (Neon PostgreSQL)
-DATABASE_URL=postgresql://...
-DIRECT_URL=postgresql://...
-
-# Auth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-here
-
-# Payments — Dodo
-DODO_API_KEY=...
-DODO_WEBHOOK_SECRET=...
-
-# Vercel KV (real-time seat counter)
-KV_REST_API_URL=https://...
-KV_REST_API_TOKEN=...
-
-# Internal
-INTERNAL_KEY=your-internal-secret
-NEXT_PUBLIC_APP_URL=https://teos-ai-engine.vercel.app
+npm run build    # Must pass with zero errors
+npm run lint     # Must pass with zero warnings
+npx tsc --noEmit # TypeScript strict check
 ```
+
+---
+
+## Environment Variables
+
+Copy `.env.example` and fill in all values before deployment.
+
+```env
+# ─── Database ────────────────────────────────────────────
+DATABASE_URL="postgresql://..."
+
+# ─── Auth ────────────────────────────────────────────────
+NEXTAUTH_SECRET="your-secret-32-chars-minimum"
+NEXTAUTH_URL="https://teos-ai-engine.vercel.app"
+
+# ─── AI Providers ────────────────────────────────────────
+ANTHROPIC_API_KEY="sk-ant-..."
+OPENAI_API_KEY="sk-..."           # Fallback provider
+
+# ─── Payments — Dodo ─────────────────────────────────────
+DODO_WEBHOOK_SECRET="your-dodo-webhook-secret"
+
+# ─── App Config ──────────────────────────────────────────
+NEXT_PUBLIC_APP_URL="https://teos-ai-engine.vercel.app"
+ADMIN_EMAIL="ayman@teosegypt.com"
+```
+
+> ⚠️ Never commit `.env.local` or any file containing secrets.  
+> All `NEXT_PUBLIC_` prefixed variables are exposed to the browser — keep secrets server-side only.
+
+---
+
+## Deployment
+
+### Vercel (Recommended)
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Link to Vercel project
+vercel link
+
+# Deploy to production
+vercel --prod
+```
+
+All environment variables must be configured in the Vercel dashboard under **Settings → Environment Variables** before deploying.
+
+### Database Migration on Deploy
+
+```bash
+# Run after each schema change
+npx prisma migrate deploy
+```
+
+Add this as a build command in Vercel:
+```
+npx prisma generate && npx prisma migrate deploy && next build
+```
+
+### vercel.json
+
+```json
+{
+  "framework": "nextjs",
+  "buildCommand": "npx prisma generate && npx prisma migrate deploy && next build",
+  "functions": {
+    "app/api/ai/generate/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## API Reference
+
+### POST `/api/ai/generate`
+
+Generate platform-optimized content. Requires authenticated session.
+
+**Request**
+```typescript
+{
+  platform: "x" | "linkedin" | "instagram" | "facebook" | "tiktok" | "threads" | "telegram";
+  tone: "professional" | "viral" | "founder_story" | "authority" | "contrarian" | "educational" | "sales_cta" | "community";
+  prompt: string;           // max 500 chars
+  brandVoice?: string;      // optional trained voice context
+}
+```
+
+**Response**
+```typescript
+{
+  content: string;          // generated post
+  visibilityScore: number;  // 0–100 engagement prediction
+  platform: string;
+  characterCount: number;
+  hashtags: string[];
+  generatedAt: string;      // ISO timestamp
+}
+```
+
+**Error codes**
+
+| Code | Reason |
+|---|---|
+| `401` | Unauthenticated |
+| `403` | Plan limit reached |
+| `429` | Rate limit exceeded |
+| `500` | AI provider error |
+
+---
+
+## Payments
+
+### Dodo Payments Checkout Links
+
+| Plan | Checkout URL |
+|---|---|
+| Pro ($29/mo) | `https://dodo.pe/ljkagv2ixcr` |
+| Agency ($69/mo) | `https://dodo.pe/dbvnd9a4pp` |
+| Lifetime ($149) | `https://dodo.pe/relh2gradr9` |
+
+> ⚠️ These links are canonical. Do not regenerate or replace them.
+
+### Webhook
+
+Dodo sends payment events to `/api/webhooks/dodo`. The handler validates the signature, upgrades the user's plan in the database, and triggers a confirmation email.
+
+### Crypto Payments
+
+USDC on Solana accepted. Wallet:  
+`0xd9CA11Dde3810a1BA9B5E1a4b6b76F5a419FAb41` (Base network)
+
+Pi Network payments processed via Dodo at checkout.
+
+---
+
+## Security
+
+- All secrets are server-side only — no `NEXT_PUBLIC_` prefix on sensitive keys
+- API routes protected by NextAuth session middleware
+- Usage limits enforced server-side (never trust client)
+- Webhook signatures validated on every Dodo event
+- Security headers applied globally via `vercel.json`
+- AI prompts sanitized server-side before forwarding to providers
+- No user content used for external model training
+- TLS 1.3 in transit, AES-256 at rest
+
+To report a vulnerability: **security@teosegypt.com**
+
+---
+
+## CI/CD
+
+GitHub Actions pipeline runs on every push to `main` and on all pull requests:
+
+```
+push/PR → Lint → TypeScript → Build → (main only) → Deploy to Vercel
+```
+
+See `.github/workflows/` for full workflow definitions.
 
 ---
 
 ## Roadmap
 
-| Feature | Status |
-|---------|--------|
-| 7-platform content generation | ✓ Live |
-| TEOS Signal Score™ | ✓ Live |
-| Arabic / English bilingual mode | ✓ Live |
-| Image prompt generation | ✓ Live |
-| TikTok video scripts | ✓ Live |
-| Real-time lifetime seat counter | ✓ Live |
-| TikTok native video generation | ⟳ In development |
-| AI image generation (native) | ⟳ In development |
-| Social auto-publishing | ◦ Planned |
-| Post scheduling | ◦ Planned |
-| Full Arabic dashboard (RTL) | ◦ Planned |
-| Mobile PWA | ◦ Planned |
-
-*First 500 users get 1 free month when TikTok video generation ships.*
+- [x] Multi-platform content generation (7 platforms)
+- [x] Plan-based usage gating
+- [x] Dodo Payments integration
+- [x] Brand voice training
+- [x] Admin dashboard
+- [ ] TikTok + AI video scripts
+- [ ] Content scheduling calendar
+- [ ] Team collaboration workflows
+- [ ] Analytics dashboard
+- [ ] API access for Agency+ plans
+- [ ] Arabic language content support
+- [ ] $TEOS token utility integration
 
 ---
 
-## للمؤسسين العرب 🇪🇬
+## About Elmahrosa International
 
-محرك TEOS يولّد محتوى عربيًا أصيلًا — ليس ترجمةً من الإنجليزية. خطافات مثل "هل تعرف لماذا يفشل معظم المؤسسين؟" و"رأي غير شائع:" مع هاشتاقات MENA وتوقيت نشر محلي (GST / EGT).
+**Elmahrosa International** is an Alexandria-based technology company (est. 2007) building sovereign AI-powered systems for MENA and global markets. The TEOS ecosystem spans AI content, code security, compliance infrastructure, and institutional telehealth.
+
+- 🌐 [teosegypt.com](https://teosegypt.com)
+- 𝕏 [@king_teos](https://x.com/king_teos)
+- 💼 [linkedin.com/in/aymanseif](https://linkedin.com/in/aymanseif)
+- 🐙 [github.com/Elmahrosa](https://github.com/Elmahrosa)
+- 📬 [support@teosegypt.com](mailto:support@teosegypt.com)
 
 ---
 
-## About
+## License
 
-Built and maintained by **Ayman Seif** at [Elmahrosa International](https://www.linkedin.com/company/teos-pharaoh-portal) — Alexandria, Egypt. Established 2007. Software division since 2021. Bootstrapped. No VC.
+Proprietary — Elmahrosa International  
+Licensed under **TESL v2.0** (TEOS Ecosystem Sovereign License)  
+Not for redistribution without written permission.
 
-X: [@KING_TEOS](https://twitter.com/KING_TEOS) · Telegram: [#ElmahrosaPi](https://t.me/elmahrosapi) · LinkedIn: [Teos Pharaoh Portal](https://www.linkedin.com/company/teos-pharaoh-portal)
-
-Licensed under TESL v2.0 · ICBC-v1.0 governance · © 2026 TEOS Network
+© 2026 TEOS Network · Built in Alexandria, Egypt 🇪🇬
