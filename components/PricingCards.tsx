@@ -1,98 +1,80 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import PaymentBlock from "./PaymentBlock";
-import { PAYMENT_PLANS } from "@/lib/payments";
+import React from "react";
 
-interface PricingCardsProps {
-  userEmail?: string;
-  currentPlan?: string;
-}
+export const PRICING_PLANS = [
+  {
+    id: "starter",
+    name: "Starter",
+    price: "$0",
+    features: ["Standard AI Engine", "X & Instagram Only", "5 Posts total / month"],
+    buttonText: "Start Free",
+  },
+  {
+    id: "pro",
+    name: "Pro Monthly",
+    price: "$29",
+    features: [
+      "Advanced AI Copywriter",
+      "All Social Media Platforms",
+      "Unlimited Posts & Scheduling",
+    ],
+    buttonText: "Get Pro",
+  },
+  {
+    id: "lifetime",
+    name: "Limited Lifetime",
+    price: "$149",
+    subText: "Only 50 seats for Fiat / 50 seats for Pi Pioneers (50% Off)",
+    features: [
+      "Advanced AI Copywriter",
+      "X, Facebook & Instagram Only",
+      "Pay Once, Use Forever",
+      "50% Claimable with Pi Coin",
+    ],
+    buttonText: "Claim Seat",
+  },
+  {
+    id: "agency",
+    name: "Agency Monthly",
+    price: "$99",
+    features: [
+      "Elite Creative Engine",
+      "All Social Media Platforms",
+      "5 Team Seats Included",
+      "Priority AI Processing",
+    ],
+    buttonText: "Get Agency",
+  },
+];
 
-export default function PricingCards({
-  userEmail,
-  currentPlan = "free",
-}: PricingCardsProps) {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-
+export default function PricingCards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-      {PAYMENT_PLANS.map((plan) => (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
+      {PRICING_PLANS.map((plan) => (
         <div
           key={plan.id}
-          className={`rounded-xl border p-6 transition-all cursor-pointer ${
-            selectedPlan === plan.id
-              ? "border-gold-500/40 bg-gold-500/5 ring-2 ring-gold-500/20"
-              : currentPlan === plan.id
-                ? "border-teal-500/40 bg-teal-500/5"
-                : "border-white/[0.08] bg-bg-card hover:border-white/[0.15]"
-          }`}
-          onClick={() => setSelectedPlan(plan.id)}
+          className="border p-6 rounded-xl bg-neutral-900 text-white flex flex-col justify-between"
         >
-          {plan.badge && (
-            <span
-              className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                plan.badge === "Founder"
-                  ? "bg-gold-500/20 text-gold-500"
-                  : plan.badge === "Best Value"
-                    ? "bg-gold-500/20 text-gold-500"
-                    : "bg-teal-500/10 text-teal-400"
-              }`}
-            >
-              {plan.badge}
-            </span>
-          )}
-
-          <h3 className="text-lg font-bold mt-3">{plan.name}</h3>
-          <div className="mt-2">
-            <span className="text-2xl font-black">${plan.priceUSD}</span>
-            <span className="text-xs text-[#8a88a0] ml-1">
-              {plan.id.includes("monthly")
-                ? "/month"
-                : plan.id.includes("yearly")
-                  ? "/year"
-                  : "one-time"}
-            </span>
+          <div>
+            <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+            <div className="text-3xl font-black text-amber-500 mb-1">
+              {plan.price}
+            </div>
+            {plan.subText && (
+              <p className="text-xs text-neutral-400 mb-4">{plan.subText}</p>
+            )}
+            <ul className="space-y-2 my-4 text-sm text-neutral-300">
+              {plan.features.map((f, i) => (
+                <li key={i}>✓ {f}</li>
+              ))}
+            </ul>
           </div>
-
-          <ul className="mt-4 space-y-2">
-            {plan.features.map((feature, i) => (
-              <li key={i} className="text-sm text-[#c0bec8] flex items-start gap-2">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                {feature}
-              </li>
-            ))}
-          </ul>
-
-          {currentPlan === plan.id && (
-            <span className="mt-4 block text-center text-xs text-teal-400 font-semibold">
-              Current Plan
-            </span>
-          )}
+          <button className="w-full bg-amber-500 text-black py-2 rounded-lg font-bold hover:bg-amber-400 transition">
+            {plan.buttonText}
+          </button>
         </div>
       ))}
-
-      {selectedPlan && userEmail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="relative max-w-lg w-full">
-            <button
-              onClick={() => setSelectedPlan(null)}
-              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white/10 text-[#e8e6f0] flex items-center justify-center text-sm hover:bg-white/20"
-            >
-              ×
-            </button>
-            <PaymentBlock
-              planId={selectedPlan}
-              planName={PAYMENT_PLANS.find((p) => p.id === selectedPlan)?.name ?? ""}
-              priceUSD={
-                PAYMENT_PLANS.find((p) => p.id === selectedPlan)?.priceUSD ?? 0
-              }
-              userEmail={userEmail}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

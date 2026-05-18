@@ -1,128 +1,114 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { canUserPost, appendPost, ensureUserExists } from "@/lib/db";
-import { generateRequestId, trace } from "@/lib/trace";
-import { withRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { getSessionEmail } from "@/lib/session";
+import { google } from "@ai-sdk/google";
 import { Anthropic } from "@anthropic-ai/sdk";
-
-const ALLOWED_PLATFORMS = ["x", "facebook", "instagram", "linkedin", "threads"] as const;
+import { generateText } from "ai";
 
 const generateSchema = z.object({
-  prompt: z.string().min(5).max(500),
-  platform: z.enum(ALLOWED_PLATFORMS),
+  prompt: z.string().min(5),
+  platform: z.enum(["x", "facebook", "instagram", "linkedin", "threads"]),
 });
 
-const platformMap: Record<string, string> = {
-  x: "X (Twitter)",
-  facebook: "Facebook",
-  instagram: "Instagram",
-  linkedin: "LinkedIn",
-  threads: "Threads",
-};
-
-export async function POST(req: NextRequest) {
-  return withRateLimit(req, "medium", async () => {
-    const requestId = generateRequestId();
-    const start = Date.now();
-
-    try {
-      const session = await getServerSession(authOptions);
-      if (!session?.user?.email) {
-        return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
-      }
-
-      const parsed = generateSchema.safeParse(await req.json());
-      if (!parsed.success) {
-        return NextResponse.json({ error: "Invalid platform or prompt." }, { status: 400 });
-      }
-
-      const { prompt, platform } = parsed.data;
-
-      const user = await ensureUserExists(session.user.email, session.user.name || undefined);
-
-      const check = await canUserPost(user.id, user.plan);
-      if (!check.allowed) {
-        return NextResponse.json({
-          error: check.reason,
-          limitReached: true,
-        }, { status: 429 });
-      }
-
-      if (user.plan === "lifetime") {
-        const allowedLifetimePlatforms = ["x", "facebook", "instagram"];
-        if (!allowedLifetimePlatforms.includes(platform)) {
-          return NextResponse.json({
-            error: `The Lifetime plan only supports: X, Facebook, and Instagram. Please upgrade to the Agency plan to unlock ${platform.toUpperCase()}!`,
-          }, { status: 403 });
-        }
-      }
-
-      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
-      if (!anthropicApiKey) {
-        throw new Error("CRITICAL: ANTHROPIC_API_KEY is missing.");
-      }
-
-      const anthropic = new Anthropic({ apiKey: anthropicApiKey });
-
-      const completion = await anthropic.messages.create({
-        model: "claude-3-haiku-20240307",
-        max_tokens: 1000,
-        messages: [
-          {
-            role: "user",
-            content: `Write a high-converting post optimized specifically for ${platformMap[platform]} based on this request: ${prompt}`,
-          },
-        ],
-      });
-
-      const generatedText =
-        completion.content[0].type === "text"
-          ? completion.content[0].text
-          : "No text generated";
-
-      const post = await appendPost({
-        userId: user.id,
-        content: generatedText,
-        platform,
-        prompt,
-      });
-
-      await prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          action: "generation",
-          metadata: { platform, prompt, characterCount: generatedText.length, postId: post.id } as any,
-        },
-      });
-
-      trace({
-        requestId,
-        event: "generate.post.completed",
-        platform,
-        durationMs: Date.now() - start,
-        status: "success",
-      });
-
-      return NextResponse.json({
-        success: true,
-        platform,
-        content: generatedText,
-        remaining: check.limit ? check.limit - (user.dailyPostsUsed + 1) : null,
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Internal Server Error during generation.";
-      trace({
-        requestId,
-        event: "generate.post.error",
-        durationMs: Date.now() - start,
-        status: "error",
-        error: message,
-      });
-
-      return NextResponse.json({ error: message }, { status: 500 });
+export async function POST(request: Request) {
+  try {
+    // 1. التحقق من هوية المستخدم ومطابقة الـ Schema الفعلية لقاعدة البيانات
+    const email = await getSessionEmail();
+    if (!email) {
+      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
-  });
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // مطابقة شرط الـ Builder الصارم: فحص حالة الاشتراك ومنع الـ trial
+    if (!user || user.status === "trial") {
+      return NextResponse.json({ error: "Active subscription required. Please upgrade." }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const parseResult = generateSchema.safeParse(body);
+    if (!parseResult.success) {
+      return NextResponse.json({ error: "Invalid platform or prompt configuration." }, { status: 400 });
+    }
+
+    const { prompt, platform } = parseResult.data;
+
+    // 2. حارس المنصات الخاص بباقة الـ Lifetime (حظر LinkedIn و Threads)
+    if (user.plan === "lifetime") {
+      const allowedPlatforms = ["x", "facebook", "instagram"];
+      if (!allowedPlatforms.includes(platform)) {
+        return NextResponse.json({
+          error: `Your Lifetime plan unlocks X, Facebook, and Instagram only. Upgrade to Agency to unlock ${platform.toUpperCase()}!`,
+        }, { status: 403 });
+      }
+    }
+
+    let generatedOutput = "";
+    const systemInstruction = `You are an expert social media copywriter. Write a high-converting post optimized specifically for ${platform.toUpperCase()}.`;
+
+    // 3. التوجيه الديناميكي المتوافق مع الـ Engines والموديلات المخفية
+    if (user.plan === "agency") {
+      // عملاء النخبة: Claude 3.5 Sonnet عبر الـ Anthropic SDK المباشر
+      const anthropicKey = process.env.ANTHROPIC_API_KEY;
+      if (!anthropicKey) {
+        return NextResponse.json({ error: "Elite AI Engine configuration missing." }, { status: 500 });
+      }
+
+      const anthropic = new Anthropic({ apiKey: anthropicKey });
+      const completion = await anthropic.messages.create({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: `${systemInstruction}\n\nUser Request: ${prompt}` }],
+      });
+
+      const block = completion.content[0];
+      generatedOutput = block.type === "text" ? block.text : "No text generated";
+    } else if (user.plan === "pro" || user.plan === "lifetime") {
+      // الفئة المتوسطة وعرض الـ Pi اللحظي: Gemini 1.5 Pro عبر Vercel AI SDK
+      if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+        return NextResponse.json({ error: "Advanced AI Engine configuration missing." }, { status: 500 });
+      }
+
+      const { text } = await generateText({
+        model: google("models/gemini-1.5-pro"),
+        prompt: `${systemInstruction}\n\nUser Request: ${prompt}`,
+      });
+      generatedOutput = text;
+    } else {
+      // الفئة المجانية والـ Starter الاقتصادي: Gemini 1.5 Flash الخفيف
+      if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+        return NextResponse.json({ error: "Standard AI Engine configuration missing." }, { status: 500 });
+      }
+
+      const { text } = await generateText({
+        model: google("models/gemini-1.5-flash"),
+        prompt: `${systemInstruction}\n\nUser Request: ${prompt}`,
+      });
+      generatedOutput = text;
+    }
+
+    // 4. الحفظ في الـ Table الصحيح تماماً (prisma.auditLog) لمنع كسر الداتابيز
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: `GENERATE_POST_${platform.toUpperCase()}`,
+        metadata: {
+          prompt,
+          characterCount: generatedOutput.length,
+          platform,
+        } as any,
+        ip: (request as NextRequest).headers.get("x-forwarded-for") ?? undefined,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      platform,
+      content: generatedOutput,
+    });
+  } catch (error) {
+    console.error("[FINAL_COMPLIANT_GENERATION_ERROR]:", error);
+    return NextResponse.json({ error: "Generation process encountered a schema alignment error." }, { status: 500 });
+  }
 }
