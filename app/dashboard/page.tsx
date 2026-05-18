@@ -175,7 +175,7 @@ export default function DashboardPage() {
             {generated && (
               <div className="rounded-xl border border-white/[0.08] bg-bg-card p-5">
                 <pre className="text-sm text-[#e8e6f0] whitespace-pre-wrap font-sans leading-relaxed">{generated}</pre>
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-2 mt-4 flex-wrap">
                   <button onClick={() => { navigator.clipboard.writeText(generated); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                     className="text-xs px-3 py-1.5 rounded-lg bg-gold-500/10 text-gold-500 border border-gold-500/20">
                     {copied ? "Copied!" : "Copy"}
@@ -183,6 +183,27 @@ export default function DashboardPage() {
                   <button onClick={handleSave} disabled={saving}
                     className="text-xs px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20">
                     {saving ? "Saving..." : saveSuccess ? "Saved!" : "Save"}
+                  </button>
+                  <button onClick={() => {
+                    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(generated)}`;
+                    window.open(shareUrl, "_blank", "noopener,noreferrer");
+                  }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                    Share on X
+                  </button>
+                  <button onClick={() => {
+                    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&summary=${encodeURIComponent(generated)}`;
+                    window.open(shareUrl, "_blank", "noopener,noreferrer");
+                  }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    Share on LinkedIn
+                  </button>
+                  <button onClick={() => {
+                    const shareUrl = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(generated)}`;
+                    window.open(shareUrl, "_blank", "noopener,noreferrer");
+                  }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    Share on Facebook
                   </button>
                 </div>
               </div>
