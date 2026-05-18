@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
-import { PLANS, getPlan, isWithinDailyLimit, isWithinTotalLimit } from "@/lib/plans";
+import { PLANS, getPlan } from "@/lib/plans";
 import Link from "next/link";
 
 type Platform = "x" | "facebook" | "instagram" | "linkedin";
@@ -115,9 +115,9 @@ export default function DashboardPage() {
     );
   }
 
-  const remaining = isWithinDailyLimit(plan, dailyUsed)
-    ? (plan.dailyPostLimit === -1 ? Infinity : plan.dailyPostLimit - dailyUsed)
-    : 0;
+  const remaining = plan.dailyLimit === -1
+    ? Infinity
+    : Math.max(0, plan.dailyLimit - dailyUsed);
 
   return (
     <div className="min-h-screen bg-bg">

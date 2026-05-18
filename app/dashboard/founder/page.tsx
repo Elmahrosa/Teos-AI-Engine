@@ -141,9 +141,9 @@ export default function FounderPage() {
               <div key={plan.id} className="rounded-lg border border-white/[0.06] p-3">
                 <div className="text-xs font-semibold text-gold-500">{plan.name}</div>
                 <div className="text-lg font-bold mt-1">{plan.price}<span className="text-xs text-[#5a5870] font-normal">/{plan.period}</span></div>
-                <div className="text-xs text-[#8a88a0] mt-2">{plan.dailyPostLimit === -1 ? "Unlimited" : `${plan.dailyPostLimit}`} posts/day</div>
-                {plan.dodoPLink && (
-                  <a href={plan.dodoPLink} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-400 hover:underline mt-2 block">Checkout →</a>
+                <div className="text-xs text-[#8a88a0] mt-2">{plan.dailyLimit === -1 ? "Unlimited" : `${plan.dailyLimit}`} posts/day</div>
+                {plan.dodLink && (
+                  <a href={plan.dodLink} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-400 hover:underline mt-2 block">Checkout →</a>
                 )}
               </div>
             ))}
