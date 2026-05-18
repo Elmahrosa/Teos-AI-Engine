@@ -5,6 +5,7 @@ import { generateRequestId, trace } from "@/lib/trace";
 
 const adminRoutes = ["/admin", "/api/admin"];
 const authRoutes = ["/login", "/signup"];
+const publicRoutes = ["/", "/pricing", "/terms", "/privacy", "/transparency"];
 
 export default withAuth(
   function middleware(req) {
@@ -16,6 +17,7 @@ export default withAuth(
     if (!token) {
       if (
         pathname === "/" ||
+        publicRoutes.some((r) => pathname.startsWith(r)) ||
         authRoutes.some((r) => pathname.startsWith(r)) ||
         pathname.startsWith("/api/health") ||
         pathname.startsWith("/reset-password")
@@ -53,7 +55,8 @@ export default withAuth(
           pathname === "/" ||
           pathname === "/login" ||
           pathname === "/signup" ||
-          pathname.startsWith("/reset-password")
+          pathname.startsWith("/reset-password") ||
+          publicRoutes.some((r) => pathname.startsWith(r))
         ) {
           return true;
         }
