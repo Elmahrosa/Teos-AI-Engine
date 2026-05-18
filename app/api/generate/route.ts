@@ -21,9 +21,14 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // مطابقة شرط الـ Builder الصارم: فحص حالة الاشتراك ومنع الـ trial
-    if (!user || user.status === "trial") {
-      return NextResponse.json({ error: "Active subscription required. Please upgrade." }, { status: 403 });
+    // If they are on the free/starter plan AND their status is explicitly 'trial' (expired/restricted), block them.
+    // Paid plans bypass this check even if the database default hasn't updated yet.
+    if (!user) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    if (user.plan === "free" && user.status === "trial") {
+      return NextResponse.json({ error: "Your free trial has ended. Please upgrade your plan!" }, { status: 403 });
     }
 
     const body = await request.json();
