@@ -198,8 +198,13 @@ export const PLANS: Record<PlanId, Plan> = {
 };
 
 export function getPlan(id: string | null | undefined): Plan {
-  if (!id || !(id in PLANS)) return PLANS.free;
-  return PLANS[id as PlanId];
+  if (!id) return PLANS.free;
+  const normalized = id.toLowerCase().trim();
+  if (normalized === "founder" || normalized === "admin") {
+    return PLANS.agency_lifetime;
+  }
+  if (id in PLANS) return PLANS[id as PlanId];
+  return PLANS.free;
 }
 
 export function dailyLimitLabel(plan: Plan): string {

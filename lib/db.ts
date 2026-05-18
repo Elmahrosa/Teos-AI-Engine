@@ -37,7 +37,7 @@ export async function canUserPost(userId: string, plan: string) {
     });
   }
 
-  const limit = user.plan === "agency" ? 200 : user.plan === "pro" || user.plan === "lifetime" ? 50 : 5;
+  const limit = user.plan === "agency" || user.plan === "Founder" ? 200 : user.plan === "pro" || user.plan === "lifetime" ? 50 : 5;
   if (user.dailyPostsUsed >= limit) {
     return { allowed: false, reason: `Daily limit reached (${limit} posts).` };
   }
