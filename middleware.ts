@@ -15,6 +15,7 @@ export default withAuth(
 
     if (!token) {
       if (
+        pathname === "/" ||
         authRoutes.some((r) => pathname.startsWith(r)) ||
         pathname.startsWith("/api/health") ||
         pathname.startsWith("/reset-password")
