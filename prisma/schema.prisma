@@ -19,6 +19,7 @@ model User {
   isAdmin         Boolean  @default(false)
   totalPostsUsed  Int      @default(0)
   dailyPostsUsed  Int      @default(0)
+  credits         Int      @default(0)
   passwordHash    String?
   lastActiveAt    DateTime?
   lastResetDate   DateTime @default(now())
