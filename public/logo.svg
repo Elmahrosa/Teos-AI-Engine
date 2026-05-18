@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100">
+  <defs>
+    <linearGradient id="goldG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C9A84C"/>
+      <stop offset="100%" stop-color="#A07030"/>
+    </linearGradient>
+    <linearGradient id="tealG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00bfa5"/>
+      <stop offset="100%" stop-color="#009988"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="84" height="84" rx="16" fill="url(#goldG)"/>
+  <text x="50" y="62" text-anchor="middle" fill="#050505" font-family="Georgia,serif" font-weight="800" font-size="44">T</text>
+  <text x="108" y="60" fill="#e8e6f0" font-family="Georgia,serif" font-weight="700" font-size="36">Teos</text>
+  <text x="108" y="88" fill="url(#tealG)" font-family="Arial,sans-serif" font-weight="700" font-size="18" letter-spacing="3">AI ENGINE</text>
+</svg>
