@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { TransactionGateway, TransactionStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getSessionEmail } from '@/lib/session';
 import { isAdminEmail } from '@/lib/access';
@@ -13,7 +14,8 @@ export async function POST(req: Request) {
   const email = String(formData.get('email') || '').trim().toLowerCase();
   const plan = String(formData.get('plan') || '').trim().toLowerCase();
 
-  if (!email || !['starter', 'pro', 'agency'].includes(plan)) {
+  const validPlans = ['free', 'pro_monthly', 'agency_monthly', 'pro_yearly', 'agency_yearly', 'pro_lifetime', 'agency_lifetime'];
+  if (!email || !validPlans.includes(plan)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
@@ -27,13 +29,16 @@ export async function POST(req: Request) {
     data: { plan, status: 'active' },
   });
 
-  await (prisma as any).billingEvent.create({
+  await prisma.transaction.create({
     data: {
       userId: targetUser.id,
-      provider: 'manual-admin',
-      plan,
-      amount: null,
-      status: 'confirmed',
+      gateway: TransactionGateway.ADMIN,
+      status: TransactionStatus.COMPLETED,
+      planId: plan,
+      amountUSD: 0,
+      paymentRef: `manual-admin-${email}-${Date.now()}`,
+      creditsAdded: 0,
+      metadata: { email, provider: 'manual-admin' },
     },
   });
 

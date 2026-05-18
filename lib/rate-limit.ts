@@ -14,6 +14,8 @@ const POLICY_CONFIG: Record<RoutePolicy, { limit: number; window: number }> = {
 
 const clients = new Map<string, { ratelimit: Ratelimit; redis: Redis }>();
 
+const inMemoryMap = new Map<string, { count: number; resetAt: number }>();
+
 function getClient(policy: RoutePolicy) {
   const key = `ratelimit:${policy}`;
   if (clients.has(key)) return clients.get(key)!;
@@ -46,12 +48,36 @@ export function getClientIP(request: NextRequest): string {
   );
 }
 
+function inMemoryCheck(
+  ip: string,
+  policy: RoutePolicy,
+): { allowed: boolean; remaining: number; reset: number } {
+  const config = POLICY_CONFIG[policy];
+  const now = Date.now();
+  const key = `${policy}:${ip}`;
+  const record = inMemoryMap.get(key);
+
+  if (!record || now > record.resetAt) {
+    inMemoryMap.set(key, { count: 1, resetAt: now + config.window });
+    return { allowed: true, remaining: config.limit - 1, reset: now + config.window };
+  }
+
+  if (record.count >= config.limit) {
+    return { allowed: false, remaining: 0, reset: record.resetAt };
+  }
+
+  record.count += 1;
+  return { allowed: true, remaining: config.limit - record.count, reset: record.resetAt };
+}
+
 export async function checkRateLimit(
   request: NextRequest,
   policy: RoutePolicy = "medium"
 ): Promise<{ allowed: boolean; remaining: number; reset: number } | null> {
   const client = getClient(policy);
-  if (!client) return null;
+  if (!client) {
+    return inMemoryCheck(getClientIP(request), policy);
+  }
 
   const ip = getClientIP(request);
   const identifier = `${policy}:${ip}`;

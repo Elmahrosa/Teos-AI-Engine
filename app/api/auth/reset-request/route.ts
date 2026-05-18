@@ -83,6 +83,10 @@ export async function POST(req: Request) {
       }
     }
 
+    if (process.env.NODE_ENV === "production") {
+      console.log(`[reset-request] Fallback token generated for ${email}`);
+      return NextResponse.json({ ok: true, emailSent: false });
+    }
     return NextResponse.json({ ok: true, emailSent: false, token, resetUrl });
   } catch (error) {
     logError(req, "reset-request.failed", error, { reqId });

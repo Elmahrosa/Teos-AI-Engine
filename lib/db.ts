@@ -21,12 +21,14 @@ export async function ensureUserExists(email: string, name?: string) {
   return user;
 }
 
+const UNLIMITED_PLANS = ["agency_monthly", "agency_yearly", "agency_lifetime", "pro_lifetime", "lifetime_seat"];
+
 export async function canUserPost(userId: string, plan: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { allowed: false, reason: "User not found" };
 
-  const p = user.plan?.toUpperCase() ?? "";
-  if (p === "FREE" && user.totalPostsUsed >= 5) {
+  const p = user.plan ?? "";
+  if (p === "free" && user.totalPostsUsed >= 5) {
     return { allowed: false, reason: "Starter limit reached. Upgrade to continue." };
   }
 
@@ -38,7 +40,9 @@ export async function canUserPost(userId: string, plan: string) {
     });
   }
 
-  const limit = p === "AGENCY" || p === "FOUNDER" || p === "ADMIN" ? 200 : p === "PRO" || p === "LIFETIME" ? 50 : 5;
+  const isUnlimited = UNLIMITED_PLANS.includes(p) || p.startsWith("agency_") || p === "pro_lifetime";
+  const isPro = p.startsWith("pro_") && p !== "pro_lifetime";
+  const limit = isUnlimited ? 200 : isPro ? 50 : 5;
   if (user.dailyPostsUsed >= limit) {
     return { allowed: false, reason: `Daily limit reached (${limit} posts).` };
   }
