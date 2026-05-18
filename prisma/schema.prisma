@@ -32,6 +32,7 @@ model User {
   resetTokens    ResetToken[]
   refreshTokens  RefreshToken[]
   auditLogs      AuditLog[]
+  mediaJobs      MediaJob[]
 }
 
 model Account {
@@ -59,7 +60,49 @@ model Session {
   userId       String
   expires      DateTime
   lastActiveAt DateTime?
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum MediaAssetType {
+  IMAGE
+  VIDEO
+}
+
+enum MediaJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AestheticStyle {
+  DEFAULT
+  ANIMATION_3D
+  ANIME
+  CYBERPUNK
+  CINEMATIC
+  VINTAGE_VHS
+}
+
+model MediaJob {
+  id              String         @id @default(uuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            MediaAssetType
+  status          MediaJobStatus @default(QUEUED)
+  prompt          String
+  stylePreset     AestheticStyle @default(DEFAULT)
+  anchorWeight    Float          @default(0.55)
+  keepShapeWeight Float          @default(0.50)
+  sourceAssetUrl  String?
+  outputAssetUrl  String?
+  errorLog        String?
+  executionTime   Int?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 model Post {
