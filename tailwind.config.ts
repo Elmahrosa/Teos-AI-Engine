@@ -6,16 +6,16 @@ const config: Config = {
     extend: {
       colors: {
         gold: {
-          50: "#fdf8e8",
-          100: "#f9ecc5",
-          200: "#f3d98e",
-          300: "#ecc257",
-          400: "#e6b02e",
-          500: "#d4af37",
-          600: "#b8962a",
-          700: "#967822",
-          800: "#7a6120",
-          900: "#66501e",
+          50: "#fdf7e3",
+          100: "#f9eab6",
+          200: "#f0d47e",
+          300: "#E8CB7A",
+          400: "#D4A83C",
+          500: "#C9A84C",
+          600: "#A88A30",
+          700: "#8A6E22",
+          800: "#6e5418",
+          900: "#503c10",
         },
         teal: {
           50: "#e6faf5",
@@ -42,15 +42,17 @@ const config: Config = {
           900: "#3b1278",
         },
         bg: {
-          DEFAULT: "#080810",
+          DEFAULT: "#060608",
+          secondary: "#0C0C14",
           surface: "#0d0d1a",
-          card: "#12121f",
-          border: "#1e1e30",
+          card: "#111118",
+          border: "#1a1a28",
         },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Playfair Display", "Georgia", "serif"],
+        display: ["Crimson Pro", "Playfair Display", "Georgia", "serif"],
+        label: ["Space Mono", "monospace"],
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
       keyframes: {

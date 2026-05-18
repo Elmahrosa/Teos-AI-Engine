@@ -7,24 +7,26 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(cuid())
-  email           String   @unique
+  id              String    @id @default(cuid())
+  email           String    @unique
   emailVerified   DateTime?
   image           String?
   name            String?
-  role            String   @default("user")
-  plan            String   @default("free")
-  status          String   @default("trial")
+  role            String    @default("user")
+  plan            String    @default("free")
+  status          String    @default("trial")
   trialEndsAt     DateTime?
-  isAdmin         Boolean  @default(false)
-  totalPostsUsed  Int      @default(0)
-  dailyPostsUsed  Int      @default(0)
-  credits         Int      @default(0)
+  planActivatedAt DateTime?
+  planExpiresAt   DateTime?
+  isAdmin         Boolean   @default(false)
+  totalPostsUsed  Int       @default(0)
+  dailyPostsUsed  Int       @default(0)
+  credits         Int       @default(0)
   passwordHash    String?
   lastActiveAt    DateTime?
-  lastResetDate   DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  lastResetDate   DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   accounts       Account[]
   sessions       Session[]
@@ -33,6 +35,7 @@ model User {
   refreshTokens  RefreshToken[]
   auditLogs      AuditLog[]
   mediaJobs      MediaJob[]
+  transactions   Transaction[]
 }
 
 model Account {
@@ -155,4 +158,57 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Billing Enums ────────────────────────────────────────────────────────────
+
+enum TransactionGateway {
+  DODO
+  PI_NETWORK
+  ADMIN
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ─── Immutable billing ledger entry per successful payment ────────────────────
+
+model Transaction {
+  id           String             @id @default(cuid())
+  userId       String
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gateway      TransactionGateway
+  status       TransactionStatus  @default(COMPLETED)
+  planId       String
+  amountUSD    Float              @default(0)
+  amountPi     Float?
+  paymentRef   String             @unique
+  creditsAdded Int                @default(0)
+  metadata     Json?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([gateway])
+  @@index([planId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ─── Idempotency table: prevents duplicate webhook processing ─────────────────
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  gateway     String
+  eventType   String
+  processedAt DateTime @default(now())
+  metadata    Json?
+
+  @@index([gateway])
+  @@index([processedAt])
 }
