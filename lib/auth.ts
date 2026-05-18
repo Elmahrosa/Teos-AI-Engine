@@ -20,7 +20,7 @@ function makeid(): string {
 export const authOptions: NextAuthOptions = {
   secret: secret || makeid(),
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" },
+  session: { strategy: "jwt", maxAge: 60 * 60 },
   providers: [
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
@@ -135,13 +135,23 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async session({ session, user }) {
-      if (session.user && user) {
-        (session.user as any).id = user.id;
-        (session.user as any).role = (user as any).role ?? "user";
-        (session.user as any).plan = (user as any).plan;
-        (session.user as any).trialEndsAt = (user as any).trialEndsAt;
-        (session.user as any).isAdmin = (user as any).isAdmin;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as any).role ?? "user";
+        token.plan = (user as any).plan;
+        token.trialEndsAt = (user as any).trialEndsAt;
+        token.isAdmin = (user as any).isAdmin;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as any).id = token.id;
+        (session.user as any).role = token.role;
+        (session.user as any).plan = token.plan;
+        (session.user as any).trialEndsAt = token.trialEndsAt;
+        (session.user as any).isAdmin = token.isAdmin;
       }
       return session;
     },
