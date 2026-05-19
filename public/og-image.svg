@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#09090f"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="goldG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C9A84C"/>
+      <stop offset="100%" stop-color="#A07030"/>
+    </linearGradient>
+    <linearGradient id="tealG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00bfa5"/>
+      <stop offset="100%" stop-color="#009988"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="80" y="215" width="140" height="140" rx="28" fill="url(#goldG)"/>
+  <text x="150" y="320" text-anchor="middle" fill="#050505" font-family="Georgia,serif" font-weight="800" font-size="72">T</text>
+  <text x="260" y="300" fill="#e8e6f0" font-family="Georgia,serif" font-weight="700" font-size="64">Teos AI Engine</text>
+  <text x="260" y="350" fill="#8a88a0" font-family="Arial,sans-serif" font-size="24">Egypt's Sovereign AI Content Engine</text>
+  <rect x="260" y="370" width="80" height="3" rx="1.5" fill="url(#goldG)"/>
+  <text x="260" y="420" fill="url(#tealG)" font-family="Arial,sans-serif" font-size="18" letter-spacing="4" font-weight="700">BUILT IN ALEXANDRIA, EGYPT</text>
+</svg>

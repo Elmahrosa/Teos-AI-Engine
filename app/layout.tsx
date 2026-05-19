@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     url: siteUrl,
     images: [
       {
-        url: `${siteUrl}/og-image.png`,
+        url: `${siteUrl}/og-image.svg`,
         width: 1200,
         height: 630,
         alt: "Teos AI Engine — Sovereign AI Content Engine",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     title: "Teos AI Engine — Egypt's Sovereign AI Content Engine",
     description:
       "Generate on-brand social content across X, LinkedIn, Instagram & more with Egypt's first sovereign AI content engine.",
-    images: [`${siteUrl}/og-image.png`],
+    images: [`${siteUrl}/og-image.svg`],
     creator: "@king_teos",
   },
   robots: {
@@ -62,8 +62,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-icon.png",
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
   },
   other: {
     "application/ld+json": JSON.stringify({

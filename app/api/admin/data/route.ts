@@ -21,7 +21,7 @@ export async function GET() {
         posts: { select: { id: true } },
       },
     }),
-    (prisma as any).billingEvent.findMany({
+    prisma.transaction.findMany({
       orderBy: { createdAt: 'desc' },
       take: 100,
       include: { user: { select: { email: true } } },

@@ -15,13 +15,13 @@ export async function GET(req: NextRequest) {
 
     const users = await listUsers();
 
+    const activePlans = ["pro_monthly", "pro_yearly", "pro_lifetime", "agency_monthly", "agency_yearly", "agency_lifetime"];
+
     const stats = {
       total: users.length,
-      starter: users.filter((u) => u.plan === "starter").length,
-      pro: users.filter((u) => u.plan === "pro").length,
-      agency: users.filter((u) => u.plan === "agency").length,
-      active: users.filter((u) => u.plan !== "starter").length,
-      trial: users.filter((u) => u.plan === "starter").length,
+      pro: users.filter((u) => activePlans.includes(u.plan)).length,
+      active: users.filter((u) => activePlans.includes(u.plan)).length,
+      trial: users.filter((u) => u.plan === "free").length,
       blocked: 0,
     };
 

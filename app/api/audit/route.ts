@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const auditLogs = await (prisma as any).auditLog.findMany({
+    const auditLogs = await prisma.auditLog.findMany({
       take: 100,
       orderBy: { createdAt: "desc" },
       include: {

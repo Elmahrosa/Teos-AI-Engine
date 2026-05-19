@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { TransactionGateway, TransactionStatus } from "@prisma/client";
 import { isAdminEmail } from "@/lib/access";
 import { getSessionEmail } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -14,21 +15,31 @@ export async function POST(req: Request) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const plan = String(formData.get("plan") || "").trim().toLowerCase();
 
-  if (!email || !["starter", "pro", "agency"].includes(plan)) {
+  const validPlans = ["free", "pro_monthly", "agency_monthly", "pro_yearly", "agency_yearly", "pro_lifetime", "agency_lifetime"];
+  if (!email || !validPlans.includes(plan)) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   await prisma.user.update({
-    where: { email },
+    where: { id: user.id },
     data: { plan, status: "active" },
   });
 
-  await (prisma as any).billingEvent.create({
+  await prisma.transaction.create({
     data: {
-      email,
-      provider: "admin",
-      plan,
-      status: "completed",
+      userId: user.id,
+      gateway: TransactionGateway.ADMIN,
+      status: TransactionStatus.COMPLETED,
+      planId: plan,
+      amountUSD: 0,
+      paymentRef: `admin-${email}-${Date.now()}`,
+      creditsAdded: 0,
+      metadata: { email, provider: "admin" },
     },
   });
 
