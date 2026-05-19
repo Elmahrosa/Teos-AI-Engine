@@ -6,7 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import TwitterProvider from "next-auth/providers/twitter";
 import LinkedInProvider from "next-auth/providers/linkedin";
 import AzureADProvider from "next-auth/providers/azure-ad";
-import { hashPassword, verifyPassword, isLegacyHash } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { createAuditLog } from "@/lib/session";
 
 const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
@@ -71,26 +71,19 @@ export const authOptions: NextAuthOptions = {
 
           let user = await prisma.user.findUnique({ where: { email } });
 
-          if (user) {
-            if (user.passwordHash) {
-              const valid = await verifyPassword(password, user.passwordHash);
-              if (!valid) return null;
-
-              if (isLegacyHash(user.passwordHash)) {
-                user = await prisma.user.update({
-                  where: { email },
-                  data: { passwordHash: await hashPassword(password) },
-                });
-              }
-            } else if (!password) {
-              return null;
-            } else {
-              user = await prisma.user.update({
-                where: { email },
-                data: { passwordHash: await hashPassword(password) },
-              });
-            }
-          } else {
+           if (user) {
+             if (user.passwordHash) {
+               const valid = await verifyPassword(password, user.passwordHash);
+               if (!valid) return null;
+             } else if (!password) {
+               return null;
+             } else {
+               user = await prisma.user.update({
+                 where: { email },
+                 data: { passwordHash: await hashPassword(password) },
+               });
+             }
+           } else {
             if (!password) return null;
             user = await prisma.user.create({
               data: {
