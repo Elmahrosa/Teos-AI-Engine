@@ -35,7 +35,7 @@
 
 Built for **founders, creators, and agencies** who need to produce consistent, on-brand content at scale without hiring a content team.
 
-Key differentiator: **Egyptian sovereign infrastructure.** All data processing, AI inference, and storage operates within Egyptian jurisdiction. No third-party data leakage. No foreign cloud exposure. Your content stays yours.
+Key differentiator: **Sovereign AI architecture.** Choose your AI provider (Anthropic Claude or OpenAI GPT-4o), deploy your database in your preferred jurisdiction, and select your deployment target to achieve data sovereignty.
 
 ```
 Prompt → AI Engine → Platform-Optimized Post → Scheduled → Published
