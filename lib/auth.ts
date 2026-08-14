@@ -17,6 +17,62 @@ function makeid(): string {
   ).join("");
 }
 
+// Extracted authorize function for testability
+export async function authorizeCredentials(credentials: any) {
+  if (!credentials?.email) return null;
+  try {
+    const email = credentials.email.toString().trim().toLowerCase();
+    const password = credentials.password?.toString() || "";
+    const name = credentials.name?.toString().trim() || email.split("@")[0];
+
+    let user = await prisma.user.findUnique({ where: { email } });
+
+     if (user) {
+       if (user.passwordHash) {
+         const valid = await verifyPassword(password, user.passwordHash);
+         if (!valid) return null;
+       } else if (!password) {
+         return null;
+       } else {
+         user = await prisma.user.update({
+           where: { email },
+           data: { passwordHash: await hashPassword(password) },
+         });
+       }
+     } else {
+      if (!password) return null;
+      user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          role: "user",
+          plan: "free",
+          passwordHash: await hashPassword(password),
+        },
+      });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() },
+    });
+
+    await createAuditLog(user.id, "login", { email, method: "credentials" });
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      plan: user.plan,
+      trialEndsAt: user.trialEndsAt ? user.trialEndsAt.toISOString() : null,
+      isAdmin: user.isAdmin,
+    } as any;
+  } catch {
+    return null;
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   secret: secret || makeid(),
   adapter: PrismaAdapter(prisma),
@@ -63,58 +119,7 @@ export const authOptions: NextAuthOptions = {
         name: { label: "Name", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email) return null;
-        try {
-          const email = credentials.email.toString().trim().toLowerCase();
-          const password = credentials.password?.toString() || "";
-          const name = credentials.name?.toString().trim() || email.split("@")[0];
-
-          let user = await prisma.user.findUnique({ where: { email } });
-
-           if (user) {
-             if (user.passwordHash) {
-               const valid = await verifyPassword(password, user.passwordHash);
-               if (!valid) return null;
-             } else if (!password) {
-               return null;
-             } else {
-               user = await prisma.user.update({
-                 where: { email },
-                 data: { passwordHash: await hashPassword(password) },
-               });
-             }
-           } else {
-            if (!password) return null;
-            user = await prisma.user.create({
-              data: {
-                email,
-                name,
-                role: "user",
-                plan: "free",
-                passwordHash: await hashPassword(password),
-              },
-            });
-          }
-
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastActiveAt: new Date() },
-          });
-
-          await createAuditLog(user.id, "login", { email, method: "credentials" });
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-            plan: user.plan,
-            trialEndsAt: user.trialEndsAt ? user.trialEndsAt.toISOString() : null,
-            isAdmin: user.isAdmin,
-          } as any;
-        } catch {
-          return null;
-        }
+        return authorizeCredentials(credentials);
       },
     }),
   ],

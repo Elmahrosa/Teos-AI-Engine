@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start -p ${PORT:-3000}",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.64",
@@ -14,7 +15,6 @@
     "@anthropic-ai/sdk": "^0.27.0",
     "@auth/prisma-adapter": "^2.11.1",
     "@neondatabase/serverless": "^1.1.0",
-
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.7.0",
     "@upstash/ratelimit": "^2.0.8",
@@ -35,13 +35,20 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@jest/globals": "^30.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
     "@types/bcryptjs": "^2.4.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^10.2.0",
+    "eslint": "^9.39.5",
     "eslint-config-next": "^16.2.4",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "prisma": "^7.7.0",
+    "ts-jest": "^29.4.12",
     "typescript": "^5"
   },
   "type": "module"
