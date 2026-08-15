@@ -41,11 +41,11 @@ fi
 
 echo ""
 echo "================================================"
-echo "  Ready. Push to trigger Vercel deploy:"
+echo "  Ready. Push to trigger deploy (Railway GitHub Integration):"
 echo "  git add -A && git commit -m \"update\" && git push"
 echo "================================================"
 echo ""
-echo "Required Vercel env vars:"
+echo "Required env vars:"
 echo "  DATABASE_URL"
 echo "  NEXTAUTH_SECRET"
 echo "  OPENAI_API_KEY"

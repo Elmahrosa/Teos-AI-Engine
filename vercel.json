@@ -1,5 +1,0 @@
-{
-  "installCommand": "npm ci",
-  "buildCommand": "npx prisma migrate deploy && npm run build",
-  "outputDirectory": ".next"
-}

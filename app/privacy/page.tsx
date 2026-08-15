@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <li><strong>Dodo Payments</strong> — payment processing. Your payment data is handled by Dodo under their privacy policy.</li>
           <li><strong>NextAuth.js</strong> — authentication and session management.</li>
           <li><strong>Neon (PostgreSQL)</strong> — primary database hosting.</li>
-          <li><strong>Vercel</strong> — hosting and deployment platform.</li>
+          <li><strong>Railway</strong> — hosting and deployment platform.</li>
           <li><strong>OpenAI API</strong> — AI content generation (prompts only, no personal data).</li>
           <li><strong>Upstash (Redis)</strong> — seat counter and caching.</li>
         </ul>

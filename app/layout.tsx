@@ -83,7 +83,7 @@ export const metadata: Metadata = {
       author: {
         "@type": "Organization",
         name: "Teos Network",
-        url: "https://teos-ai-engine.vercel.app",
+        url: siteUrl,
       },
     }),
   },

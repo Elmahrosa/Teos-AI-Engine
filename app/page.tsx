@@ -133,7 +133,7 @@ const PRICING_TIERS = [
 
 // ─── Share URL ────────────────────────────────────────────────────────────────
 function buildShareUrl(platform: string, text: string): string {
-  const url = "https://teos-ai-engine.vercel.app";
+  const url = process.env.NEXT_PUBLIC_APP_URL || "https://ai.teosegypt.com";
   const encoded = encodeURIComponent(text.slice(0, 280));
   const encodedUrl = encodeURIComponent(url);
   switch (platform) {

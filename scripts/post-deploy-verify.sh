@@ -3,7 +3,7 @@
 # Usage: bash scripts/post-deploy-verify.sh <domain>
 set -eo pipefail
 
-DOMAIN="${1:-https://teos-ai-engine.vercel.app}"
+DOMAIN="${1:-https://ai.teosegypt.com}"
 PASS=0
 FAIL=0
 
