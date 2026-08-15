@@ -18,9 +18,9 @@ jest.mock('@/lib/prisma', () => {
 jest.mock('@/lib/password');
 jest.mock('@/lib/session');
 
-const mockedHashPassword = hashPassword as jest.Mocked<typeof hashPassword>;
-const mockedVerifyPassword = verifyPassword as jest.Mocked<typeof verifyPassword>;
-const mockedCreateAuditLog = createAuditLog as jest.Mocked<typeof createAuditLog>;
+const mockedHashPassword = jest.mocked(hashPassword);
+const mockedVerifyPassword = jest.mocked(verifyPassword);
+const mockedCreateAuditLog = jest.mocked(createAuditLog);
 
 describe('lib/auth.ts - authorizeCredentials', () => {
   const mockEmail = 'test@example.com';

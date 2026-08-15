@@ -25,7 +25,12 @@ jest.mock('@/lib/prisma', () => {
 });
 jest.mock('@/lib/trace');
 
-const mockedGenerateRequestId = generateRequestId as jest.Mocked<typeof generateRequestId>;
+const userFindUnique = prisma.user.findUnique as jest.Mock;
+const userUpdate = prisma.user.update as jest.Mock;
+const transactionCreate = prisma.transaction.create as jest.Mock;
+const transactionFindUnique = prisma.transaction.findUnique as jest.Mock;
+const auditLogCreate = prisma.auditLog.create as jest.Mock;
+const mockedGenerateRequestId = jest.mocked(generateRequestId);
 
 describe('lib/billing.ts - provisionPlan', () => {
   const mockEmail = 'test@example.com';
@@ -39,8 +44,8 @@ describe('lib/billing.ts - provisionPlan', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGenerateRequestId.mockReturnValue(mockRequestId);
-    // Use Jest's built-in mock timers
-    jest.useFakeTimers('modern');
+    // Use Jest's built-in mock timers (modern is the default in Jest 30)
+    jest.useFakeTimers();
     jest.setSystemTime(mockNow);
   });
 
@@ -51,7 +56,7 @@ describe('lib/billing.ts - provisionPlan', () => {
   describe('successful provisioning', () => {
     it('should successfully provision a plan for existing user', async () => {
       // Mock existing user
-      prisma.user.findUnique.mockResolvedValue({
+      userFindUnique.mockResolvedValue({
         id: 'user_123',
         email: mockEmail.toLowerCase(),
         plan: 'free',
@@ -71,7 +76,7 @@ describe('lib/billing.ts - provisionPlan', () => {
         createdAt: mockNow,
         updatedAt: mockNow,
       };
-      prisma.transaction.create.mockResolvedValue(mockTransaction);
+      transactionCreate.mockResolvedValue(mockTransaction);
       // Mock user.update
       const mockUpdatedUser = {
         id: 'user_123',
@@ -83,7 +88,7 @@ describe('lib/billing.ts - provisionPlan', () => {
         planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         updatedAt: mockNow,
       };
-      prisma.user.update.mockResolvedValue(mockUpdatedUser);
+      userUpdate.mockResolvedValue(mockUpdatedUser);
       // Mock auditLog.create
       const mockAuditLog = {
         id: 'log_123',
@@ -93,17 +98,12 @@ describe('lib/billing.ts - provisionPlan', () => {
         ip: null,
         createdAt: mockNow,
       };
-      prisma.auditLog.create.mockResolvedValue(mockAuditLog);
+      auditLogCreate.mockResolvedValue(mockAuditLog);
       // Mock $transaction to return results in the same order as the operations
-      prisma.$transaction.mockImplementation(async (operations) => {
-        // operations is an array of 3 Prisma operation objects:
-        // [user.update, transaction.create, auditLog.create]
-        // We need to execute them and return their results in the same order
-        const userUpdateResult = await operations[0];
-        const transactionCreateResult = await operations[1];
-        const auditLogCreateResult = await operations[2];
-        return [userUpdateResult, transactionCreateResult, auditLogCreateResult];
-      });
+      const transactionRunner = prisma.$transaction as jest.Mock;
+      transactionRunner.mockImplementation((operations: unknown[]) =>
+        Promise.all(operations.map((op) => Promise.resolve(op)))
+      );
 
       const result = await provisionPlan({
         email: mockEmail,
@@ -122,7 +122,7 @@ describe('lib/billing.ts - provisionPlan', () => {
       });
 
       // Verify user was updated
-      expect(prisma.user.update).toHaveBeenCalledWith({
+      expect(userUpdate).toHaveBeenCalledWith({
         where: { id: 'user_123' },
         data: expect.objectContaining({
           plan: mockPlanId,
@@ -135,7 +135,7 @@ describe('lib/billing.ts - provisionPlan', () => {
       });
 
       // Verify transaction was created
-      expect(prisma.transaction.create).toHaveBeenCalledWith({
+      expect(transactionCreate).toHaveBeenCalledWith({
         data: {
           userId: 'user_123',
           gateway: mockGateway,
@@ -150,7 +150,7 @@ describe('lib/billing.ts - provisionPlan', () => {
       });
 
       // Verify audit log was created
-      expect(prisma.auditLog.create).toHaveBeenCalledWith({
+      expect(auditLogCreate).toHaveBeenCalledWith({
         data: {
           userId: 'user_123',
           action: 'plan-upgraded',
@@ -169,7 +169,7 @@ describe('lib/billing.ts - provisionPlan', () => {
 
     it('should handle existing user without duplicate payment (free to pro)', async () => {
       // Mock existing user on free plan with some credits
-      prisma.user.findUnique.mockResolvedValue({
+      userFindUnique.mockResolvedValue({
         id: 'user_123',
         email: mockEmail.toLowerCase(),
         plan: 'free',
@@ -191,7 +191,7 @@ describe('lib/billing.ts - provisionPlan', () => {
         createdAt: mockNow,
         updatedAt: mockNow,
       };
-      prisma.transaction.create.mockResolvedValue(mockTransaction);
+      transactionCreate.mockResolvedValue(mockTransaction);
 
       // Mock user.update
       const mockUpdatedUser = {
@@ -204,7 +204,7 @@ describe('lib/billing.ts - provisionPlan', () => {
         planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         updatedAt: mockNow,
       };
-      prisma.user.update.mockResolvedValue(mockUpdatedUser);
+      userUpdate.mockResolvedValue(mockUpdatedUser);
 
       // Mock auditLog.create
       const mockAuditLog = {
@@ -215,15 +215,13 @@ describe('lib/billing.ts - provisionPlan', () => {
         ip: null,
         createdAt: mockNow,
       };
-      prisma.auditLog.create.mockResolvedValue(mockAuditLog);
+      auditLogCreate.mockResolvedValue(mockAuditLog);
 
       // Mock $transaction
-      prisma.$transaction.mockImplementation(async (operations) => {
-        const userUpdateResult = await operations[0];
-        const transactionCreateResult = await operations[1];
-        const auditLogCreateResult = await operations[2];
-        return [userUpdateResult, transactionCreateResult, auditLogCreateResult];
-      });
+      const transactionRunner = prisma.$transaction as jest.Mock;
+      transactionRunner.mockImplementation((operations: unknown[]) =>
+        Promise.all(operations.map((op) => Promise.resolve(op)))
+      );
 
       const result = await provisionPlan({
         email: mockEmail,
@@ -242,7 +240,7 @@ describe('lib/billing.ts - provisionPlan', () => {
       });
 
       // Verify user was updated (not created)
-      expect(prisma.user.update).toHaveBeenCalledWith({
+      expect(userUpdate).toHaveBeenCalledWith({
         where: { id: 'user_123' },
         data: expect.objectContaining({
           plan: mockPlanId,
@@ -254,7 +252,7 @@ describe('lib/billing.ts - provisionPlan', () => {
         }),
       });
       // Ensure user.findUnique was called (we didn't mock create, but ensure it's not called implicitly)
-      expect(prisma.user.findUnique).toHaveBeenCalled();
+      expect(userFindUnique).toHaveBeenCalled();
     });
   });
 
@@ -266,7 +264,7 @@ describe('lib/billing.ts - provisionPlan', () => {
         userId: 'user_123',
         creditsAdded: 1000,
       };
-      prisma.transaction.findUnique.mockResolvedValue(mockExistingTx);
+      transactionFindUnique.mockResolvedValue(mockExistingTx);
 
       const result = await provisionPlan({
         email: mockEmail,
@@ -285,10 +283,10 @@ describe('lib/billing.ts - provisionPlan', () => {
       });
 
       // Verify no user or transaction creation happened
-      expect(prisma.user.findUnique).not.toHaveBeenCalled();
-      expect(prisma.user.update).not.toHaveBeenCalled();
-      expect(prisma.transaction.create).not.toHaveBeenCalled();
-      expect(prisma.auditLog.create).not.toHaveBeenCalled();
+      expect(userFindUnique).not.toHaveBeenCalled();
+      expect(userUpdate).not.toHaveBeenCalled();
+      expect(transactionCreate).not.toHaveBeenCalled();
+      expect(auditLogCreate).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
   });
@@ -296,9 +294,9 @@ describe('lib/billing.ts - provisionPlan', () => {
   describe('error handling', () => {
     it('should throw BillingError for user not found', async () => {
       // Mock user not found
-      prisma.user.findUnique.mockResolvedValue(null);
+      userFindUnique.mockResolvedValue(null);
       // Ensure no duplicate transaction
-      prisma.transaction.findUnique.mockResolvedValue(null);
+      transactionFindUnique.mockResolvedValue(null);
 
       await expect(
         provisionPlan({
@@ -313,10 +311,10 @@ describe('lib/billing.ts - provisionPlan', () => {
 
     it('should propagate unexpected errors from user.findUnique', async () => {
       // Mock unexpected error in findUnique
-      prisma.user.findUnique.mockRejectedValueOnce(
+      userFindUnique.mockRejectedValueOnce(
         new Error('Database connection failed')
       );
-      prisma.transaction.findUnique.mockResolvedValue(null);
+      transactionFindUnique.mockResolvedValue(null);
 
       await expect(
         provisionPlan({
@@ -331,13 +329,13 @@ describe('lib/billing.ts - provisionPlan', () => {
 
     it('should propagate unexpected errors from transaction.findUnique', async () => {
       // Mock user found
-      prisma.user.findUnique.mockResolvedValueOnce({
+      userFindUnique.mockResolvedValueOnce({
         id: 'user_123',
         email: mockEmail.toLowerCase(),
         plan: 'free',
       });
       // Mock unexpected error in transaction.findUnique
-      prisma.transaction.findUnique.mockRejectedValueOnce(
+      transactionFindUnique.mockRejectedValueOnce(
         new Error('Transaction lookup failed')
       );
 
