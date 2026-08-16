@@ -32,6 +32,16 @@ jobs:
       - name: Run readiness audit
         run: ./codex_audit.sh
 
+      - name: Verify secret
+        env:
+          AUDIT_TOOLS_PAT: ${{ secrets.AUDIT_TOOLS_PAT }}
+        run: |
+          if [ -z "${AUDIT_TOOLS_PAT:-}" ]; then
+            echo "::error::AUDIT_TOOLS_PAT secret is EMPTY"
+            exit 1
+          fi
+          echo "AUDIT_TOOLS_PAT present (length ${#AUDIT_TOOLS_PAT})"
+
       - name: Commit audit data
         env:
           AUDIT_TOOLS_PAT: ${{ secrets.AUDIT_TOOLS_PAT }}
