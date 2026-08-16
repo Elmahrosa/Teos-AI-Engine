@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Repo Audit — Elmahrosa</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><span class="dot">⬢</span> <span id="repo-name">Repository</span></h1>
+      <div class="subtitle">Self-audit by <b>codex_audit.sh</b> · Elmahrosa org</div>
+    </div>
+    <div class="actions">
+      <button id="theme-btn">☾ Dark</button>
+      <span class="badge" id="updated-badge"><span class="pulse"></span><span id="updated-text">loading…</span></span>
+      <button id="refresh-btn">↻ Refresh</button>
+    </div>
+  </header>
+
+  <div id="error"></div>
+  <div id="empty">
+    <h2>No audit data yet</h2>
+    <p>Run the <code>audit-self</code> workflow (Actions → audit-self → Run workflow) to generate <code>docs/data/latest.jsonl</code>.</p>
+  </div>
+
+  <div class="hero" id="hero" style="display:none">
+    <div class="score-card">
+      <div class="score-num" id="score">—</div>
+      <div class="lbl">Health score</div>
+      <div id="tier-pill"></div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="panel" id="checks-panel" style="display:none">
+    <h2>Readiness checks</h2>
+    <div class="checks" id="checks"></div>
+  </div>
+
+  <div class="panel" id="chart-panel" style="display:none">
+    <h2>Commit trajectory — last 12 weeks</h2>
+    <div class="chart-box"><canvas id="chart"></canvas></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
