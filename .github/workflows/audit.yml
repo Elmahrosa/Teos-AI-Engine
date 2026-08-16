@@ -41,6 +41,7 @@ jobs:
             exit 1
           fi
           echo "AUDIT_TOOLS_PAT present (length ${#AUDIT_TOOLS_PAT})"
+          echo "token user: $(curl -fsSL -H "Authorization: Bearer $AUDIT_TOOLS_PAT" https://api.github.com/user | jq -r .login)"
 
       - name: Commit audit data
         env:
