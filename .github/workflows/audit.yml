@@ -1,0 +1,36 @@
+name: audit-self
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch codex_audit.sh from audit-tools
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/Elmahrosa/elmahrosa-org/main/audit-tools/codex_audit.sh" -o codex_audit.sh
+          chmod +x codex_audit.sh
+
+      - name: Run readiness audit
+        run: ./codex_audit.sh
+
+      - name: Commit audit data
+        run: |
+          git config user.name "audit-hub-bot"
+          git config user.email "actions@github.com"
+          git add audit-data/ docs/data/
+          if git diff --cached --quiet; then
+            echo "No audit data changes"
+          else
+            git commit -m "chore: refresh audit data [skip ci]"
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"
+          fi
