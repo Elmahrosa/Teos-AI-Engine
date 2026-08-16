@@ -47,13 +47,18 @@ jobs:
         env:
           AUDIT_TOOLS_PAT: ${{ secrets.AUDIT_TOOLS_PAT }}
         run: |
+          set -e
           git config user.name "audit-hub-bot"
           git config user.email "actions@github.com"
           git add audit-data/ docs/data/
           if git diff --cached --quiet; then
             echo "No audit data changes"
-          else
-            git commit -m "chore: refresh audit data [skip ci]"
-            PUSH_TOKEN="${AUDIT_TOOLS_PAT:-$GITHUB_TOKEN}"
-            git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"
+            exit 0
           fi
+          git commit -m "chore: refresh audit data [skip ci]"
+          git config --get-all http.https://github.com/.extraheader >/dev/null 2>&1 \
+            && echo "DEBUG extraheader PRESENT before unset" \
+            || echo "DEBUG extraheader ABSENT before unset"
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
+          PUSH_TOKEN="${AUDIT_TOOLS_PAT:-$GITHUB_TOKEN}"
+          git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"
